@@ -50,7 +50,8 @@ def make_hypernym_entries(h):
 
     for line in source["Mentions"]:
         for word in str(line).split("|"):
-            entries[word] = "_" + h + "_"
+            if len(word) > 2 and " " not in word:
+                entries[word] = "_" + h + "_"
 
     return entries
 

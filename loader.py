@@ -17,7 +17,8 @@ def load_civic_abstracts():
         print("downloading summaries...")
         civic = read_civic()
         print("downloading abstracts...")
-        abstracts = get_abstracts(get_pm_ids(civic))
+        pm_ids = get_pm_ids(civic)
+        abstracts = get_abstracts(pm_ids)
         print("download complete.")
         with open("civic_abstracts.pickle", "wb") as f:
             pickle.dump((civic, abstracts), f)
@@ -31,7 +32,7 @@ def read_civic(path=""):
     return pd.read_csv(path, sep='\t')
 
 def get_pm_ids(df):
-    return list(map(str, df["pubmed_id"]))
+    return [str(id) for id in df["pubmed_id"]]
 
 def get_abstracts(idlist):
     handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
