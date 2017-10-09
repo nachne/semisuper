@@ -58,22 +58,3 @@ for pa in preprocessed_abstracts[0:20]:
 
 for ps in preprocessed_summaries[0:20]:
     print(ps)
-
-
-# obsolete
-
-def load_url(url, timeout):
-    with urllib.request.urlopen(url, timeout=timeout) as conn:
-        return conn.read()
-
-
-def get_pubmed(id, timeout=60):
-    prefix = ("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
-              "?db=pubmed&retmode=text&rettype=medline&id=")
-    text = load_url(prefix + id, timeout)
-    return medline_to_df(text)
-
-
-def medline_to_df(text):
-    record = Medline.read(text)
-    return record
