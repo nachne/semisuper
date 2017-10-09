@@ -20,6 +20,7 @@ class HypernymMapper(WordReplacer):
 
 
 def load_hypernyms():
+    """read hypernym dict from disk or build from tsv files"""
     try:
         with open("hypernyms.pickle", "rb") as f:
             hypernyms = pickle.load(f)
