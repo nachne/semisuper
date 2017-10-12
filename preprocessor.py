@@ -59,25 +59,22 @@ def re_replace(token):
 
     # ranges, (in)equalities, multiples
     if re.findall("^-?\d*\.?\d+--?\d*\.?\d+$", token):
-        return "_num_range_"
-    if re.findall("[a-zA-Z]=\d", token):
-        return "_var_eq_"
+        return "_range_"
     if re.findall("[a-zA-Z][=<>≤≥]\d", token):
-        return "_var_ineq_"
+        return "_ineq_"
     if re.findall("^\d+-fold$", token):
         return "_n_fold_"
     if re.findall("^\d+/\d+$|^\d+:\d+$", token):
         return "_ratio_"
 
     # units
+    if re.findall("^\d*((kg|g|mg|ug|ng)|(m|cm|mm|um|nm)|(l|ml|cl|ul|mol|mumol))$", token):
+        return ("_unit_")
     # percentages, negative percentages
     if re.findall("^\d*\.?\d*%$", token):
         return "_ratio_"
     if re.findall("^-\d+\.?\d*%$", token):
         return "_ratio_"
-
-    if re.findall("^\d*((kg|g|mg|ug|ng)|(m|cm|mm|um|nm)|(l|ml|cl|ul|mol|mumol))$", token):
-        return ("_unit_")
 
     # abbreviations starting with a letter and continues with digits and optional letters
     m = re.findall("^([a-zA-Z])[a-zA-Z]*-?\w*\d+", token)
@@ -87,16 +84,16 @@ def re_replace(token):
     # numbers
     if re.findall("^(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
                   "hundred|thousand|first|second|third|1st|2nd|3rd|\d+-?th)$", token):
-        return "_num_word_"
-
+        return "_num_"
+    # positive and negative ints and floats
     if re.findall("^\d+$", token):
-        return "_int_"
+        return "_num_"
     if re.findall("^-\d+$", token):
-        return "_neg_int_"
+        return "_num_"
     if re.findall("^\d*\.\d+$", token):
-        return "_float_"
+        return "_num_"
     if re.findall("^-\d*\.\d+$", token):
-        return "_neg_float_"
+        return "_num_"
 
     # misc.
     if re.findall("^(v|V)(s|S)\.?$|^(v|V)ersus$", token):
