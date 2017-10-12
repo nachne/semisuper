@@ -7,3 +7,7 @@ def flatten(l):
 
 def take(n, iterable):
     return list(islice(iterable, n))
+
+
+def identity(x):
+    return x

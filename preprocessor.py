@@ -9,9 +9,10 @@ from helpers import take, flatten
 import timeit
 
 import string
+import re
 from sklearn.base import BaseEstimator, TransformerMixin
 import nltk
-from nltk import wordpunct_tokenize
+from nltk import TreebankWordTokenizer, WhitespaceTokenizer, RegexpTokenizer, wordpunct_tokenize
 from nltk import sent_tokenize
 from nltk import pos_tag
 
@@ -22,12 +23,13 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
         self.strip = strip
         self.punct = punct or set(string.punctuation)
         self.mapper = HypernymMapper()
+        self.tokenizer = TreebankWordTokenizer()
 
     def fit(self, X, y=None):
         return self
 
     def inverse_transform(self, X):
-        return [" ".join(doc) for doc in X]
+        return [", ".join(doc) for doc in X]
 
     def transform(self, X):
         return [
@@ -36,12 +38,15 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
 
     def tokenize(self, sentence):
         # Break the sentence into part of speech tagged tokens
-        for token, tag in pos_tag(wordpunct_tokenize(sentence)):
+
+        for token, tag in pos_tag(self.tokenizer.tokenize(sentence)):
             # Apply preprocessing to the token
-            token = self.mapper.replace(token)
+            # token = self.mapper.replace(token)
+            token = re_replace(token)
             token = token.lower() if self.lower else token
             token = token.strip() if self.strip else token
             token = token.strip('*') if self.strip else token
+            token = token.strip('.') if self.strip else token
 
             # If punctuation, ignore token and continue
             if all(char in self.punct for char in token):
@@ -49,12 +54,60 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
 
             yield token
 
+def re_replace(token):
+    """replaces abbreviations matching simple REs, e.g. for numbers, percentages, gene names, by class tokens"""
+
+    # ranges, (in)equalities, multiples
+    if re.findall("^-?\d*\.?\d+--?\d*\.?\d+$", token):
+        return "_num_range_"
+    if re.findall("[a-zA-Z]=\d", token):
+        return "_var_eq_"
+    if re.findall("[a-zA-Z][=<>≤≥]\d", token):
+        return "_var_ineq_"
+    if re.findall("^\d+-fold$", token):
+        return "_n_fold_"
+    if re.findall("^\d+/\d+$|^\d+:\d+$", token):
+        return "_ratio_"
+
+    # units
+    # percentages, negative percentages
+    if re.findall("^\d*\.?\d*%$", token):
+        return "_ratio_"
+    if re.findall("^-\d+\.?\d*%$", token):
+        return "_ratio_"
+
+    if re.findall("^\d*((kg|g|mg|ug|ng)|(m|cm|mm|um|nm)|(l|ml|cl|ul|mol|mumol))$", token):
+        return ("_unit_")
+
+    # abbreviations starting with a letter and continues with digits and optional letters
+    m = re.findall("^([a-zA-Z])[a-zA-Z]*-?\w*\d+", token)
+    if m:
+        return "_abbrev_"
+
+    # numbers
+    if re.findall("^(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+                  "hundred|thousand|first|second|third|1st|2nd|3rd|\d+-?th)$", token):
+        return "_num_word_"
+
+    if re.findall("^\d+$", token):
+        return "_int_"
+    if re.findall("^-\d+$", token):
+        return "_neg_int_"
+    if re.findall("^\d*\.\d+$", token):
+        return "_float_"
+    if re.findall("^-\d*\.\d+$", token):
+        return "_neg_float_"
+
+    # misc.
+    if re.findall("^(v|V)(s|S)\.?$|^(v|V)ersus$", token):
+        return "vs"
+
+    return token
 
 # -----------------------------------------------------------------------------
 # non-OO version
 
 hyper_mapper = HypernymMapper()
-
 
 def preprocess_text(text, mapper=hyper_mapper):
     """text -> list of preprocessed sentences"""
@@ -102,7 +155,7 @@ def preprocess_civic():
 # execute (Test)
 
 def dummy_test():
-    ppsums, ppabss = sentences_civic_abstracts()
+    ppsums, ppabss = loader.sentences_civic_abstracts()
 
     for pps in ppsums[0:20]:
         print(pps)

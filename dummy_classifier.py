@@ -6,13 +6,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, 
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.cross_validation import train_test_split as tts
 from operator import itemgetter
+from helpers import identity
 
 from preprocessor import BasicPreprocessor
 import pickle
 
 
-def identity(x):
-    return x
 
 
 def build_and_evaluate(X, y,
@@ -40,7 +39,8 @@ def build_and_evaluate(X, y,
     y = labels.fit_transform(y)
 
     # Begin evaluation
-    if verbose: print("Building for evaluation")
+    if verbose:
+        print("Building for evaluation")
     X_train, X_test, y_train, y_test = tts(X, y, test_size=0.2)
     model = build(classifier, X_train, y_train)
 
@@ -65,7 +65,7 @@ def build_and_evaluate(X, y,
     return model
 
 
-def show_most_informative_features(model, text=None, n=20):
+def show_most_informative_features(model: object, text: object = None, n: object = 40) -> object:
     """
     Accepts a Pipeline with a classifer and a TfidfVectorizer and computes
     the n most informative features of the model. If text is given, then will
