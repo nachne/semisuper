@@ -1,16 +1,20 @@
 import pickle
 import multiprocessing as multi
 import pandas as pd
+from nltk.corpus import wordnet, stopwords
+
 
 # concept mapping
 
 class WordReplacer(object):
-  def __init__(self, word_map):
-    self.word_map = word_map
-  def replace(self, word):
-    return self.word_map.get(word, word)
-  def replace_all(self, words):
-    return [self.replace(w) for w in words]
+    def __init__(self, word_map):
+        self.word_map = word_map
+
+    def replace(self, word):
+        return self.word_map.get(word, word)
+
+    def replace_all(self, words):
+        return [self.replace(w) for w in words]
 
 
 class HypernymMapper(WordReplacer):
@@ -33,6 +37,7 @@ def load_hypernyms():
             print("built hypernym dict and wrote to disk.")
     return hypernyms
 
+
 def build_hypernym_dict():
     concepts = ["chemical", "disease", "gene", "mutation"]
 
@@ -43,18 +48,22 @@ def build_hypernym_dict():
     for d in dicts[1:]:
         dict.update(d)
 
-    return(dict)
+    return (dict)
+
 
 def make_hypernym_entries(h):
     entries = {}
     source = pd.read_csv("./" + h + "2pubtator", sep='\t', dtype=str)
 
+    common_words = set(stopwords.words('english'))
+
     for line in source["Mentions"]:
         for word in str(line).split("|"):
-            if len(word) > 2 and " " not in word:
+            # only include single words not appearing in normal language
+            if not (" " in word
+                    or word in common_words
+                    or word in entries
+                    or wordnet.synsets(word)):
                 entries[word] = "_" + h + "_"
 
     return entries
-
-
-

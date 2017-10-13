@@ -25,6 +25,7 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
         self.mapper = HypernymMapper()
         self.tokenizer = TreebankWordTokenizer()
 
+
     def fit(self, X, y=None):
         return self
 
@@ -32,16 +33,18 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
         return [", ".join(doc) for doc in X]
 
     def transform(self, X):
-        return [
-            list(self.tokenize(sentence)) for sentence in X
-        ]
+        return [self.representation(sentence) for sentence in X]
+
+    def representation(self, sentence):
+        tokens_tags = list(self.tokenize(sentence))
+        return [t for (t,p) in tokens_tags]
 
     def tokenize(self, sentence):
         # Break the sentence into part of speech tagged tokens
 
         for token, tag in pos_tag(self.tokenizer.tokenize(sentence)):
             # Apply preprocessing to the token
-            # token = self.mapper.replace(token)
+            token = self.mapper.replace(token)
             token = re_replace(token)
             token = token.lower() if self.lower else token
             token = token.strip() if self.strip else token
@@ -52,7 +55,7 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
             if all(char in self.punct for char in token):
                 continue
 
-            yield token
+            yield token, tag
 
 def re_replace(token):
     """replaces abbreviations matching simple REs, e.g. for numbers, percentages, gene names, by class tokens"""
@@ -68,7 +71,7 @@ def re_replace(token):
         return "_ratio_"
 
     # units
-    if re.findall("^\d*((kg|g|mg|ug|ng)|(m|cm|mm|um|nm)|(l|ml|cl|ul|mol|mumol))$", token):
+    if re.findall("^\d*((kg|g|mg|ug|ng)|(m|cm|mm|um|nm)|(l|ml|cl|ul|mol|mmol|mumol))$", token):
         return ("_unit_")
     # percentages, negative percentages
     if re.findall("^\d*\.?\d*%$", token):
@@ -90,9 +93,9 @@ def re_replace(token):
         return "_num_"
     if re.findall("^-\d+$", token):
         return "_num_"
-    if re.findall("^\d*\.\d+$", token):
+    if re.findall("^\d*\.\d+$|^\d+\.\d*$", token):
         return "_num_"
-    if re.findall("^-\d*\.\d+$", token):
+    if re.findall("^-\d*\.\d+$|^-\d+\.\d*$", token):
         return "_num_"
 
     # misc.

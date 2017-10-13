@@ -8,19 +8,14 @@ import pandas as pd
 
 civic, abstracts = loader.sentences_civic_abstracts()
 
-civic = [re.sub("((T|t)he\s+)*(A|a)uthors", "we", c) for c in civic]
-
-# abstracts = [a for a in filter(lambda x: len(x.split(" ")) < 4, abstracts)]
-# print(abstracts)
-
 print("CIViC sentences:", len(civic))
 print("abstract sentences:", len(abstracts))
 
 piboso = loader.sentences_piboso_other()
 print("PIBOSO sentences:", len(piboso))
 
-pos = random.sample(civic, 6000)
-neg = random.sample(abstracts, 6000)
+pos = random.sample(civic, 2000)
+neg = random.sample(abstracts, 2000)
 
 X = pos + neg
 y = ["pos"] * len(pos) + ["neg"] * len(neg)

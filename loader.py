@@ -4,6 +4,7 @@ from Bio import Medline, Entrez
 import multiprocessing as multi
 from helpers import flatten
 import nltk
+import re
 
 # TODO delete personal e-mail
 # needed for querying PubMed API
@@ -22,9 +23,12 @@ def sentences_civic_abstracts():
 
     with multi.Pool(processes=multi.cpu_count()) as p:
         summary_sentences = flatten(p.map(nltk.sent_tokenize, civic["evidence_statement"]))
-        abstract_sentences = flatten(p.map(nltk.sent_tokenize, abstracts["abstract"]))
+        summary_authors2we = [authors2we(s) for s in set(summary_sentences)
+                              if len(s) > 6]
+        abstract_sentences = [s for s in flatten(p.map(nltk.sent_tokenize, abstracts["abstract"]))
+                              if len(s) > 6]
 
-    return summary_sentences, abstract_sentences
+    return summary_authors2we, abstract_sentences
 
 
 def sentences_piboso_other():
@@ -99,6 +103,9 @@ def get_abstracts(idlist):
 
 # ----------------------------------------------------------------
 # ----------------------------------------------------------------
+
+def authors2we(sentence):
+    return re.sub("((T|t)he\s+)*(A|a)uthors", "we", sentence)
 
 def sentences_piboso(include=["study design"], exclude=[]):
     """loads PIBOSO sentences where predictions are true for any included class and false for all excluded, from csv"""
