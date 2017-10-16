@@ -1,62 +1,62 @@
-import preprocessor
-import dummy_classifier
+import preprocessors
+import dummy_pipeline
 import pickle
-import loader
+import loaders
 import random
 import re
 import pandas as pd
 
-civic, abstracts = loader.sentences_civic_abstracts()
+civic, abstracts = loaders.sentences_civic_abstracts()
 
 print("CIViC sentences:", len(civic))
 print("abstract sentences:", len(abstracts))
 
-piboso = loader.sentences_piboso_other()
+piboso = loaders.sentences_piboso_other()
 print("PIBOSO sentences:", len(piboso))
 
-pos = random.sample(civic, 2000)
-neg = random.sample(abstracts, 2000)
+pos = random.sample(civic, 2000) + random.sample(loaders.sentences_piboso_outcome(), 0)
+neg = random.sample(abstracts, 2000) + random.sample(loaders.sentences_piboso_other(), 0)
 
 X = pos + neg
 y = ["pos"] * len(pos) + ["neg"] * len(neg)
 
 # comment out for quick testing of existing model
-model = dummy_classifier.build_and_evaluate(X, y, outpath="./dummy_clf.pickle")
+model = dummy_pipeline.build_and_evaluate(X, y)  # , outpath="./dummy_clf.pickle")
 
-print(dummy_classifier.show_most_informative_features(model))
+print(dummy_pipeline.show_most_informative_features(model))
 
 # ----------------------------------------------------------------
 
-# pickle classifier
+# unpickle classifier
 # with open('./dummy_clf.pickle', 'rb') as f:
 #     model = pickle.load(f)
 
-preppy = preprocessor.BasicPreprocessor()
+preppy = preprocessors.BasicPreprocessor()
 
-lab_civ = pd.DataFrame(data={"Label": model.predict(civic),
-                             "Text": civic,
+lab_civ = pd.DataFrame(data={"Label" : model.predict(civic),
+                             "Text"  : civic,
                              "Tokens": preppy.transform(civic)},
                        columns=["Label", "Text", "Tokens"])
 
 lab_civ.to_csv("./labelled_civic.csv")
 
-lab_abs = pd.DataFrame(data={"Label": model.predict(abstracts),
-                             "Text": abstracts,
+lab_abs = pd.DataFrame(data={"Label" : model.predict(abstracts),
+                             "Text"  : abstracts,
                              "Tokens": preppy.transform(abstracts)},
                        columns=["Label", "Text", "Tokens"])
 
 lab_abs.to_csv("./labelled_abstracts.csv")
 
-lab_oth = pd.DataFrame(data={"Label": model.predict(loader.sentences_piboso_other()),
-                             "Text": loader.sentences_piboso_other(),
-                             "Tokens": preppy.transform(loader.sentences_piboso_other())},
+lab_oth = pd.DataFrame(data={"Label" : model.predict(loaders.sentences_piboso_other()),
+                             "Text"  : loaders.sentences_piboso_other(),
+                             "Tokens": preppy.transform(loaders.sentences_piboso_other())},
                        columns=["Label", "Text", "Tokens"])
 
 lab_oth.to_csv("./labelled_other.csv")
 
-lab_out = pd.DataFrame(data={"Label": model.predict(loader.sentences_piboso_outcome()),
-                             "Text": loader.sentences_piboso_outcome(),
-                             "Tokens": preppy.transform(loader.sentences_piboso_outcome())},
+lab_out = pd.DataFrame(data={"Label" : model.predict(loaders.sentences_piboso_outcome()),
+                             "Text"  : loaders.sentences_piboso_outcome(),
+                             "Tokens": preppy.transform(loaders.sentences_piboso_outcome())},
                        columns=["Label", "Text", "Tokens"])
 
 lab_out.to_csv("./labelled_outcome.csv")
@@ -115,11 +115,11 @@ print("civic: prediction", sum(lab_civ["Label"].values), "/", len(civic))
 yhat2 = lab_abs
 print("abstracts: prediction", sum(lab_abs["Label"].values), "/", len(yhat2))
 
-yhat3 = model.predict(loader.sentences_piboso_pop_bg_oth())
+yhat3 = model.predict(loaders.sentences_piboso_pop_bg_oth())
 print("piboso pop bg oth: prediction", sum(yhat3), "/", len(yhat3))
 
-yhat4 = model.predict(loader.sentences_piboso_other())
+yhat4 = model.predict(loaders.sentences_piboso_other())
 print("piboso other: prediction", sum(yhat4), "/", len(yhat4))
 
-yhat5 = model.predict(loader.sentences_piboso_outcome())
+yhat5 = model.predict(loaders.sentences_piboso_outcome())
 print("piboso outcome: prediction", sum(yhat5), "/", len(yhat5))

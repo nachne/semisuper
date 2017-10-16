@@ -2,8 +2,8 @@ import pandas as pd
 import pickle
 from Bio import Medline, Entrez
 import multiprocessing as multi
+import preprocessors as preproc
 from helpers import flatten
-import nltk
 import re
 
 # TODO delete personal e-mail
@@ -11,10 +11,12 @@ import re
 Entrez.email = 'wackerbm@informatik.hu-berlin.de'
 
 
-# reading CIViC summaries and corresponding abstracts from PubMed
+# ----------------------------------------------------------------
+# top-level
+# ----------------------------------------------------------------
 
 def sentences_civic_abstracts():
-    """load CIViC summaries and corresponding abstracts, return one list of sentences each"""
+    """load CIViC summaries and corresponding PubMed abstracts, return one list of sentences each"""
 
     civic, abstracts = load_civic_abstracts()
 
@@ -22,11 +24,9 @@ def sentences_civic_abstracts():
     print("No. of abstracts:\t", len(abstracts))
 
     with multi.Pool(processes=multi.cpu_count()) as p:
-        summary_sentences = flatten(p.map(nltk.sent_tokenize, civic["evidence_statement"]))
-        summary_authors2we = [authors2we(s) for s in set(summary_sentences)
-                              if len(s) > 6]
-        abstract_sentences = [s for s in flatten(p.map(nltk.sent_tokenize, abstracts["abstract"]))
-                              if len(s) > 6]
+        summary_sentences = flatten(p.map(preproc.sentence_tokenize, civic["evidence_statement"]))
+        summary_authors2we = [authors2we(s) for s in set(summary_sentences)]
+        abstract_sentences = [s for s in flatten(p.map(preproc.sentence_tokenize, abstracts["abstract"]))]
 
     return summary_authors2we, abstract_sentences
 
@@ -35,6 +35,7 @@ def sentences_piboso_other():
     """load negative sentences (labelled as OTHER) from PIBOSO"""
     return list(sentences_piboso(include=["other"]))
 
+
 def sentences_piboso_pop_bg_oth():
     """load negative sentences from PIBOSO
 
@@ -42,12 +43,14 @@ def sentences_piboso_pop_bg_oth():
     return list(sentences_piboso(include=["other", "background", "population"],
                                  exclude=["outcome"]))
 
+
 def sentences_piboso_outcome():
     """load OUTCOME sentences from PIBOSO"""
     return list(sentences_piboso(include=["outcome"]))
 
 
 # ----------------------------------------------------------------
+# CIViC and PubMed helpers
 # ----------------------------------------------------------------
 
 def load_civic_abstracts():
@@ -85,7 +88,7 @@ def read_civic(path=""):
 
 def get_pm_ids(df):
     """get PubMed IDs in CIViC dataframe"""
-    return list({str(id) for id in df["pubmed_id"]})
+    return list({str(idx) for idx in df["pubmed_id"]})
 
 
 def get_abstracts(idlist):
@@ -102,13 +105,11 @@ def get_abstracts(idlist):
 
 
 # ----------------------------------------------------------------
+# PIBOSO helpers
 # ----------------------------------------------------------------
 
-def authors2we(sentence):
-    return re.sub("((T|t)he\s+)*(A|a)uthors", "we", sentence)
-
 def sentences_piboso(include=["study design"], exclude=[]):
-    """loads PIBOSO sentences where predictions are true for any included class and false for all excluded, from csv"""
+    """loads PIBOSO sentences from any included but no excluded class from csv, with normalized abbreviations"""
     piboso = pd.read_csv("piboso_train.csv")
     predictions = piboso['Prediction'].values
     texts = piboso['Text'].values
@@ -116,19 +117,28 @@ def sentences_piboso(include=["study design"], exclude=[]):
     include_ids = [piboso_category_offset(c) for c in include]
     exclude_ids = [piboso_category_offset(c) for c in exclude]
 
-    for i in range(0, len(predictions)-6, 6):
-        if (any(predictions[i+id] for id in include_ids)
+    for i in range(0, len(predictions) - 6, 6):
+        if (any(predictions[i + idx] for idx in include_ids)
             and not
-            any(predictions[i+id] for id in exclude_ids)):
-            yield (texts[i])
+            any(predictions[i + idx] for idx in exclude_ids)):
+            yield (preproc.prenormalize(texts[i]))
 
 
 def piboso_category_offset(category):
-    indices = {"background": 0,
+    """maps category names to their line offset in PIBOSO file"""
+    indices = {"background"  : 0,
                "intervention": 1,
-               "population": 2,
-               "outcome": 3,
-               "other": 4,
+               "population"  : 2,
+               "outcome"     : 3,
+               "other"       : 4,
                "study design": 5,
                "study_design": 5}
     return indices[category]
+
+
+# ----------------------------------------------------------------
+# ----------------------------------------------------------------
+
+def authors2we(sentence):
+    """replaces \"(the) authors\" by \"we\" in a text to mitigate 3rd person perspective of summaries"""
+    return re.sub("([Tt]he\s+)*[Aa]uthors", "we", sentence)

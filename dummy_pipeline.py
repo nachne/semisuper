@@ -1,21 +1,24 @@
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import SGDClassifier
+from sklearn import svm, naive_bayes
 from sklearn.metrics import classification_report as clsr
 from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.cross_validation import train_test_split as tts
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.model_selection import train_test_split as tts
 from operator import itemgetter
 from helpers import identity
 
-from preprocessor import BasicPreprocessor
+from preprocessors import BasicPreprocessor
 import pickle
 
 
-
-
 def build_and_evaluate(X, y,
-                       classifier=SGDClassifier, outpath=None, verbose=True):
+                       classifier=naive_bayes.MultinomialNB(alpha=1.0,
+                                                            class_prior=None,
+                                                            fit_prior=True),
+                       outpath=None, verbose=True):
     def build(classifier, X, y=None):
         """
         Inner build function that builds a single model.
@@ -25,10 +28,17 @@ def build_and_evaluate(X, y,
 
         model = Pipeline([
             ('preprocessor', BasicPreprocessor()),
-            ('vectorizer', TfidfVectorizer(
-                tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 4)
+            ('vectorizer', FeatureUnion(transformer_list=[
+                ("words", TfidfVectorizer(
+                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+                 ),
+                ("stats", FeatureNamePipeline([
+                    ("stats", TextStats()),
+                    ("vect", DictVectorizer())
+                ]))
+            ]
             )),
-            ('classifier', classifier),
+            ('classifier', classifier)
         ])
 
         model.fit(X, y)
@@ -45,7 +55,6 @@ def build_and_evaluate(X, y,
     model = build(classifier, X_train, y_train)
 
     if verbose:
-        # print("Evaluation model fit in {:0.3f} seconds".format(secs))
         print("Classification Report:\n")
 
     y_pred = model.predict(X_test)
@@ -79,9 +88,9 @@ def show_most_informative_features(model: object, text: object = None, n: object
     # Check to make sure that we can perform this computation
     if not hasattr(classifier, 'coef_'):
         raise TypeError(
-            "Cannot compute most informative features on {} model.".format(
-                classifier.__class__.__name__
-            )
+                "Cannot compute most informative features on {} model.".format(
+                        classifier.__class__.__name__
+                )
         )
 
     if text is not None:
@@ -93,8 +102,8 @@ def show_most_informative_features(model: object, text: object = None, n: object
 
     # Zip the feature names with the coefs and sort
     coefs = sorted(
-        zip(tvec[0], vectorizer.get_feature_names()),
-        key=itemgetter(0), reverse=True
+            zip(tvec[0], vectorizer.get_feature_names()),
+            key=itemgetter(0), reverse=True
     )
 
     topn = zip(coefs[:n], coefs[:-(n + 1):-1])
@@ -111,7 +120,31 @@ def show_most_informative_features(model: object, text: object = None, n: object
     # Create two columns with most negative and most positive features.
     for (cp, fnp), (cn, fnn) in topn:
         output.append(
-            "{:0.4f}{: >15}    {:0.4f}{: >15}".format(cp, fnp, cn, fnn)
+                "{:0.4f}{: >15}    {:0.4f}{: >15}".format(cp, fnp, cn, fnn)
         )
 
     return "\n".join(output)
+
+
+class FeatureNamePipeline(Pipeline):
+    def get_feature_names(self):
+        return self._final_estimator.get_feature_names()
+
+
+class TextStats(BaseEstimator, TransformerMixin):
+    """Extract features from tokenized document for DictVectorizer
+
+    inverse_length: 1/(number of tokens)
+    """
+
+    key_dict = {'inverse_length': 'inverse_length'}
+
+    def fit(self, X=None, y=None):
+        return self
+
+    def transform(self, token_lists):
+        for tl in token_lists:
+            yield {'inverse_length': (1.0 / len(tl) if tl else 1.0)}
+
+    def get_feature_names(self):
+        return list(self.key_dict.keys())

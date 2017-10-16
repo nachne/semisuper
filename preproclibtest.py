@@ -1,12 +1,10 @@
-import loader
+import loaders
 
 import ccg_nlpy
 from ccg_nlpy import TextAnnotation, TestPipelineNLPy, TextAnnotation_pb2
 from ccg_nlpy import remote_pipeline
 
-
-
-civ, abs = loader.sentences_civic_abstracts()
+civ, abs = loaders.sentences_civic_abstracts()
 
 # pipeline = remote_pipeline.RemotePipeline()
 # doc = pipeline.doc(civ[0])
@@ -15,4 +13,3 @@ civ, abs = loader.sentences_civic_abstracts()
 # print(doc.get_ner_ontonotes)
 # print(doc.get_stanford_dependency_parse)
 # print()
-
