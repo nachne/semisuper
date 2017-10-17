@@ -1,28 +1,37 @@
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, Normalizer, normalize
 from sklearn.linear_model import SGDClassifier
 from sklearn import svm, naive_bayes
+from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
+from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import classification_report as clsr
 from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import train_test_split as tts
 from operator import itemgetter
 from helpers import identity
-
-from preprocessors import BasicPreprocessor
+from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
 import pickle
 
 
 def build_and_evaluate(X, y,
-                       classifier=naive_bayes.MultinomialNB(alpha=1.0,
-                                                            class_prior=None,
-                                                            fit_prior=True),
-                       outpath=None, verbose=True):
+                       MNB=naive_bayes.MultinomialNB(alpha=1.0,
+                                                     class_prior=None,
+                                                     fit_prior=True),
+                       SVC=svm.SVC(probability=True, kernel="linear"),
+                       SGD=SGDClassifier(n_jobs=-1, loss="modified_huber"),
+                       classifier=None,
+                       lemma=True,
+                       outpath=None,
+                       verbose=True):
     def build(classifier, X, y=None):
         """
         Inner build function that builds a single model.
         """
+
+        if not classifier:
+            classifier = SGD
+
         if isinstance(classifier, type):
             classifier = classifier()
 
@@ -126,25 +135,7 @@ def show_most_informative_features(model: object, text: object = None, n: object
     return "\n".join(output)
 
 
-class FeatureNamePipeline(Pipeline):
-    def get_feature_names(self):
-        return self._final_estimator.get_feature_names()
+# ----------------------------------------------------------------
+# ----------------------------------------------------------------
+# ----------------------------------------------------------------
 
-
-class TextStats(BaseEstimator, TransformerMixin):
-    """Extract features from tokenized document for DictVectorizer
-
-    inverse_length: 1/(number of tokens)
-    """
-
-    key_dict = {'inverse_length': 'inverse_length'}
-
-    def fit(self, X=None, y=None):
-        return self
-
-    def transform(self, token_lists):
-        for tl in token_lists:
-            yield {'inverse_length': (1.0 / len(tl) if tl else 1.0)}
-
-    def get_feature_names(self):
-        return list(self.key_dict.keys())

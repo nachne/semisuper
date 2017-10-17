@@ -1,20 +1,25 @@
 import string
 import re
+from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 import nltk
 from nltk import TreebankWordTokenizer, WhitespaceTokenizer, RegexpTokenizer, wordpunct_tokenize
 from nltk import sent_tokenize
 from nltk import pos_tag
+from nltk.corpus import wordnet as wn
+from nltk import WordNetLemmatizer
 from dict_matchers import HypernymMapper
 
 
 class BasicPreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, punct=None, lower=True, strip=True):
+    def __init__(self, punct=None, lower=True, strip=True, lemmatize=False):
         self.lower = lower
         self.strip = strip
         self.punct = punct or set(string.punctuation)
+        self.lemma = lemmatize
         self.dict_mapper = HypernymMapper()
         self.tokenizer = TreebankWordTokenizer()
+        self.lemmatizer = WordNetLemmatizer()
 
     def fit(self, X, y=None):
         return self
@@ -30,22 +35,46 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
         return [t for (t, p) in tokens_tags]
 
     def tokenize(self, sentence):
-        # Break the sentence into part of speech tagged tokens
+        """break sentence into pos-tagged tokens; normalize and split on hyphens"""
+
+        # extremely short sentences shall be ignored by next steps
+        if len(sentence) < 6:
+            return []
 
         for token, tag in pos_tag(self.tokenizer.tokenize(sentence)):
             # Apply preprocessing to the token
-            token = self.dict_mapper.replace(token)
-            token = map_regex_concepts(token)
-            token = token.lower() if self.lower else token
-            token = token.strip() if self.strip else token
-            token = token.strip('*') if self.strip else token
-            token = token.strip('.') if self.strip else token
+            token_nrm = self.normalize_token(token, tag)
+            subtokens = [self.normalize_token(t, tag) for t in token_nrm.split("-")]
 
-            # If punctuation, ignore token and continue
-            if all(char in self.punct for char in token):
-                continue
+            for subtoken in subtokens:
 
-            yield token, tag
+                # If punctuation, ignore token and continue
+                if all(char in self.punct for char in token):
+                    continue
+
+                yield subtoken, tag
+
+    def normalize_token(self, token, tag):
+        # Apply preprocessing to the token
+        token = self.dict_mapper.replace(token)
+        token = map_regex_concepts(token)
+        token = token.lower() if self.lower else token
+        token = token.strip() if self.strip else token
+        token = token.strip('*') if self.strip else token
+        token = token.strip('.') if self.strip else token
+        if self.lemma:
+            token = self.lemmatize(token, tag)
+        return token
+
+    def lemmatize(self, token, tag):
+        tag = {
+            'N': wn.NOUN,
+            'V': wn.VERB,
+            'R': wn.ADV,
+            'J': wn.ADJ
+        }.get(tag[0], wn.NOUN)
+
+        return self.lemmatizer.lemmatize(token, tag)
 
 
 def map_regex_concepts(token):
@@ -101,6 +130,8 @@ def sentence_tokenize(text):
     return sent_tokenize(prenormalize(text))
 
 
+# TODO: detect and isolate headlines?
+# TODO: switch from dict to hardcoded to capture following lower-cases?
 def prenormalize(text):
     """normalize common abbreviations and symbols known to mess with sentence boundary disambiguation"""
     for regex in prenormalize_dict.keys():
@@ -129,4 +160,31 @@ prenormalize_dict = {
     re.compile("\W[Qq]\.i\.\d\.\s"): " qid ",
     # bracket complications
     re.compile("\.\s*\).")         : ").",
+    # double dots
+    re.compile("(\.\s*\.)+")       : "."
 }
+
+
+class FeatureNamePipeline(Pipeline):
+    def get_feature_names(self):
+        return self._final_estimator.get_feature_names()
+
+
+# TODO make piped class from this and DictVectorize
+class TextStats(BaseEstimator, TransformerMixin):
+    """Extract features from tokenized document for DictVectorizer
+
+    inverse_length: 1/(number of tokens)
+    """
+
+    key_dict = {'inverse_length': 'inverse_length'}
+
+    def fit(self, X=None, y=None):
+        return self
+
+    def transform(self, token_lists):
+        for tl in token_lists:
+            yield {'inverse_length': (1.0 / len(tl) if tl else 1.0)}
+
+    def get_feature_names(self):
+        return list(self.key_dict.keys())

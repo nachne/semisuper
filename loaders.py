@@ -2,7 +2,7 @@ import pandas as pd
 import pickle
 from Bio import Medline, Entrez
 import multiprocessing as multi
-import preprocessors as preproc
+import transformers as preproc
 from helpers import flatten
 import re
 

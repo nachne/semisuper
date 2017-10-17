@@ -1,8 +1,11 @@
-import preprocessors
+import transformers
 import dummy_pipeline
+from pu_one_class_svm import one_class_svm
+from pu_ranking import ranking_cos_sim
 import pickle
 import loaders
 import random
+from operator import itemgetter
 import re
 import pandas as pd
 
@@ -11,14 +14,84 @@ civic, abstracts = loaders.sentences_civic_abstracts()
 print("CIViC sentences:", len(civic))
 print("abstract sentences:", len(abstracts))
 
-piboso = loaders.sentences_piboso_other()
-print("PIBOSO sentences:", len(piboso))
+piboso_other = loaders.sentences_piboso_other()
+piboso_outcome = loaders.sentences_piboso_outcome()
 
-pos = random.sample(civic, 2000) + random.sample(loaders.sentences_piboso_outcome(), 0)
-neg = random.sample(abstracts, 2000) + random.sample(loaders.sentences_piboso_other(), 0)
+print("PIBOSO sentences:", len(piboso_other))
+
+pos = random.sample(civic, 2000) + random.sample(piboso_outcome, 0)
+neg = random.sample(abstracts, 2000) + random.sample(piboso_other, 0)
 
 X = pos + neg
 y = ["pos"] * len(pos) + ["neg"] * len(neg)
+
+
+
+# ------------------
+# cosine-ranking Test
+
+print("\n\n"
+      "COSINE RANKING TEST\n"
+      "-------------------\n")
+
+ranking = ranking_cos_sim(civic)
+
+civ_lab_sim = sorted(zip(ranking.predict_proba(civic)[0], civic), key=itemgetter(0), reverse=True)
+# print("ranking civic prediction", sum([x for x in civ_lab_sim if x > (0 ]), "/", len(civ_lab_sim))
+print("\ncivic top-12")
+[print(x) for x in (civ_lab_sim[0:12])]
+print("civic bot-12")
+[print(x) for x in (civ_lab_sim[-12:])]
+
+abs_lab_sim = sorted(zip(ranking.predict_proba(abstracts)[0], abstracts), key=itemgetter(0), reverse=True)
+# print("ranking abstracts prediction", sum([x for x in abs_lab_sim if x > (0 ]), "/", len(abs_lab_sim))
+print("\nabstracts top-12")
+[print(x) for x in (abs_lab_sim[0:12])]
+print("abstracts bot-12")
+[print(x) for x in (abs_lab_sim[-12:])]
+
+oth_lab_sim = sorted(zip(ranking.predict_proba(piboso_other)[0], piboso_other), key=itemgetter(0), reverse=True)
+# print("ranking piboso-other prediction", sum([x for x in oth_lab_sim if x > (0 ]), "/", len(oth_lab_sim))
+print("\npiboso other top-12")
+[print(x) for x in (oth_lab_sim[0:12])]
+print("piboso other bot-12")
+[print(x) for x in (oth_lab_sim[-12:])]
+
+out_lab_sim = sorted(zip(ranking.predict_proba(piboso_outcome)[0], piboso_outcome), key=itemgetter(0), reverse=True)
+# print("ranking piboso-outcome prediction", sum([x for x in out_lab_sim if x > (0 ]), "/", len(out_lab_sim))
+print("\npiboso outcome top-12")
+[print(x) for x in (out_lab_sim[0:12])]
+print("piboso outcome bot-12")
+[print(x) for x in (out_lab_sim[-12:])]
+print("\n")
+
+# ------------------
+# one-class SVM Test
+
+print("\n\n"
+      "ONE-CLASS SVM TEST\n"
+      "------------------\n")
+
+one_class = one_class_svm(civic, kernel="rbf")
+
+abs_lab_1cl = one_class.predict(abstracts)
+print("1-class svm abstracts prediction", sum([x for x in abs_lab_1cl if x > 0 ]), "/", len(abs_lab_1cl))
+
+civ_lab_1cl = one_class.predict(civic)
+print("1-class svm civic prediction", sum([x for x in civ_lab_1cl if x > 0 ]), "/", len(civ_lab_1cl))
+
+oth_lab_1cl = one_class.predict(piboso_other)
+print("1-class svm piboso-other prediction", sum([x for x in oth_lab_1cl if x > 0 ]), "/", len(oth_lab_1cl))
+
+out_lab_1cl = one_class.predict(piboso_outcome)
+print("1-class svm piboso-outcome prediction", sum([x for x in out_lab_1cl if x > 0 ]), "/", len(out_lab_1cl))
+
+# ----------------------------------------------------------------
+# CIViC vs abstracts normal classifier test
+
+print("\n\n"
+      "SUPERVISED CIVIC VS ABSTRACTS TEST\n"
+      "----------------------------------\n")
 
 # comment out for quick testing of existing model
 model = dummy_pipeline.build_and_evaluate(X, y)  # , outpath="./dummy_clf.pickle")
@@ -31,7 +104,7 @@ print(dummy_pipeline.show_most_informative_features(model))
 # with open('./dummy_clf.pickle', 'rb') as f:
 #     model = pickle.load(f)
 
-preppy = preprocessors.BasicPreprocessor()
+preppy = transformers.BasicPreprocessor()
 
 lab_civ = pd.DataFrame(data={"Label" : model.predict(civic),
                              "Text"  : civic,
@@ -47,16 +120,16 @@ lab_abs = pd.DataFrame(data={"Label" : model.predict(abstracts),
 
 lab_abs.to_csv("./labelled_abstracts.csv")
 
-lab_oth = pd.DataFrame(data={"Label" : model.predict(loaders.sentences_piboso_other()),
-                             "Text"  : loaders.sentences_piboso_other(),
-                             "Tokens": preppy.transform(loaders.sentences_piboso_other())},
+lab_oth = pd.DataFrame(data={"Label" : model.predict(piboso_other),
+                             "Text"  : piboso_other,
+                             "Tokens": preppy.transform(piboso_other)},
                        columns=["Label", "Text", "Tokens"])
 
 lab_oth.to_csv("./labelled_other.csv")
 
-lab_out = pd.DataFrame(data={"Label" : model.predict(loaders.sentences_piboso_outcome()),
-                             "Text"  : loaders.sentences_piboso_outcome(),
-                             "Tokens": preppy.transform(loaders.sentences_piboso_outcome())},
+lab_out = pd.DataFrame(data={"Label" : model.predict(piboso_outcome),
+                             "Text"  : piboso_outcome,
+                             "Tokens": preppy.transform(piboso_outcome)},
                        columns=["Label", "Text", "Tokens"])
 
 lab_out.to_csv("./labelled_outcome.csv")
@@ -66,7 +139,7 @@ lab_out.to_csv("./labelled_outcome.csv")
 
 # ----------------------------------------------------------------
 
-yhat = model.predict([
+yhat = model.predict_proba([
     "Practical limitations to inducing neural regeneration are also addressed.",
     "The effects of glucocorticoids, lazeroids, gangliosides, opiate antagonists, calcium channel blockers, "
     "glutamate receptor antagonists, antioxidants, free radical scavengers, and other pharmacological agents in both "
@@ -123,3 +196,4 @@ print("piboso other: prediction", sum(yhat4), "/", len(yhat4))
 
 yhat5 = model.predict(loaders.sentences_piboso_outcome())
 print("piboso outcome: prediction", sum(yhat5), "/", len(yhat5))
+
