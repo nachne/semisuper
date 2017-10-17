@@ -13,6 +13,8 @@ from helpers import identity
 from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
 import pickle
 
+# TODO find params that give less horrible results
+# TODO get rid of redundancies
 def one_class_svm(X, X_test=None, y_test=None, outpath=None, verbose=True,
                   kernel="rbf", degree=3, shrinking=True):
     def build(X):

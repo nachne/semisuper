@@ -14,6 +14,7 @@ from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
 import pickle
 
 # TODO: generate proper results (compute meaningful threshold)
+# TODO (refactor): get rid of redundancies with a nice interface
 def ranking_cos_sim(X, X_test=None, y_test=None, threshold=0.1, X_thresh=True):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 

@@ -21,7 +21,6 @@ def build_and_evaluate(X, y,
                        SVC=svm.SVC(probability=True, kernel="linear"),
                        SGD=SGDClassifier(n_jobs=-1, loss="modified_huber"),
                        classifier=None,
-                       lemma=True,
                        outpath=None,
                        verbose=True):
     def build(classifier, X, y=None):

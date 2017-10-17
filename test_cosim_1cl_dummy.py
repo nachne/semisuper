@@ -111,28 +111,28 @@ lab_civ = pd.DataFrame(data={"Label" : model.predict(civic),
                              "Tokens": preppy.transform(civic)},
                        columns=["Label", "Text", "Tokens"])
 
-lab_civ.to_csv("./labelled_civic.csv")
+lab_civ.to_csv("./labelled_dummy_civic.csv")
 
 lab_abs = pd.DataFrame(data={"Label" : model.predict(abstracts),
                              "Text"  : abstracts,
                              "Tokens": preppy.transform(abstracts)},
                        columns=["Label", "Text", "Tokens"])
 
-lab_abs.to_csv("./labelled_abstracts.csv")
+lab_abs.to_csv("./labelled_dummy_abstracts.csv")
 
 lab_oth = pd.DataFrame(data={"Label" : model.predict(piboso_other),
                              "Text"  : piboso_other,
                              "Tokens": preppy.transform(piboso_other)},
                        columns=["Label", "Text", "Tokens"])
 
-lab_oth.to_csv("./labelled_other.csv")
+lab_oth.to_csv("./labelled_dummy_other.csv")
 
 lab_out = pd.DataFrame(data={"Label" : model.predict(piboso_outcome),
                              "Text"  : piboso_outcome,
                              "Tokens": preppy.transform(piboso_outcome)},
                        columns=["Label", "Text", "Tokens"])
 
-lab_out.to_csv("./labelled_outcome.csv")
+lab_out.to_csv("./labelled_dummy_outcome.csv")
 
 # save sentences with predicted labels to csv
 
