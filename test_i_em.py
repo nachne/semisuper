@@ -21,14 +21,11 @@ piboso_outcome = loaders.sentences_piboso_outcome()
 
 print("PIBOSO sentences:", len(piboso_other))
 
-# pos = random.sample(civic, 0) + random.sample(piboso_outcome, 0)
-# neg = random.sample(abstracts, 0) + random.sample(piboso_other, 0)
 P = civic
 U = abstracts
 
-X = P + U
-y = ["pos"] * len(P) + ["neg"] * len(U)
-
+P = random.sample(civic, 1000) + random.sample(piboso_outcome, 0)
+# U = random.sample(abstracts, 0) + random.sample(piboso_other, 0)
 
 # ------------------
 # I-EM-Test
@@ -40,11 +37,11 @@ print("\n\n"
 
 start_time = time.time()
 
-model = pu_two_step.expectation_maximization(P, U, max_pos_ratio=0.3)
+model = pu_two_step.expectation_maximization(P, U, max_pos_ratio=0.3, max_imbalance=1.0)
 
 print("\nEM took %s seconds\n" % (time.time() - start_time))
 
-print(dummy_pipeline.show_most_informative_features(model))
+# print(dummy_pipeline.show_most_informative_features(model))
 
 # ----------------------------------------------------------------
 

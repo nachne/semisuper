@@ -13,46 +13,68 @@ from random import sample
 from helpers import identity
 import numpy as np
 from numpy import array_equal as equal
-from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
 import pickle
 
+from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
+from simple_nb import proba_label_MNB
 
+
+# TODO: PROPERLY ADJUST PROBABILITIES INSTEAD OF LABELS
 # TODO: wrapper method that finds appropriate max_imbalance
-# (e.g. bisection method starting from 1.0 and |U|/|P|,
+# (e.g. bisection method starting from 1.0 and |U|/|P+N|,
 # satisfied when ratio of positively labelled u in U is in [0.1, 0.5]
 # Alternative: some minimum positive ratio as stopping criterion
 # Alternative: yield (model, ratio) so caller can choose desired one
-def expectation_maximization(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5):
-    """iterate NB classifier with updated labels for unlabelled set (initially negative) until convergence
+def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_pos_ratio=0.5):
+    """EM algorithm for positive set P, unlabelled set U and (optional) negative set N
 
-    if U is much larger than P, randomly samples to max_imbalance-fold of |P|"""
+    iterate NB classifier with updated labels for unlabelled set (initially negative) until convergence
+    if U is much larger than L=P+N, randomly samples to max_imbalance-fold of |L|"""
 
-    if len(U) > max_imbalance * len(P):
-        U = sample(U, int(max_imbalance * len(P)))
+    if N:
+        L = P + N
+        y_L = np.concatenate(np.array([1] * len(P)),
+                             np.array([0] * len(N)))
+    else:
+        L = P
+        y_L = np.array([1] * len(P))
 
-    y_P = np.array([1] * len(P))
-    y_U = np.array([0] * len(U))
-    y_U_old = -1
+    if len(U) > max_imbalance * len(L):
+        U = sample(U, int(max_imbalance * len(L)))
+
+    ypU = np.array([0] * len(U))
+    ypU_old = -1
     iterations = 0
+    model = None
 
-    while not equal(y_U_old, y_U):
-        model = build_model(P + U, np.concatenate((y_P, y_U)), classifier=naive_bayes.MultinomialNB(alpha=1.0))
+    while not equal(ypU_old, ypU):
+        model = build_model(L + U, np.concatenate((y_L, ypU)))
 
-        y_U_old = y_U
-        y_U = model.predict(U)
+        ypU_old = ypU
+        ypU = model.predict_proba(U)
 
         iterations += 1
 
-        pos_ratio = sum(y_U) / len(U)
+        predU = model.predict(U)
+        pos_ratio = sum(predU) / len(U)
 
         print("Iteration #", iterations,
-              "\nUnlabelled instances classified as positive:", sum(y_U), "/", len(U),
-              "(", pos_ratio*100, "%)")
+              "\nUnlabelled instances classified as positive:", sum(predU), "/", len(U),
+              "(", pos_ratio * 100, "%)")
 
         if pos_ratio >= max_pos_ratio:
             print("Acceptable ratio of positively labelled sentences in U is reached.")
             break
 
+    # Begin evaluation
+    print("Building for evaluation")
+    X_train, X_test, y_train, y_test = tts(X, y, test_size=0.2)
+    evalmodel = build_model(X_train, y_train)
+
+    print("Classification Report:\n")
+
+    y_pred = evalmodel.predict(X_test)
+    print(clsr(y_test, y_pred))
 
     print("Returning final model")
 
@@ -69,22 +91,17 @@ def expectation_maximization(P, U, outpath=None, max_imbalance=1.5, max_pos_rati
 # general model builder
 
 # TODO: Make versatile module for this and reuse in respective functions
-def build_model(X, y, classifier=naive_bayes.MultinomialNB(alpha=1.0,
-                                                           class_prior=None,
-                                                           fit_prior=True),
+def build_model(X, y,
                 verbose=True):
-    def build(classifier, X, y):
+    def build(X, y):
         """
         Inner build function that builds a single model.
         """
 
-        if isinstance(classifier, type):
-            classifier = classifier()
-
         model = Pipeline([
             ('preprocessor', BasicPreprocessor()),
             ('vectorizer', FeatureUnion(transformer_list=[
-                ("words", TfidfVectorizer(
+                ("words", CountVectorizer(
                         tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
                  )
                 # ,
@@ -94,26 +111,14 @@ def build_model(X, y, classifier=naive_bayes.MultinomialNB(alpha=1.0,
                 # ]))
             ]
             )),
-            ('classifier', classifier)
+            ('classifier', proba_label_MNB(alpha=0.1))
         ])
 
         model.fit(X, y)
         return model
 
-    # Begin evaluation
     if verbose:
-        print("Building for evaluation")
-    X_train, X_test, y_train, y_test = tts(X, y, test_size=0.2)
-    model = build(classifier, X_train, y_train)
-
-    if verbose:
-        print("Classification Report:\n")
-
-    y_pred = model.predict(X_test)
-    print(clsr(y_test, y_pred))
-
-    if verbose:
-        print("Building complete model ...")
-    model = build(classifier, X, y)
+        print("Building model ...")
+    model = build(X, y)
 
     return model
