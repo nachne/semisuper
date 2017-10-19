@@ -1,7 +1,6 @@
 from helpers import prod, positive
 from sklearn.base import BaseEstimator, ClassifierMixin
 import numpy as np
-from scipy.sparse import issparse, csr_matrix
 from scipy.sparse import find
 
 
@@ -12,7 +11,7 @@ from scipy.sparse import find
 class proba_label_MNB(BaseEstimator, ClassifierMixin):
     def __init__(self, alpha=0.1):
         self.classes = [0, 1]
-        self.alpha = alpha
+        self.smoothing = alpha
         return
 
     def fit(self, X, y):
@@ -26,7 +25,8 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
             yp = np.array(y)
 
         self.pr_c = np.array(self.prior_c(yp))
-        self.pr_w = self.prior_w_given_c(np.array(X), yp)
+        self.pr_w = np.array([self.prior_w_given_c(X, yp, self.classes[0]),
+                              self.prior_w_given_c(X, yp, self.classes[1])])
         return self
 
     # Pr[c_j | d_i]: probabilistic Label for a document
@@ -49,31 +49,42 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         return (numerators[0] / denominator, numerators[1] / denominator)
 
     def predict(self, X):
-        return [round(p) for p, n in self.predict_proba(X)]
+        return [round(p) for p,n in self.predict_proba(X)]
 
     # Pr[c_j]: probability of a class label (mean of probabilities per doc)
     def prior_c(self, y):
         """the two classes' prior probabilities: average of training data"""
-        return sum(y) / np.shape(y)[0]
+        return sum(y) / len(y)
 
     # Pr[w_t | c_j]: probability of each attribute, given a class label
-    def prior_w_given_c(self, X, y):
+    def prior_w_given_c(self, X, y, cls=1):
         """prior probabilities per word, given a class"""
+        # select columns of probabilities for class 1 or 0
+        if cls == 1:
+            p_c_given_x = y[:, 1]
+        else:
+            p_c_given_x = y[:, 0]
 
-        # numerators = [self.alpha + np.sum([X[i,idx_w] * p_c_given_x[i] for i in range(np.shape(X)[0])])
-        #               for idx_w in range(np.shape(X)[1])]
 
-        print("shape of X:", np.shape(X), "y:", np.shape(y))
+        numerators = [self.smoothing + sum([X[i][idx_w] * p_c_given_x[i] for i in range(np.shape(X)[0])])
+                      for idx_w in range(np.shape(X)[1])]
 
-        numerators = np.dot(X.transpose(), y).transpose()
+        denominator = sum(numerators)
 
-        # numerators = np.full(np.shape(numerators), self.alpha) + (numerators.todense() if issparse(numerators) else numerators)
+        # TODO this is the fast numpy version that produces wrong results and weird sparse matrix errors
+        # print("shape of X:", np.shape(X), "y:", np.shape(y))
+        #
+        # numerators = np.dot(X.transpose(), y).transpose()
+        #
+        # # numerators = np.full(np.shape(numerators), self.alpha) + (numerators.todense() if issparse(numerators) else numerators)
+        #
+        # denominators = [sum(numerators[0]), sum(numerators[1])]
+        #
+        # print("num:", np.shape(numerators), numerators, "\ndenom 0:", np.shape(denominators), denominators)
+        #
+        # return np.array([numerators[0] / denominators[0], numerators[1] / denominators[1]])
 
-        denominators = [sum(numerators[0]), sum(numerators[1])]
-
-        print("num:", np.shape(numerators), numerators, "\ndenom 0:", np.shape(denominators), denominators)
-
-        return np.array([numerators[0] / denominators[0], numerators[1]/denominators[1]])
+        return numerators / denominator
 
     def label2num(self, label):
         if isinstance(label, (int, float)):

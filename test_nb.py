@@ -6,7 +6,7 @@ from sklearn.metrics import classification_report as clsr
 p_mnb = proba_label_MNB()
 
 X = [[randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1)] for x in range(100000)]
-y = [1.0 if x[1] else 0.0 for x in X]
+y = [1.0 if (x[0] or x[1]) and not (x[3])  else 0.0 for x in X]
 
 
 print("Building for evaluation")
@@ -23,3 +23,5 @@ model = p_mnb.fit(X, y)
 print("labls", y[:100])
 print("probs", model.predict_proba(X[:100]))
 print("preds", model.predict(X[:100]))
+
+print(X[0])
