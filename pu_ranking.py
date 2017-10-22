@@ -27,6 +27,7 @@ def ranking_cos_sim(X, X_test=None, y_test=None, threshold=0.1, X_thresh=True):
             self.min_sim_thresh = min_sim_thresh
             return
 
+
         # TODO dimension mismatch error!
         def fit(self, X, y=None):
             self.mean_X = normalize(X.mean(axis=0))

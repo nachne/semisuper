@@ -9,9 +9,9 @@ from scipy.sparse import find
 # TODO don't use proba tuple per doc, but only pos, if neg is always 1-pos
 
 class proba_label_MNB(BaseEstimator, ClassifierMixin):
-    def __init__(self, alpha=0.1):
+    def __init__(self, alpha=1.):
         self.classes = [0, 1]
-        self.smoothing = alpha
+        self.alpha = alpha
         return
 
     def fit(self, X, y):
@@ -24,9 +24,14 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         else:
             yp = np.array(y)
 
+        print("calculating class prior")
         self.pr_c = np.array(self.prior_c(yp))
+        print(self.pr_c)
+        print("calculating attribute priors")
         self.pr_w = np.array([self.prior_w_given_c(X, yp, self.classes[0]),
                               self.prior_w_given_c(X, yp, self.classes[1])])
+        print(self.pr_w)
+
         return self
 
     # Pr[c_j | d_i]: probabilistic Label for a document
@@ -39,17 +44,15 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         # uses fitted class probability,
         # fitted word probability per class
 
-        numerators = [self.pr_c[j] *
-                      prod(filter(positive,
-                                  x * self.pr_w[j]))
-                      for j in self.classes]
+        numerators = [self.pr_c[0] * prod(filter(positive, x * self.pr_w[0])),
+                      self.pr_c[1] * prod(filter(positive, x * self.pr_w[1]))]
 
         denominator = sum(numerators)
 
         return (numerators[0] / denominator, numerators[1] / denominator)
 
     def predict(self, X):
-        return [round(p) for p,n in self.predict_proba(X)]
+        return [round(p) for p, n in self.predict_proba(X)]
 
     # Pr[c_j]: probability of a class label (mean of probabilities per doc)
     def prior_c(self, y):
@@ -65,11 +68,14 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         else:
             p_c_given_x = y[:, 0]
 
-
-        numerators = [self.smoothing + sum([X[i][idx_w] * p_c_given_x[i] for i in range(np.shape(X)[0])])
+        # TODO bring smoothing back when scipy/numpy problems are solved
+        # self.alpha = 0.
+        numerators = [self.alpha + sum([X[i][idx_w] * p_c_given_x[i] for i in range(np.shape(X)[0])])
                       for idx_w in range(np.shape(X)[1])]
 
         denominator = sum(numerators)
+
+        print("denom:", denominator)
 
         # TODO this is the fast numpy version that produces wrong results and weird sparse matrix errors
         # print("shape of X:", np.shape(X), "y:", np.shape(y))
@@ -88,8 +94,8 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
 
     def label2num(self, label):
         if isinstance(label, (int, float)):
-            return label
+            return 1.0*label
         elif label in ['pos', 'POS', 'Pos', 'positive', 'Positive', 'yes', '1']:
-            return 1
+            return 1.0
         else:
-            return 0
+            return 0.0
