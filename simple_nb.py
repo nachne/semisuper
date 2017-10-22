@@ -2,6 +2,7 @@ from helpers import prod, positive
 from sklearn.base import BaseEstimator, ClassifierMixin
 import numpy as np
 from scipy.sparse import issparse
+from scipy.sparse import csr_matrix
 from scipy.misc import logsumexp
 
 
@@ -24,7 +25,10 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         else:
             yp = np.array(y)
 
-        npX = np.array(X)
+        if issparse(X):
+            npX = X.todense()
+        else:
+            npX = np.array(X)
 
         print("calculating class prior")
         self.pr_c = np.array(self.prior_c(yp))
@@ -52,20 +56,12 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         # print("pr_c_0", self.pr_c[0], "posprobs > 0:", posprobs[np.nonzero(posprobs)], np.prod(posprobs[np.nonzero(posprobs)]))
         # print("pr_c_1", self.pr_c[1], "negprobs > 0:", negprobs[np.nonzero(negprobs)], np.prod(negprobs[np.nonzero(negprobs)]))
 
+        # TODO log-Version so gut wie legacy-Version machen
         # legacy version: numerical issues because numbers are too small!
-        # numerators = [self.pr_c[0] * np.prod(posprobs[np.nonzero(posprobs)]),
-        #              self.pr_c[1] * np.prod(negprobs[np.nonzero(negprobs)])]
+        return proba_nolog(x, self.pr_c, posprobs, negprobs)
 
-
-        numerators = np.exp([np.log(self.pr_c[0]) + np.sum(np.log(posprobs[np.nonzero(posprobs)])),
-                             np.log(self.pr_c[1]) + np.sum(np.log(negprobs[np.nonzero(negprobs)]))])
-
-        denominator = logsumexp(numerators)
-
-        # print("proba(x) numerators", numerators)
-        # print("denominator", denominator)
-
-        return (np.exp(numerators[0] - denominator), np.exp(numerators[1] - denominator))
+        # new version with log probabilities: something is wrong!
+        return proba_log(x, self.pr_c, posprobs, negprobs)
 
     def predict(self, X):
         print("pos probs", [p for p in self.predict_proba(X)])
@@ -95,9 +91,13 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
 
         # TODO weird sparse matrix errors
         #
-        numerators = np.dot(np.array(X).transpose(), p_c_given_x)
-        if (issparse(numerators)):
-            numerators = numerators.todense()
+        numerators = np.dot(X.transpose(), p_c_given_x)
+        print("nums", numerators)
+        print("nums[0]", numerators[0])
+
+        if (issparse(numerators[0])):
+            numerators = numerators.toarray()
+            # numerators = np.array([n.toarray() for n in numerators])
 
         numerators += self.alpha
 
@@ -120,8 +120,28 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
 
     def label2num(self, label):
         if isinstance(label, (int, float)):
-            return 1.0*label
+            return 1.0 * label
         elif label in ['pos', 'POS', 'Pos', 'positive', 'Positive', 'yes', '1']:
             return 1.0
         else:
             return 0.0
+
+
+def proba_log(x, pr_c, posprobs, negprobs):
+    numerators = np.exp([np.log(pr_c[0])
+                         + np.sum(np.log(posprobs[np.nonzero(posprobs)])),
+                         np.log(pr_c[1])
+                         + np.sum(np.log(negprobs[np.nonzero(negprobs)]))])
+    denominator = logsumexp(numerators)
+    # print("proba(x) numerators", numerators)
+    # print("denominator", denominator)
+    return (np.exp(numerators[0] - denominator), np.exp(numerators[1] - denominator))
+
+
+# legacy version: numerical issues because numbers are too small!
+def proba_nolog(x, pr_c, posprobs, negprobs):
+    numerators = [pr_c[0] * np.prod(posprobs[np.nonzero(posprobs)]),
+                  pr_c[1] * np.prod(negprobs[np.nonzero(negprobs)])]
+    denominator = np.sum(numerators)
+
+    return (numerators[0] / denominator, numerators[1] / denominator)

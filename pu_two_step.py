@@ -26,7 +26,7 @@ from simple_nb import proba_label_MNB
 # satisfied when ratio of positively labelled u in U is in [0.1, 0.5]
 # Alternative: some minimum positive ratio as stopping criterion
 # Alternative: yield (model, ratio) so caller can choose desired one
-def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.05):
+def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.05, text=True):
     """EM algorithm for positive set P, unlabelled set U and (optional) negative set N
 
     iterate NB classifier with updated labels for unlabelled set (initially negative) until convergence
@@ -45,7 +45,7 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
 
     ynU = np.array([[0., 1.]] * np.shape(U)[0])
     ypU = np.array([[0., 1.]] * np.shape(U)[0])
-    ypU_old = [[-1,-1]]
+    ypU_old = [[-1, -1]]
     iterations = 0
     model = None
 
@@ -57,11 +57,12 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
 
         print("building new model using probabilistic labels")
         model = build_model(np.concatenate((L, U)),
-                            np.concatenate((y_L, ypU)))
+                            np.concatenate((y_L, ypU)), text=text)
 
         ypU_old = ypU
         print("predicting probabilities for U")
         ypU = model.predict_proba(U)
+        print(ypU)
 
         iterations += 1
 
@@ -69,8 +70,8 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
         predU = [round(p[0]) for p in ypU]
         pos_ratio = sum(predU) / len(U)
 
-        print("\nUnlabelled instances classified as positive:", sum(predU), "/", len(U),
-              "(", pos_ratio * 100, "%)")
+        print("Unlabelled instances classified as positive:", sum(predU), "/", len(U),
+              "(", pos_ratio * 100, "%)\n")
 
         if pos_ratio >= max_pos_ratio:
             print("Acceptable ratio of positively labelled sentences in U is reached.")
@@ -78,11 +79,11 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
 
     # Begin evaluation
     print("Building for evaluation")
-    X_train, X_test, y_train, y_test = tts(np.concatenate((L, U)),
-                                           np.concatenate(([round(x[0]) for x in y_L],
-                                                           [round(x[0]) for x in ynU])),
+    X_train, X_test, y_train, y_test = tts(np.concatenate((P, U)),
+                                           np.concatenate(([1 for x in P],
+                                                           [0 for x in U])),
                                            test_size=0.2)
-    evalmodel = build_model(X_train, y_train)
+    evalmodel = build_model(X_train, y_train, text=text)
 
     print("Classification Report:\n")
 
@@ -105,27 +106,31 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
 
 # TODO: Make versatile module for this and reuse in respective functions
 def build_model(X, y,
-                verbose=True):
+                verbose=True, text=True):
     def build(X, y):
         """
         Inner build function that builds a single model.
         """
-
-        model = Pipeline([
-            # ('preprocessor', BasicPreprocessor()),
-            # ('vectorizer', FeatureUnion(transformer_list=[
-            #     ("words", CountVectorizer(
-            #             tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
-            #      )
-            #     # ,
-            #     # ("stats", FeatureNamePipeline([
-            #     #     ("stats", TextStats()),
-            #     #     ("vect", DictVectorizer())
-            #     # ]))
-            # ]
-            # )),
-            ('classifier', proba_label_MNB(alpha=1))
-        ])
+        if text:
+            model = Pipeline([
+                ('preprocessor', BasicPreprocessor()),
+                ('vectorizer', FeatureUnion(transformer_list=[
+                    ("words", CountVectorizer(
+                            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+                     )
+                    # ,
+                    # ("stats", FeatureNamePipeline([
+                    #     ("stats", TextStats()),
+                    #     ("vect", DictVectorizer())
+                    # ]))
+                ]
+                )),
+                ('classifier', proba_label_MNB(alpha=1))
+            ])
+        else:
+            model = Pipeline([
+                ('classifier', proba_label_MNB(alpha=1))
+            ])
 
         model.fit(X, y)
         return model
@@ -136,9 +141,9 @@ def build_model(X, y,
 
     return model
 
-def almost_equal(pairs1, pairs2, tolerance=0.05):
 
+def almost_equal(pairs1, pairs2, tolerance=0.05):
     zipped = zip(pairs1, pairs2)
-    diffs = [abs(p1[0]-p2[0]) < tolerance and abs(p1[1]-p2[1]) < tolerance
+    diffs = [abs(p1[0] - p2[0]) < tolerance and abs(p1[1] - p2[1]) < tolerance
              for p1, p2 in zipped]
     return all(diffs)
