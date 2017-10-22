@@ -1,7 +1,7 @@
 from helpers import prod, positive
 from sklearn.base import BaseEstimator, ClassifierMixin
 import numpy as np
-from scipy.sparse import find
+from scipy import sparse
 
 
 # equations from "partially supervised classification of text documents"
@@ -9,8 +9,7 @@ from scipy.sparse import find
 # TODO don't use proba tuple per doc, but only pos, if neg is always 1-pos
 
 class proba_label_MNB(BaseEstimator, ClassifierMixin):
-    def __init__(self, alpha=1.):
-        self.classes = [0, 1]
+    def __init__(self, alpha=0.1):
         self.alpha = alpha
         return
 
@@ -24,12 +23,14 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         else:
             yp = np.array(y)
 
+        npX = np.array(X)
+
         print("calculating class prior")
         self.pr_c = np.array(self.prior_c(yp))
         print(self.pr_c)
         print("calculating attribute priors")
-        self.pr_w = np.array([self.prior_w_given_c(X, yp, self.classes[0]),
-                              self.prior_w_given_c(X, yp, self.classes[1])])
+        self.pr_w = np.array([self.prior_w_given_c(npX, yp, cls=0),
+                              self.prior_w_given_c(npX, yp, cls=1)])
         print(self.pr_w)
 
         return self
@@ -57,30 +58,36 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
     # Pr[c_j]: probability of a class label (mean of probabilities per doc)
     def prior_c(self, y):
         """the two classes' prior probabilities: average of training data"""
-        return sum(y) / len(y)
+        return sum(y) / np.shape(y)[0]
 
     # Pr[w_t | c_j]: probability of each attribute, given a class label
     def prior_w_given_c(self, X, y, cls=1):
         """prior probabilities per word, given a class"""
-        # select columns of probabilities for class 1 or 0
-        if cls == 1:
-            p_c_given_x = y[:, 1]
-        else:
-            p_c_given_x = y[:, 0]
 
-        # TODO bring smoothing back when scipy/numpy problems are solved
-        # self.alpha = 0.
-        numerators = [self.alpha + sum([X[i][idx_w] * p_c_given_x[i] for i in range(np.shape(X)[0])])
-                      for idx_w in range(np.shape(X)[1])]
+        # select columns of probabilities for class 1 or 0
+        p_c_given_x = y[:, cls]
+
+        # legacy version
+        # numerators = [self.alpha + sum([X[i][idx_w] * p_c_given_x[i] for i in range(np.shape(X)[0])])
+        #               for idx_w in range(np.shape(X)[1])]
+        #
+        # denominator = sum(numerators)
+        #
+        # print("numerators", numerators)
+        # print(numerators)
+        # print("denom:", denominator)
+
+        # TODO weird sparse matrix errors
+        #
+        numerators = np.dot(np.array(X).transpose(), p_c_given_x).transpose() + self.alpha
+
+        print("array mult. numerators", numerators)
 
         denominator = sum(numerators)
 
         print("denom:", denominator)
 
-        # TODO this is the fast numpy version that produces wrong results and weird sparse matrix errors
-        # print("shape of X:", np.shape(X), "y:", np.shape(y))
-        #
-        # numerators = np.dot(X.transpose(), y).transpose()
+
         #
         # # numerators = np.full(np.shape(numerators), self.alpha) + (numerators.todense() if issparse(numerators) else numerators)
         #

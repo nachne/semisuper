@@ -13,6 +13,7 @@ from random import sample
 from helpers import identity
 import numpy as np
 from numpy import array_equal as equal
+from scipy import sparse
 import pickle
 
 from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
@@ -33,27 +34,30 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
 
     if N:
         L = P + N
-        y_L = np.concatenate(np.array([[1., 0.]] * len(P)),
-                             np.array([[0., 1.]] * len(N)))
+        y_L = np.concatenate(np.array([[1., 0.]] * np.shape(P)[0]),
+                             np.array([[0., 1.]] * np.shape(N)[0]))
     else:
         L = P
-        y_L = np.array([[1., 0.]] * len(P))
+        y_L = np.array([[1., 0.]] * np.shape(P)[0])
 
-    if len(U) > max_imbalance * len(L):
-        U = sample(U, int(max_imbalance * len(L)))
+    if np.shape(U)[0] > max_imbalance * np.shape(L)[0]:
+        U = sample(U, int(max_imbalance * np.shape(L)[0]))
 
-    ynU = np.array([[0., 1.]] * len(U))
-    ypU = np.array([[0., 1.]] * len(U))
+    ynU = np.array([[0., 1.]] * np.shape(U)[0])
+    ypU = np.array([[0., 1.]] * np.shape(U)[0])
     ypU_old = [[-1,-1]]
     iterations = 0
     model = None
+
+    print("shape of L, y_L, U, ypU", np.shape(L), np.shape(y_L), np.shape(U), np.shape(ypU))
 
     while not almost_equal(ypU_old, ypU, tolerance):
 
         print("Iteration #", iterations)
 
         print("building new model using probabilistic labels")
-        model = build_model(L + U, np.concatenate((y_L, ypU)))
+        model = build_model(np.concatenate((L, U)),
+                            np.concatenate((y_L, ypU)))
 
         ypU_old = ypU
         print("predicting probabilities for U")
@@ -74,7 +78,10 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
 
     # Begin evaluation
     print("Building for evaluation")
-    X_train, X_test, y_train, y_test = tts(L + U, [round(x[0]) for x in y_L] + [0] * len(U), test_size=0.2)
+    X_train, X_test, y_train, y_test = tts(np.concatenate((L, U)),
+                                           np.concatenate(([round(x[0]) for x in y_L],
+                                                           [round(x[0]) for x in ynU])),
+                                           test_size=0.2)
     evalmodel = build_model(X_train, y_train)
 
     print("Classification Report:\n")
@@ -117,7 +124,7 @@ def build_model(X, y,
             #     # ]))
             # ]
             # )),
-            ('classifier', proba_label_MNB(alpha=0.1))
+            ('classifier', proba_label_MNB(alpha=1))
         ])
 
         model.fit(X, y)

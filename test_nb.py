@@ -47,11 +47,13 @@ P = [([randint(0, 4) for i in range(quarter)]
       )
      for j in range(2000)]
 
+P = np.array(P)
+
 U = [([randint(0, 2)
       for i in range(2*quarter)]
       + ([0] * (2*quarter))
       )
-     for j in range(2000)]
+     for j in range(3000)]
 U += [([randint(0, 2)
       for i in range(2*quarter)]
       + [randint(0, 2)
@@ -63,8 +65,9 @@ U += [([randint(0, 4) for i in range(quarter)]
       )
      for j in range(1000)]
 
+U = np.array(U)
 
 print(P[0])
 print(U[0])
 
-pu_two_step.expectation_maximization(P, U, max_pos_ratio=1, max_imbalance=5, tolerance=0.05)
+pu_two_step.expectation_maximization(P, U, max_pos_ratio=1, max_imbalance=5, tolerance=0.01)
