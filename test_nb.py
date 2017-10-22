@@ -29,9 +29,9 @@ print(clsr(y_test, y_pred))
 
 model = p_mnb.fit(X, y)
 
-print("labls", y[:100])
 print("probs", model.predict_proba(X[:100]))
 print("preds", model.predict(X[:100]))
+print("labls", y[:100])
 
 print(X[0])
 
@@ -39,35 +39,37 @@ print(X[0])
 print("\nPU NB I-EM test")
 print("---------------\n")
 
-featurenum = 100
+featurenum = 1000
 quarter = int(featurenum/4)
 
 P = [([randint(0, 4) for i in range(quarter)]
       + [randint(1, 2) for i in range(3*quarter)]
       )
-     for j in range(2000)]
+     for j in range(200)]
 
-P = np.array(P)
+P = np.array([csr_matrix(p) for p in P])
 
 U = [([randint(0, 2)
       for i in range(2*quarter)]
       + ([0] * (2*quarter))
       )
-     for j in range(3000)]
+     for j in range(300)]
 U += [([randint(0, 2)
       for i in range(2*quarter)]
       + [randint(0, 2)
       for i in range(2*quarter)]
       )
-     for j in range(2000)]
+     for j in range(200)]
 U += [([randint(0, 4) for i in range(quarter)]
       + [randint(1, 2) for i in range(3*quarter)]
       )
-     for j in range(1000)]
+     for j in range(100)]
 
-U = np.array(U)
+U = np.array([csr_matrix(u) for u in U])
 
-print(P[0])
-print(U[0])
+print("done preparing")
 
-pu_two_step.expectation_maximization(P, U, max_pos_ratio=1, max_imbalance=5, tolerance=0.01)
+# print(P[0])
+# print(U[0])
+
+pu_two_step.expectation_maximization(P, U, max_pos_ratio=1, max_imbalance=3, tolerance=0.01)

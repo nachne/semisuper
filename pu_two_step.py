@@ -41,7 +41,7 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
         y_L = np.array([[1., 0.]] * np.shape(P)[0])
 
     if np.shape(U)[0] > max_imbalance * np.shape(L)[0]:
-        U = sample(U, int(max_imbalance * np.shape(L)[0]))
+        U = np.array(sample(list(U), int(max_imbalance * np.shape(L)[0])))
 
     ynU = np.array([[0., 1.]] * np.shape(U)[0])
     ypU = np.array([[0., 1.]] * np.shape(U)[0])
@@ -65,8 +65,8 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
 
         iterations += 1
 
-        print("predicting labels for U")
-        predU = model.predict(U)
+        print("labels for U")
+        predU = [round(p[0]) for p in ypU]
         pos_ratio = sum(predU) / len(U)
 
         print("\nUnlabelled instances classified as positive:", sum(predU), "/", len(U),

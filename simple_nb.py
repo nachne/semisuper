@@ -1,7 +1,8 @@
 from helpers import prod, positive
 from sklearn.base import BaseEstimator, ClassifierMixin
 import numpy as np
-from scipy import sparse
+from scipy.sparse import issparse
+from scipy.misc import logsumexp
 
 
 # equations from "partially supervised classification of text documents"
@@ -45,15 +46,30 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         # uses fitted class probability,
         # fitted word probability per class
 
-        numerators = [self.pr_c[0] * prod(filter(positive, x * self.pr_w[0])),
-                      self.pr_c[1] * prod(filter(positive, x * self.pr_w[1]))]
+        posprobs = np.transpose(x) * self.pr_w[0]
+        negprobs = np.transpose(x) * self.pr_w[1]
 
-        denominator = sum(numerators)
+        # print("pr_c_0", self.pr_c[0], "posprobs > 0:", posprobs[np.nonzero(posprobs)], np.prod(posprobs[np.nonzero(posprobs)]))
+        # print("pr_c_1", self.pr_c[1], "negprobs > 0:", negprobs[np.nonzero(negprobs)], np.prod(negprobs[np.nonzero(negprobs)]))
 
-        return (numerators[0] / denominator, numerators[1] / denominator)
+        # legacy version: numerical issues because numbers are too small!
+        # numerators = [self.pr_c[0] * np.prod(posprobs[np.nonzero(posprobs)]),
+        #              self.pr_c[1] * np.prod(negprobs[np.nonzero(negprobs)])]
+
+
+        numerators = np.exp([np.log(self.pr_c[0]) + np.sum(np.log(posprobs[np.nonzero(posprobs)])),
+                             np.log(self.pr_c[1]) + np.sum(np.log(negprobs[np.nonzero(negprobs)]))])
+
+        denominator = logsumexp(numerators)
+
+        # print("proba(x) numerators", numerators)
+        # print("denominator", denominator)
+
+        return (np.exp(numerators[0] - denominator), np.exp(numerators[1] - denominator))
 
     def predict(self, X):
-        return [round(p) for p, n in self.predict_proba(X)]
+        print("pos probs", [p for p in self.predict_proba(X)])
+        return [round(p[0]) for p in self.predict_proba(X)]
 
     # Pr[c_j]: probability of a class label (mean of probabilities per doc)
     def prior_c(self, y):
@@ -79,16 +95,19 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
 
         # TODO weird sparse matrix errors
         #
-        numerators = np.dot(np.array(X).transpose(), p_c_given_x).transpose() + self.alpha
+        numerators = np.dot(np.array(X).transpose(), p_c_given_x)
+        if (issparse(numerators)):
+            numerators = numerators.todense()
 
-        print("array mult. numerators", numerators)
+        numerators += self.alpha
 
-        denominator = sum(numerators)
+        # print("array mult. numerators", numerators)
 
-        print("denom:", denominator)
+        denominator = np.sum(numerators)
 
+        # print("denom:", denominator)
+        # print("nums/denom", numerators/denominator)
 
-        #
         # # numerators = np.full(np.shape(numerators), self.alpha) + (numerators.todense() if issparse(numerators) else numerators)
         #
         # denominators = [sum(numerators[0]), sum(numerators[1])]
