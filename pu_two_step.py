@@ -17,7 +17,7 @@ from scipy import sparse
 import pickle
 
 from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
-from simple_nb import proba_label_MNB
+from proba_label_nb import proba_label_MNB
 
 
 # TODO: PROPERLY ADJUST PROBABILITIES INSTEAD OF LABELS
@@ -26,25 +26,19 @@ from simple_nb import proba_label_MNB
 # satisfied when ratio of positively labelled u in U is in [0.1, 0.5]
 # Alternative: some minimum positive ratio as stopping criterion
 # Alternative: yield (model, ratio) so caller can choose desired one
-def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.05, text=True):
+def i_EM(P, U, N=[], outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.05, text=True):
     """EM algorithm for positive set P, unlabelled set U and (optional) negative set N
 
     iterate NB classifier with updated labels for unlabelled set (initially negative) until convergence
     if U is much larger than L=P+N, randomly samples to max_imbalance-fold of |L|"""
 
-    if N:
-        L = P + N
-        y_L = np.concatenate(np.array([[1., 0.]] * np.shape(P)[0]),
-                             np.array([[0., 1.]] * np.shape(N)[0]))
-    else:
-        L = P
-        y_L = np.array([[1., 0.]] * np.shape(P)[0])
+    L, y_L = make_L_yL(P, N)
 
     if np.shape(U)[0] > max_imbalance * np.shape(L)[0]:
         U = np.array(sample(list(U), int(max_imbalance * np.shape(L)[0])))
-
-    ynU = np.array([[0., 1.]] * np.shape(U)[0])
     ypU = np.array([[0., 1.]] * np.shape(U)[0])
+
+    # initialize iteration variables
     ypU_old = [[-1, -1]]
     iterations = 0
     model = None
@@ -77,18 +71,11 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
             print("Acceptable ratio of positively labelled sentences in U is reached.")
             break
 
-    # Begin evaluation
-    print("Building for evaluation")
-    X_train, X_test, y_train, y_test = tts(np.concatenate((P, U)),
-                                           np.concatenate(([1 for x in P],
-                                                           [0 for x in U])),
-                                           test_size=0.2)
-    evalmodel = build_model(X_train, y_train, text=text)
 
     print("Classification Report:\n")
-
-    y_pred = evalmodel.predict(X_test)
-    print(clsr(y_test, y_pred))
+    y_pred = model.predict(np.concatenate((L, U)))
+    print(y_pred)
+    print(clsr([l[0] for l in y_L] + [0. for u in ypU], y_pred))
 
     print("Returning final model after", iterations, "refinement iterations")
 
@@ -100,6 +87,15 @@ def expectation_maximization(P, U, N=[], outpath=None, max_imbalance=1.5, max_po
 
     return model
 
+def make_L_yL(P, N):
+    if N:
+        L = P + N
+        y_L = np.concatenate(np.array([[1., 0.]] * np.shape(P)[0]),
+                             np.array([[0., 1.]] * np.shape(N)[0]))
+    else:
+        L = P
+        y_L = np.array([[1., 0.]] * np.shape(P)[0])
+    return L, y_L
 
 # ----------------------------------------------------------------
 # general model builder

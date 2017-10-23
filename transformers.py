@@ -86,7 +86,7 @@ def map_regex_concepts(token):
 
     return token
 
-
+# TODO dict ist nicht gut, weil Reihenfolge (z.B. Prozent kommt nie durch)
 regex_concept_dict = {  # number-related concepts
     re.compile("^[Pp]([=<>≤≥]|</?=|>/?=)\d")                                : "_p_val_",
     re.compile("^((\d+-)?year-old|y\.?o\.?)$")                              : "_age_",
