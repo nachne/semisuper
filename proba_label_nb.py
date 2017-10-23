@@ -23,11 +23,11 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         npX = unsparse(X)
 
         self.pr_c = np.array(self.proba_c(yp))
-        print("class probability:", self.pr_c)
+        # print("class probability:", self.pr_c)
 
         self.pr_w = np.array([self.pr_w_given_c(npX, yp, cls=0),
                               self.pr_w_given_c(npX, yp, cls=1)])
-        print("attribute probabilities:", self.pr_w)
+        # print("attribute probabilities:", self.pr_w)
 
         return self
 
@@ -55,17 +55,11 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         # print("denominator", denominator)
         return (np.exp(numerators[0] - denominator), np.exp(numerators[1] - denominator))
 
-        ## legacy version: numerical issues because numbers are too small!
-        # return proba_nolog(x, self.pr_c, posprobs, negprobs)
-
-        # new version with log probabilities
-        return proba_log(x, self.pr_c, posprobs, negprobs)
-
     def predict(self, X):
         """predict class labels using probabilistic class labels"""
         proba_labels = self.predict_proba(X)
 
-        print("pos probs", [p[0] for p in proba_labels])
+        # print("pos probs", [p[0] for p in proba_labels])
 
         return [int(round(p[0])) for p in proba_labels]
 
@@ -98,14 +92,8 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         return numerators / denominator
 
 
-# legacy version: numerical issues because numbers are too small!
-def proba_nolog(x, pr_c, posprobs, negprobs):
-    numerators = [pr_c[0] * np.prod(posprobs[np.nonzero(posprobs)]),
-                  pr_c[1] * np.prod(negprobs[np.nonzero(negprobs)])]
-    denominator = np.sum(numerators)
-
-    return (numerators[0] / denominator, numerators[1] / denominator)
-
+# ----------------------------------------------------------------
+# helpers
 
 def unsparse(X):
     if issparse(X):
@@ -131,3 +119,18 @@ def label2num(label):
         return 1.0
     else:
         return 0.0
+
+
+# ----------------------------------------------------------------
+
+
+# misc.
+
+#
+# legacy version: numerical issues because numbers are too small!
+def proba_nolog(x, pr_c, posprobs, negprobs):
+    numerators = [pr_c[0] * np.prod(posprobs[np.nonzero(posprobs)]),
+                  pr_c[1] * np.prod(negprobs[np.nonzero(negprobs)])]
+    denominator = np.sum(numerators)
+
+    return (numerators[0] / denominator, numerators[1] / denominator)

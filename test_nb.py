@@ -13,7 +13,7 @@ p_mnb = proba_label_MNB()
 
 X = [[randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1)]
      for x in range(1000)]
-y = [1.0 if (x[0] or x[1]) and not (x[4] and x[5]) else 0.0 for x in X]
+y = [1 if (x[0] or x[1]) and not (x[4] and x[5]) else 0 for x in X]
 
 # X = csr_matrix(X)
 

@@ -26,7 +26,7 @@ print("PIBOSO sentences:", len(piboso_other))
 P = civic
 U = abstracts
 
-# P = random.sample(civic, 1000) + random.sample(piboso_outcome, 0)
+# P = random.sample(civic, 400) + random.sample(piboso_outcome, 0)
 # U = random.sample(abstracts, 1000) + random.sample(P, 0)
 
 # ------------------
@@ -38,7 +38,7 @@ print("\n\n"
 
 start_time = time.time()
 
-model = pu_two_step.i_EM(P, U, max_pos_ratio=1.0, max_imbalance=1.0, tolerance=0.1, text=True)
+model = pu_two_step.i_EM(P, U, max_pos_ratio=25.0, max_imbalance=1.0, tolerance=0.1, text=True)
 
 print("\nEM took %s seconds\n" % (time.time() - start_time))
 

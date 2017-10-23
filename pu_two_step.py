@@ -74,7 +74,7 @@ def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.0
 
     print("Classification Report:\n")
     y_pred = model.predict(np.concatenate((P, U)))
-    print(y_pred)
+    print(y_pred[:10], y_pred[-10:])
     print(clsr([p[0] for p in y_P] + [0. for u in ypU], y_pred))
 
     if outpath:
@@ -115,9 +115,8 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_rati
         ypU_old = ypU
         print("predicting probabilities for U")
         ypU = model.predict_proba(U)
-        print(ypU)
+        print(ypU[:10], ypU[-10:])
 
-        print("labels for U")
         predU = [round(p[0]) for p in ypU]
         pos_ratio = sum(predU) / len(U)
 
@@ -136,6 +135,7 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_rati
 # general MNB model builder
 
 # TODO: Make versatile module for this and reuse in respective functions
+# TODO: Do vectorization only once (not every time a new model is made in an iteration)
 def build_proba_MNB(X, y,
                     verbose=True, text=True):
     """build multinomial Naive Bayes classifier that accepts probabilistic labels"""
