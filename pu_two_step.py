@@ -19,46 +19,103 @@ import pickle
 from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
 from proba_label_nb import proba_label_MNB
 
+# ----------------------------------------------------------------
 
-# TODO: PROPERLY ADJUST PROBABILITIES INSTEAD OF LABELS
-# TODO: wrapper method that finds appropriate max_imbalance
-# (e.g. bisection method starting from 1.0 and |U|/|P+N|,
-# satisfied when ratio of positively labelled u in U is in [0.1, 0.5]
-# Alternative: some minimum positive ratio as stopping criterion
-# Alternative: yield (model, ratio) so caller can choose desired one
-def i_EM(P, U, N=[], outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.05, text=True):
-    """EM algorithm for positive set P, unlabelled set U and (optional) negative set N
+# ----------------------------------------------------------------
+# NB-EM-related
+
+def reliable_neg_EM(P, U, RN, outpath=None, max_pos_ratio=0.5, tolerance=0.05, text=True):
+    """second step PU method: train NB with P and RN to get probabilistic labels for U, then iterate EM"""
+
+    initial_model = i_EM(P, RN, outpath, max_pos_ratio, tolerance, text)
+
+    y_P = np.array([[1., 0.]] * np.shape(P)[0])
+
+    ypU = initial_model.predict_proba(U)
+    ypN = initial_model.predict_proba(RN)
+
+    model = iterate_EM(P,
+                       np.concatenate((RN, U)),
+                       y_P,
+                       np.concatenate((ypN, ypU)),
+                       tolerance, text, max_pos_ratio)
+
+    print("Classification Report:\n")
+    y_pred = model.predict(np.concatenate((P, U)))
+    print(y_pred)
+    print(clsr([p[0] for p in y_P] + [0. for u in ypU], y_pred))
+
+    if outpath:
+        with open(outpath, 'wb') as f:
+            pickle.dump(model, f)
+
+        print("Model written out to {}".format(outpath))
+
+    return model
+
+
+def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.05, text=True):
+    """all-in-one PU method: I-EM algorithm for positive set P and unlabelled set U
 
     iterate NB classifier with updated labels for unlabelled set (initially negative) until convergence
-    if U is much larger than L=P+N, randomly samples to max_imbalance-fold of |L|"""
+    if U is much larger than P, randomly samples to max_imbalance-fold of |P|"""
 
-    L, y_L = make_L_yL(P, N)
+    num_P = np.shape(P)[0]
+    num_U = np.shape(U)[0]
 
-    if np.shape(U)[0] > max_imbalance * np.shape(L)[0]:
-        U = np.array(sample(list(U), int(max_imbalance * np.shape(L)[0])))
+    y_P = np.array([[1., 0.]] * num_P)
+
+    if num_U > max_imbalance * num_P:
+        U = np.array(sample(list(U), int(max_imbalance * num_P)))
+
     ypU = np.array([[0., 1.]] * np.shape(U)[0])
 
-    # initialize iteration variables
+    model = iterate_EM(P, U, y_P, ypU, tolerance, text, max_pos_ratio)
+
+    print("Classification Report:\n")
+    y_pred = model.predict(np.concatenate((P, U)))
+    print(y_pred)
+    print(clsr([p[0] for p in y_P] + [0. for u in ypU], y_pred))
+
+    if outpath:
+        with open(outpath, 'wb') as f:
+            pickle.dump(model, f)
+
+        print("Model written out to {}".format(outpath))
+
+    return model
+
+
+# TODO yield models in order to be able to choose best one
+def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_ratio=0.5):
+    """EM algorithm for positive set P and unlabelled set U
+
+        iterate NB classifier with updated labels for unlabelled set (with optional initial labels) until convergence"""
+    if y_P is None:
+        y_P = np.array([[1., 0.]] * np.shape(P)[0])
+    if ypU is None:
+        ypU = np.array([[0., 1.]] * np.shape(U)[0])
+
     ypU_old = [[-1, -1]]
+
     iterations = 0
     model = None
 
-    print("shape of L, y_L, U, ypU", np.shape(L), np.shape(y_L), np.shape(U), np.shape(ypU))
-
     while not almost_equal(ypU_old, ypU, tolerance):
+
+        iterations += 1
 
         print("Iteration #", iterations)
 
         print("building new model using probabilistic labels")
-        model = build_model(np.concatenate((L, U)),
-                            np.concatenate((y_L, ypU)), text=text)
+
+        model = build_proba_MNB(np.concatenate((P, U)),
+                                np.concatenate((y_P, ypU)), text=text)
 
         ypU_old = ypU
         print("predicting probabilities for U")
         ypU = model.predict_proba(U)
         print(ypU)
-
-        iterations += 1
 
         print("labels for U")
         predU = [round(p[0]) for p in ypU]
@@ -71,38 +128,18 @@ def i_EM(P, U, N=[], outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, toleran
             print("Acceptable ratio of positively labelled sentences in U is reached.")
             break
 
-
-    print("Classification Report:\n")
-    y_pred = model.predict(np.concatenate((L, U)))
-    print(y_pred)
-    print(clsr([l[0] for l in y_L] + [0. for u in ypU], y_pred))
-
-    print("Returning final model after", iterations, "refinement iterations")
-
-    if outpath:
-        with open(outpath, 'wb') as f:
-            pickle.dump(model, f)
-
-        print("Model written out to {}".format(outpath))
-
+    print("Returning final model after", iterations, "iterations")
     return model
 
-def make_L_yL(P, N):
-    if N:
-        L = P + N
-        y_L = np.concatenate(np.array([[1., 0.]] * np.shape(P)[0]),
-                             np.array([[0., 1.]] * np.shape(N)[0]))
-    else:
-        L = P
-        y_L = np.array([[1., 0.]] * np.shape(P)[0])
-    return L, y_L
 
 # ----------------------------------------------------------------
-# general model builder
+# general MNB model builder
 
 # TODO: Make versatile module for this and reuse in respective functions
-def build_model(X, y,
-                verbose=True, text=True):
+def build_proba_MNB(X, y,
+                    verbose=True, text=True):
+    """build multinomial Naive Bayes classifier that accepts probabilistic labels"""
+
     def build(X, y):
         """
         Inner build function that builds a single model.
@@ -138,8 +175,12 @@ def build_model(X, y,
     return model
 
 
+# ----------------------------------------------------------------
+# helpers
+
 def almost_equal(pairs1, pairs2, tolerance=0.05):
+    """helper function that checks if difference of probabilistic labels is smaller than tolerance for all indices"""
     zipped = zip(pairs1, pairs2)
-    diffs = [abs(p1[0] - p2[0]) < tolerance and abs(p1[1] - p2[1]) < tolerance
+    diffs = [abs(p1[0] - p2[0]) < tolerance
              for p1, p2 in zipped]
     return all(diffs)

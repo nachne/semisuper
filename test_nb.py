@@ -66,7 +66,7 @@ print(X[0])
 print("\nPU NB I-EM test")
 print("---------------\n")
 
-featurenum = 8
+featurenum = 40
 quarter = int(featurenum / 4)
 
 P = [([randint(0, 4) for i in range(quarter)]
@@ -105,4 +105,4 @@ print("done preparing")
 # print(P[0])
 # print(U[0])
 
-pu_two_step.i_EM(P, U, max_pos_ratio=2, max_imbalance=10, tolerance=0.1, text=False)
+pu_two_step.i_EM(P, U, max_pos_ratio=1, max_imbalance=1.2, tolerance=0.25, text=False)

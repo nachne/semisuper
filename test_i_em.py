@@ -11,6 +11,7 @@ import re
 import pandas as pd
 import pu_two_step
 import time
+import sys
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 
@@ -25,8 +26,8 @@ print("PIBOSO sentences:", len(piboso_other))
 P = civic
 U = abstracts
 
-P = random.sample(civic, 500) + random.sample(piboso_outcome, 0)
-# U = random.sample(abstracts, 0) + random.sample(piboso_other, 0)
+# P = random.sample(civic, 1000) + random.sample(piboso_outcome, 0)
+# U = random.sample(abstracts, 1000) + random.sample(P, 0)
 
 # ------------------
 # I-EM-Test
@@ -35,17 +36,18 @@ print("\n\n"
       "I-EM TEST\n"
       "---------\n")
 
-vectorizer = DictVectorizer()
-
 start_time = time.time()
 
-model = pu_two_step.i_EM(P, U, max_pos_ratio=0.3, max_imbalance=1.0, text=True)
+model = pu_two_step.i_EM(P, U, max_pos_ratio=1.0, max_imbalance=1.0, tolerance=0.1, text=True)
 
 print("\nEM took %s seconds\n" % (time.time() - start_time))
 
 # print(dummy_pipeline.show_most_informative_features(model))
 
 # ----------------------------------------------------------------
+sys.exit(0)
+# ----------------------------------------------------------------
+
 
 preppy = transformers.BasicPreprocessor()
 

@@ -17,6 +17,9 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
         self.strip = strip
         self.punct = punct or set(string.punctuation)
         self.lemma = lemmatize
+
+        self.splitters = re.compile("[-/.,|]")
+
         self.dict_mapper = HypernymMapper()
         self.tokenizer = TreebankWordTokenizer()
         self.lemmatizer = WordNetLemmatizer()
@@ -44,7 +47,8 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
         for token, tag in pos_tag(self.tokenizer.tokenize(sentence)):
             # Apply preprocessing to the token
             token_nrm = self.normalize_token(token, tag)
-            subtokens = [self.normalize_token(t, tag) for t in token_nrm.split("-")]
+
+            subtokens = [self.normalize_token(t, tag) for t in self.splitters.split(token_nrm)]
 
             for subtoken in subtokens:
 
@@ -56,12 +60,15 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
 
     def normalize_token(self, token, tag):
         # Apply preprocessing to the token
-        token = self.dict_mapper.replace(token)
-        token = map_regex_concepts(token)
-        token = token.lower() if self.lower else token
         token = token.strip() if self.strip else token
         token = token.strip('*') if self.strip else token
         token = token.strip('.') if self.strip else token
+
+        token = self.dict_mapper.replace(token)
+        token = map_regex_concepts(token)
+
+        token = token.lower() if self.lower else token
+
         if self.lemma:
             token = self.lemmatize(token, tag)
         return token
@@ -86,6 +93,7 @@ def map_regex_concepts(token):
 
     return token
 
+
 # TODO dict ist nicht gut, weil Reihenfolge (z.B. Prozent kommt nie durch)
 regex_concept_dict = {  # number-related concepts
     re.compile("^[Pp]([=<>≤≥]|</?=|>/?=)\d")                                : "_p_val_",
@@ -98,7 +106,7 @@ regex_concept_dict = {  # number-related concepts
     re.compile("^~?\d*(("
                "(kg|g|mg|ug|ng)|"
                "(m|cm|mm|um|nm)|"
-               "(l|ml|cl|ul|mol|mmol|mumol))/?)+$")                         : "_unit_",
+               "(l|ml|cl|ul|mol|mmol|nmol|mumol|mo))/?)+$")                 : "_unit_",
     # abbreviation starting with letters and containing nums
     re.compile("^rs\d+$")                                                   : "_mutation_",
     re.compile("^([a-zA-Z]+-?\w*\d+)+")                                     : "_abbrev_",
@@ -115,7 +123,7 @@ regex_concept_dict = {  # number-related concepts
                "[Tt]welv(e|th)|[Hh]undred(th)?|[Tt]housand(th)?|"
                "[Ff]irst|[Ss]econd|[Tt]hird|\d*1st|\d*2nd|\d*3rd|\d+-?th)$"): "_num_",
     re.compile("^~?-?\d+(,\d+)?$")                                          : "_num_",  # int (+ or -)
-    re.compile("^~?((-?\d*[·.]\d+$|^-?\d+[·.]\d*)(\+/-)?)+$")               : "_num_",  # float (+ or -)
+    re.compile("^~?-?((-?\d*[·.]\d+$|^-?\d+[·.]\d*)(\+/-)?)+$")               : "_num_",  # float (+ or -)
     # misc. abbrevs
     re.compile("^[Vv]\.?[Ss]\.?$|^[Vv]ersus$")                              : "vs",
     re.compile("^[Ii]\.?[Ee]\.?$")                                          : "ie",
@@ -161,7 +169,8 @@ prenormalize_dict = {
     # bracket complications
     re.compile("\.\s*\).")         : ").",
     # double dots
-    re.compile("(\.\s*\.)+")       : "."
+    re.compile("(\.\s*\.)+")       : ".",
+    re.compile("wild-type")        : "wild type"
 }
 
 

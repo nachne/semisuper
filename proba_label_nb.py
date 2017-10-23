@@ -32,18 +32,28 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         return self
 
     def predict_proba(self, X):
-        """predicts probabilistic class labels for set of docs. multithreaded."""
+        """predicts probabilistic class labels for set of docs.
+        """
 
-        with multi.Pool(processes=multi.cpu_count()) as p:
-            return list(p.map(self.proba, X))
+        # TODO multithread / make this an inner product (Pool.map can't handle sparse matrix)
 
+        return [self.proba(x) for x in X]
+
+    # TODO rewrite as inner product
     def proba(self, x):
         """predict probabilities of a given class for one doc
 
         uses fitted class probability and fitted word probability per class"""
 
-        posprobs = np.transpose(x) * self.pr_w[0]
-        negprobs = np.transpose(x) * self.pr_w[1]
+        posprobs = self.pr_w[0][np.nonzero(x)]
+        negprobs = self.pr_w[1][np.nonzero(x)]
+
+        numerators = (np.log(self.pr_c[0]) + np.sum(np.log(posprobs)),
+                      np.log(self.pr_c[1]) + np.sum(np.log(negprobs)))
+        denominator = logsumexp(numerators)
+        # print("proba(x) numerators", numerators)
+        # print("denominator", denominator)
+        return (np.exp(numerators[0] - denominator), np.exp(numerators[1] - denominator))
 
         ## legacy version: numerical issues because numbers are too small!
         # return proba_nolog(x, self.pr_c, posprobs, negprobs)
@@ -86,18 +96,6 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         # print("nums/denom", numerators/denominator)
 
         return numerators / denominator
-
-
-def proba_log(x, pr_c, posprobs, negprobs):
-    nonzero_posprobs = posprobs[np.nonzero(posprobs)]
-    nonzero_negprobs = negprobs[np.nonzero(negprobs)]
-
-    numerators = (np.log(pr_c[0]) + np.sum(np.log(nonzero_posprobs)),
-                  np.log(pr_c[1]) + np.sum(np.log(nonzero_negprobs)))
-    denominator = logsumexp(numerators)
-    # print("proba(x) numerators", numerators)
-    # print("denominator", denominator)
-    return (np.exp(numerators[0] - denominator), np.exp(numerators[1] - denominator))
 
 
 # legacy version: numerical issues because numbers are too small!
