@@ -26,8 +26,16 @@ print("PIBOSO sentences:", len(piboso_other))
 P = civic
 U = abstracts
 
-# P = random.sample(civic, 400) + random.sample(piboso_outcome, 0)
-# U = random.sample(abstracts, 1000) + random.sample(P, 0)
+P = random.sample(civic, 1000) + random.sample(piboso_outcome, 0)
+U = random.sample(abstracts, 1000) + random.sample(P, 0)
+
+
+# ------------------
+# fake S-EM-Test
+
+RN = random.sample(abstracts, 500)
+
+model = pu_two_step.run_EM_with_reliable_negs(P, U, RN, tolerance=0.1)
 
 # ------------------
 # I-EM-Test
@@ -36,9 +44,11 @@ print("\n\n"
       "I-EM TEST\n"
       "---------\n")
 
+U += RN
+
 start_time = time.time()
 
-model = pu_two_step.i_EM(P, U, max_pos_ratio=25.0, max_imbalance=1.0, tolerance=0.1, text=True)
+model = pu_two_step.i_EM(P, U, max_pos_ratio=0.5, max_imbalance=1.0, tolerance=0.15, text=True)
 
 print("\nEM took %s seconds\n" % (time.time() - start_time))
 
@@ -84,15 +94,12 @@ lab_out.to_csv("./labelled_i-em_outcome.csv")
 
 print("civic: prediction", sum(lab_civ["Label"].values), "/", len(civic))
 
-yhat2 = lab_abs
-print("abstracts: prediction", sum(lab_abs["Label"].values), "/", len(yhat2))
+print("abstracts: prediction", sum(lab_abs["Label"].values), "/", len(abstracts))
+
+
+print("piboso other: prediction", sum(lab_oth["Label"].values), "/", len(piboso_other))
+
+print("piboso outcome: prediction", sum(lab_out["Label"].values), "/", len(piboso_outcome))
 
 yhat3 = model.predict(loaders.sentences_piboso_pop_bg_oth())
 print("piboso pop bg oth: prediction", sum(yhat3), "/", len(yhat3))
-
-yhat4 = model.predict(loaders.sentences_piboso_other())
-print("piboso other: prediction", sum(yhat4), "/", len(yhat4))
-
-yhat5 = model.predict(loaders.sentences_piboso_outcome())
-print("piboso outcome: prediction", sum(yhat5), "/", len(yhat5))
-
