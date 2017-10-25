@@ -61,19 +61,19 @@ def load_civic_abstracts():
     try:
         with open("civic_abstracts.pickle", "rb") as f:
             (civic, abstracts) = pickle.load(f)
-            print("loaded summaries and abstracts from disk.")
+            print("Loaded summaries and abstracts from disk.")
 
     except:
-        print("downloading summaries...")
+        print("Downloading summaries...")
         civic = read_civic()
 
-        print("downloading abstracts...")
+        print("Downloading abstracts...")
         pm_ids = get_pm_ids(civic)
         abstracts = get_abstracts(pm_ids)
 
         with open("civic_abstracts.pickle", "wb") as f:
             pickle.dump((civic, abstracts), f)
-            print("download complete, saving to disk.")
+            print("Download complete, saving to disk.")
 
     return civic, abstracts
 

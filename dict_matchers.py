@@ -28,13 +28,13 @@ class HypernymMapper(DictReplacer):
         try:
             with open("hypernyms.pickle", "rb") as f:
                 hypernyms = pickle.load(f)
-                print("loaded hypernyms from disk.")
+                print("Loaded hypernyms from disk.")
         except:
-            print("building hypernym resources...")
+            print("Building hypernym resources...")
             hypernyms = self.build_hypernym_dict()
             with open("hypernyms.pickle", "wb") as f:
                 pickle.dump(hypernyms, f)
-                print("built hypernym dict and wrote to disk.")
+                print("Built hypernym dict and wrote to disk.")
         return hypernyms
 
     def build_hypernym_dict(self):

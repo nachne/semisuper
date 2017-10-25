@@ -13,13 +13,13 @@ from helpers import identity
 from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
 import pickle
 
+
 # TODO find params that give less horrible results
 def one_class_svm(X, X_test=None, y_test=None, outpath=None, verbose=True,
                   kernel="rbf", degree=3, shrinking=True):
     def build(X):
-        """
-        One-class SVM as PU baseline
-        """
+        """One-class SVM as PU baseline"""
+
         classifier = svm.OneClassSVM(kernel=kernel, degree=degree, verbose=verbose, shrinking=shrinking)
 
         model = Pipeline([

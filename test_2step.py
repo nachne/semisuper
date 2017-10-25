@@ -16,7 +16,7 @@ import sys
 civic, abstracts = loaders.sentences_civic_abstracts()
 
 print("CIViC sentences:", len(civic))
-print("abstract sentences:", len(abstracts))
+print("Abstract sentences:", len(abstracts))
 
 piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
@@ -26,16 +26,21 @@ print("PIBOSO sentences:", len(piboso_other))
 P = civic
 U = abstracts
 
-P = random.sample(civic, 1000) + random.sample(piboso_outcome, 0)
-U = random.sample(abstracts, 1000) + random.sample(P, 0)
-
+P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
+U = random.sample(abstracts, 4000) + random.sample(P, 0)
 
 # ------------------
 # fake S-EM-Test
 
-RN = random.sample(abstracts, 500)
+print("\n\n"
+      "S-EM TEST\n"
+      "---------\n")
 
-model = pu_two_step.run_EM_with_reliable_negs(P, U, RN, tolerance=0.1)
+start_time = time.time()
+
+model = pu_two_step.s_EM(P, U, spy_ratio=0.1, tolerance=0.1, text=True)
+
+print("\nS-EM took %s seconds\n" % (time.time() - start_time))
 
 # ------------------
 # I-EM-Test
@@ -43,8 +48,6 @@ model = pu_two_step.run_EM_with_reliable_negs(P, U, RN, tolerance=0.1)
 print("\n\n"
       "I-EM TEST\n"
       "---------\n")
-
-U += RN
 
 start_time = time.time()
 
@@ -95,7 +98,6 @@ lab_out.to_csv("./labelled_i-em_outcome.csv")
 print("civic: prediction", sum(lab_civ["Label"].values), "/", len(civic))
 
 print("abstracts: prediction", sum(lab_abs["Label"].values), "/", len(abstracts))
-
 
 print("piboso other: prediction", sum(lab_oth["Label"].values), "/", len(piboso_other))
 
