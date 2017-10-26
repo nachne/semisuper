@@ -2,7 +2,6 @@ import string
 import re
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
-import nltk
 from nltk import TreebankWordTokenizer, WhitespaceTokenizer, RegexpTokenizer, wordpunct_tokenize
 from nltk import sent_tokenize
 from nltk import pos_tag
@@ -123,7 +122,7 @@ regex_concept_dict = {  # number-related concepts
                "[Tt]welv(e|th)|[Hh]undred(th)?|[Tt]housand(th)?|"
                "[Ff]irst|[Ss]econd|[Tt]hird|\d*1st|\d*2nd|\d*3rd|\d+-?th)$"): "_num_",
     re.compile("^~?-?\d+(,\d+)?$")                                          : "_num_",  # int (+ or -)
-    re.compile("^~?-?((-?\d*[·.]\d+$|^-?\d+[·.]\d*)(\+/-)?)+$")               : "_num_",  # float (+ or -)
+    re.compile("^~?-?((-?\d*[·.]\d+$|^-?\d+[·.]\d*)(\+/-)?)+$")             : "_num_",  # float (+ or -)
     # misc. abbrevs
     re.compile("^[Vv]\.?[Ss]\.?$|^[Vv]ersus$")                              : "vs",
     re.compile("^[Ii]\.?[Ee]\.?$")                                          : "ie",

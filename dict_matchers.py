@@ -20,8 +20,8 @@ class DictReplacer(object):
 
 class HypernymMapper(DictReplacer):
     def __init__(self):
-        dict = self.load_hypernyms()
-        super(HypernymMapper, self).__init__(dict)
+        dictionary = self.load_hypernyms()
+        super(HypernymMapper, self).__init__(dictionary)
 
     def load_hypernyms(self):
         """read hypernym dict from disk or build from tsv files"""
@@ -29,7 +29,7 @@ class HypernymMapper(DictReplacer):
             with open("hypernyms.pickle", "rb") as f:
                 hypernyms = pickle.load(f)
                 print("Loaded hypernyms from disk.")
-        except:
+        except IOError:
             print("Building hypernym resources...")
             hypernyms = self.build_hypernym_dict()
             with open("hypernyms.pickle", "wb") as f:
@@ -43,11 +43,11 @@ class HypernymMapper(DictReplacer):
         with multi.Pool(len(concepts)) as p:
             dicts = list(p.map(self.make_hypernym_entries, concepts))
 
-        dict = dicts[0].copy()
+        dictionary = dicts[0].copy()
         for d in dicts[1:]:
-            dict.update(d)
+            dictionary.update(d)
 
-        return (dict)
+        return dictionary
 
     def make_hypernym_entries(self, hypernym):
         entries = {}
@@ -68,4 +68,3 @@ class HypernymMapper(DictReplacer):
                     entries[word] = "_" + hypernym + "_"
 
         return entries
-

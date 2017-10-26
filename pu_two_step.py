@@ -1,9 +1,6 @@
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import LabelEncoder, Normalizer, normalize
 from sklearn.linear_model import SGDClassifier
 from sklearn import svm, naive_bayes
-from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
-from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.metrics import classification_report as clsr
 from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
 from sklearn.feature_extraction import DictVectorizer
@@ -17,13 +14,14 @@ from scipy import sparse
 import pickle
 
 from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
-from proba_label_nb import proba_label_MNB
+from proba_label_nb import ProbaLabelMNB
 
 
 # ----------------------------------------------------------------
 # COMPLETE 2-STEP METHODS
 # ----------------------------------------------------------------
 
+# TODO implement model selection/iteration halting formula
 def s_EM(P, U, outpath=None, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.05, text=True):
     """S-EM algorithm as desscribed in \"Partially Supervised Classification...\". Two-step PU learning technique.
 
@@ -67,8 +65,9 @@ def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.0
 # FIRST STEP TECHNIQUES
 # ----------------------------------------------------------------
 
+# TODO shortcut I-EM (should be only a handful of iterations)
 def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise_lvl=0.05, text=True):
-    """Compute reliable negative docs from P using the Spy Document technique"""
+    """First step technique: Compute reliable negative docs from P using Spy Documents and I-EM"""
 
     P_minus_spies, spies = spy_partition(P, spy_ratio)
     U_plus_spies = np.concatenate((U, spies))
@@ -162,11 +161,11 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_rati
 
 # ----------------------------------------------------------------
 # general MNB model builder
+# ----------------------------------------------------------------
 
 # TODO: Make versatile module for this and reuse in respective functions
 # TODO: Do vectorization only once (not every time a new model is made in an iteration)
-def build_proba_MNB(X, y,
-                    verbose=True, text=True):
+def build_proba_MNB(X, y, verbose=True, text=True):
     """build multinomial Naive Bayes classifier that accepts probabilistic labels
     if text is true, preprocess Text with binary encoding"""
 
@@ -178,11 +177,11 @@ def build_proba_MNB(X, y,
             model = Pipeline([
                 ('preprocessor', BasicPreprocessor()),
                 ('vectorizer', CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 3))),
-                ('classifier', proba_label_MNB(alpha=1))
+                ('classifier', ProbaLabelMNB(alpha=1))
             ])
         else:
             model = Pipeline([
-                ('classifier', proba_label_MNB(alpha=1))
+                ('classifier', ProbaLabelMNB(alpha=1))
             ])
 
         model.fit(X, y)
@@ -197,6 +196,7 @@ def build_proba_MNB(X, y,
 
 # ----------------------------------------------------------------
 # helpers
+# ----------------------------------------------------------------
 
 def almost_equal(pairs1, pairs2, tolerance=0.1):
     """helper function that checks if difference of probabilistic labels is smaller than tolerance for all indices"""

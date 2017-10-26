@@ -63,7 +63,7 @@ def load_civic_abstracts():
             (civic, abstracts) = pickle.load(f)
             print("Loaded summaries and abstracts from disk.")
 
-    except:
+    except IOError:
         print("Downloading summaries...")
         civic = read_civic()
 
@@ -99,7 +99,7 @@ def get_abstracts(idlist):
     for rec in records:
         try:
             df = df.append(pd.DataFrame([[rec["AB"]]], columns=['abstract']), ignore_index=True)
-        except:
+        except Exception:
             pass
     return df
 
@@ -108,14 +108,14 @@ def get_abstracts(idlist):
 # PIBOSO helpers
 # ----------------------------------------------------------------
 
-def sentences_piboso(include=["study design"], exclude=[]):
+def sentences_piboso(include, exclude=None):
     """loads PIBOSO sentences from any included but no excluded class from csv, with normalized abbreviations"""
     piboso = pd.read_csv("piboso_train.csv")
     predictions = piboso['Prediction'].values
     texts = piboso['Text'].values
 
     include_ids = [piboso_category_offset(c) for c in include]
-    exclude_ids = [piboso_category_offset(c) for c in exclude]
+    exclude_ids = [piboso_category_offset(c) for c in exclude] if exclude else []
 
     for i in range(0, len(predictions) - 6, 6):
         if (any(predictions[i + idx] for idx in include_ids)

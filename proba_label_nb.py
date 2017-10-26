@@ -10,9 +10,8 @@ from helpers import num_rows
 
 
 # equations from "partially supervised classification of text documents"
-# TODO don't use proba tuple per doc, but only pos, if neg is always 1-pos
 
-class proba_label_MNB(BaseEstimator, ClassifierMixin):
+class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
     def __init__(self, alpha=0.1):
         self.alpha = alpha
         return
@@ -37,11 +36,10 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
         """predicts probabilistic class labels for set of docs.
         """
 
-        # TODO multithread / make this an inner product (Pool.map can't handle sparse matrix)
+        # TODO speed up: multithread / make this an inner product (Pool.map can't handle sparse matrix)
 
         return np.exp([self.log_proba(x) for x in X])
 
-    # TODO rewrite as inner product
     def log_proba(self, x):
         """predict probabilities of a given class for one doc, using fitted class proba and word proba per class"""
 
@@ -70,7 +68,7 @@ class proba_label_MNB(BaseEstimator, ClassifierMixin):
 
         numerators = np.dot(X.transpose(), p_c_given_x)
 
-        if (issparse(numerators[0])):
+        if hasattr(numerators, 'toarray'):
             numerators = numerators.toarray()  # in case of sparse rows
 
         numerators += self.alpha  # Lidstone smoothing
@@ -115,9 +113,9 @@ def label2num(label):
 
 #
 # legacy version: numerical issues because numbers are too small!
-def proba_nolog(x, pr_c, posprobs, negprobs):
+def proba_nolog(pr_c, posprobs, negprobs):
     numerators = [pr_c[0] * np.prod(posprobs[np.nonzero(posprobs)]),
                   pr_c[1] * np.prod(negprobs[np.nonzero(negprobs)])]
     denominator = np.sum(numerators)
 
-    return (numerators[0] / denominator, numerators[1] / denominator)
+    return numerators[0] / denominator

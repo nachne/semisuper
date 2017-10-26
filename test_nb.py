@@ -1,4 +1,4 @@
-from proba_label_nb import proba_label_MNB
+from proba_label_nb import ProbaLabelMNB
 from random import randint
 from sklearn.model_selection import train_test_split as tts
 from sklearn.metrics import classification_report as clsr
@@ -10,7 +10,7 @@ from sklearn.datasets import load_breast_cancer
 print("\nNB test")
 print("-------\n")
 
-p_mnb = proba_label_MNB()
+p_mnb = ProbaLabelMNB()
 
 X = [[randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1)]
      for x in range(1000)]
@@ -38,7 +38,7 @@ print(X[0])
 print("\nNB test")
 print("-------\n")
 
-p_mnb = proba_label_MNB()
+p_mnb = ProbaLabelMNB()
 
 X = [[randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1), randint(0, 1)]
      for x in range(1000)]
