@@ -22,7 +22,7 @@ def build_and_evaluate(X, y,
                        SGD=SGDClassifier(n_jobs=-1, loss="modified_huber"),
                        classifier=None,
                        outpath=None,
-                       verbose=True,
+                       verbose=False,
                        text=True):
     def build(classifier, X, y=None):
         """
@@ -65,14 +65,13 @@ def build_and_evaluate(X, y,
     # Begin evaluation
     if verbose:
         print("Building for evaluation")
-    X_train, X_test, y_train, y_test = tts(X, y, test_size=0.2)
-    model = build(classifier, X_train, y_train)
+        X_train, X_test, y_train, y_test = tts(X, y, test_size=0.2)
+        model = build(classifier, X_train, y_train)
 
-    if verbose:
         print("Classification Report:\n")
 
-    y_pred = model.predict(X_test)
-    print(clsr(y_test, y_pred, target_names=labels.classes_))
+        y_pred = model.predict(X_test)
+        print(clsr(y_test, y_pred, target_names=labels.classes_))
 
     if verbose:
         print("Building complete model and saving ...")

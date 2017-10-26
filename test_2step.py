@@ -34,8 +34,9 @@ U = random.sample(abstracts, 4000) + random.sample(P, 0)
 # y_U = [0] * num_rows(U)
 
 
+
 # ------------------
-# standalone CR-SVM Test
+# CR-SVM Test
 
 print("\n\n"
       "-----------\n"
@@ -76,6 +77,7 @@ print("piboso outcome bot-12")
 print("\n")
 
 
+
 # ------------------
 # standalone Rocchio Test
 
@@ -85,7 +87,7 @@ print("\n\n"
       "------------------------------\n")
 
 start_time = time.time()
-roc = pu_two_step.standalone_cos_rocchio(civic, abstracts, noise_lvl=0.5, text=True)
+roc = pu_two_step.standalone_cos_rocchio(P, U, noise_lvl=0.5, text=True)
 print("\nTraining Standalone Cosine-Rocchio took %s seconds\n" % (time.time() - start_time))
 
 civ_lab_sim = sorted(zip(roc.predict_proba(civic), civic), key=itemgetter(0), reverse=True)
@@ -116,6 +118,8 @@ print("piboso outcome top-12")
 print("piboso outcome bot-12")
 [print(x) for x in (out_lab_sim[-12:])]
 print("\n")
+
+
 
 # ------------------
 # fake S-EM-Test

@@ -42,12 +42,15 @@ def arrays(args):
 
 def partition_pos_neg(X, y):
     """partitions X into elements where corresponding y element is nonzero VS zero"""
-    X, y = arrays([X, y])
+    # TODO array/sparse/list dispatch
 
     pos_idx = nonzero(y)
 
     neg_idx = ones(num_rows(y), dtype=bool)
     neg_idx[pos_idx] = False
+
+    # print(X[pos_idx])
+    # print(X[neg_idx])
 
     return X[pos_idx], X[neg_idx]
 

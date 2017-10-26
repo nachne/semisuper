@@ -103,7 +103,7 @@ class SimRanker(BaseEstimator, ClassifierMixin):
 
         if self.compute_thresh:
             self.threshold = self.heuristic_threshold(self.mean_X, X)
-            print("threshold:", self.threshold)
+            print("Threshold:", self.threshold)
 
         return self
 
@@ -119,7 +119,7 @@ class SimRanker(BaseEstimator, ClassifierMixin):
 
     def heuristic_threshold(self, mean_X, X):
         cos_sim = cosine_similarity(mean_X, X)
-        print("threshold computed as (mean(mean_sim(X, X_mean), min_sim(X, X_mean))")
+        print("Threshold computed as (mean(mean_sim(X, X_mean), min_sim(X, X_mean))")
         return (cos_sim.mean() + cos_sim.min()) / 2
 
 

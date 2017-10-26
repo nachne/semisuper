@@ -50,7 +50,7 @@ def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.1, alpha=16, beta=4, text=True,
     P, U = arrays([P, U])
 
     # step 1
-    print("Determining confidence threshold using Cosine Similarity threshold and Rocchio\n")
+    print("Determining RN using Cosine Similarity threshold and Rocchio\n")
     U_minus_RN, RN = get_RN_cosine_rocchio(P, U, noise_lvl=noise_lvl, alpha=alpha, beta=beta, text=text)
 
     # step2
@@ -58,7 +58,8 @@ def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.1, alpha=16, beta=4, text=True,
     model = iterate_SVM(P, U_minus_RN, RN, text=text, max_neg_ratio=max_neg_ratio,
                         clf=svm.LinearSVC(class_weight='balanced'))
 
-    report_save(model, P, U, outpath)
+    # TODO list/array probs
+    # report_save(model, P, U, outpath)
 
     return model
 
@@ -98,10 +99,11 @@ def standalone_cos_rocchio(P, U, noise_lvl=0.4, alpha=16, beta=4, text=True, out
     model = rocchio(P, PN, alpha, beta, text)
 
     # TODO something weird is going on
-    print(model.predict(P))
-    print(model.predict(U))
+    # print(model.predict(P))
+    # print(model.predict(U))
 
-    report_save(model, P, U, outpath)
+    # TODO list/array probs
+    # report_save(model, P, U, outpath)
 
     return model
 
@@ -255,7 +257,7 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05, clf=svm.LinearSVC(class
     iteration = 0
 
     # iterate SVM, each turn augmenting RN by the documents in Q classified negative
-    while W:
+    while num_rows(W) > 0:
         print("new negative docs since last iteration:", num_rows(W))
         iteration += 1
         print("Iteration #", iteration)
