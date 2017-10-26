@@ -22,7 +22,8 @@ def build_and_evaluate(X, y,
                        SGD=SGDClassifier(n_jobs=-1, loss="modified_huber"),
                        classifier=None,
                        outpath=None,
-                       verbose=True):
+                       verbose=True,
+                       text=True):
     def build(classifier, X, y=None):
         """
         Inner build function that builds a single model.
@@ -34,20 +35,25 @@ def build_and_evaluate(X, y,
         if isinstance(classifier, type):
             classifier = classifier()
 
-        model = Pipeline([
-            ('preprocessor', BasicPreprocessor()),
-            ('vectorizer', FeatureUnion(transformer_list=[
-                ("words", TfidfVectorizer(
-                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
-                 ),
-                ("stats", FeatureNamePipeline([
-                    ("stats", TextStats()),
-                    ("vect", DictVectorizer())
-                ]))
-            ]
-            )),
-            ('classifier', classifier)
-        ])
+        if text:
+            model = Pipeline([
+                ('preprocessor', BasicPreprocessor()),
+                ('vectorizer', FeatureUnion(transformer_list=[
+                    ("words", TfidfVectorizer(
+                            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+                     ),
+                    ("stats", FeatureNamePipeline([
+                        ("stats", TextStats()),
+                        ("vect", DictVectorizer())
+                    ]))
+                ]
+                )),
+                ('classifier', classifier)
+            ])
+        else:
+            model = Pipeline([
+                ('classifier', classifier)
+            ])
 
         model.fit(X, y)
         return model
@@ -133,8 +139,6 @@ def show_most_informative_features(model: object, text: object = None, n: object
 
     return "\n".join(output)
 
-
 # ----------------------------------------------------------------
 # ----------------------------------------------------------------
 # ----------------------------------------------------------------
-

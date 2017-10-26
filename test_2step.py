@@ -12,6 +12,7 @@ import pandas as pd
 import pu_two_step
 import time
 import sys
+from helpers import num_rows
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 
@@ -28,6 +29,93 @@ U = abstracts
 
 P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
 U = random.sample(abstracts, 4000) + random.sample(P, 0)
+
+# y_P = [1] * num_rows(P)
+# y_U = [0] * num_rows(U)
+
+
+# ------------------
+# standalone CR-SVM Test
+
+print("\n\n"
+      "-----------\n"
+      "CR-SVM TEST\n"
+      "-----------\n")
+
+start_time = time.time()
+crsvm = pu_two_step.cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.1, text=True)
+print("\nTraining CR-SVM took %s seconds\n" % (time.time() - start_time))
+
+civ_lab_sim = sorted(zip(crsvm.predict_proba(civic), civic), key=itemgetter(0), reverse=True)
+print("\ncos-rocchio civic prediction", sum([1 for x in civ_lab_sim if x[0] > 0.5]), "/", num_rows(civ_lab_sim))
+print("civic top-12")
+[print(x) for x in (civ_lab_sim[0:12])]
+print("civic bot-12")
+[print(x) for x in (civ_lab_sim[-12:])]
+
+abs_lab_sim = sorted(zip(crsvm.predict_proba(abstracts), abstracts), key=itemgetter(0), reverse=True)
+print("\ncos-rocchio abstracts prediction", sum([1 for x in abs_lab_sim if x[0] > 0.5]), "/", num_rows(abs_lab_sim))
+print("abstracts top-12")
+[print(x) for x in (abs_lab_sim[0:12])]
+print("abstracts bot-12")
+[print(x) for x in (abs_lab_sim[-12:])]
+
+oth_lab_sim = sorted(zip(crsvm.predict_proba(piboso_other), piboso_other), key=itemgetter(0), reverse=True)
+print("\ncos-rocchio piboso-other prediction", sum([1 for x in oth_lab_sim if x[0] > 0.5]), "/", num_rows(oth_lab_sim))
+print("piboso other top-12")
+[print(x) for x in (oth_lab_sim[0:12])]
+print("piboso other bot-12")
+[print(x) for x in (oth_lab_sim[-12:])]
+
+out_lab_sim = sorted(zip(crsvm.predict_proba(piboso_outcome), piboso_outcome), key=itemgetter(0), reverse=True)
+print("\ncos-rocchio piboso-outcome prediction", sum([1 for x in out_lab_sim if x[0] > 0.5]), "/", num_rows(out_lab_sim))
+print("piboso outcome top-12")
+[print(x) for x in (out_lab_sim[0:12])]
+print("piboso outcome bot-12")
+[print(x) for x in (out_lab_sim[-12:])]
+print("\n")
+
+
+# ------------------
+# standalone Rocchio Test
+
+print("\n\n"
+      "------------------------------\n"
+      "STANDALONE COSINE-ROCCHIO TEST\n"
+      "------------------------------\n")
+
+start_time = time.time()
+roc = pu_two_step.standalone_cos_rocchio(civic, abstracts, noise_lvl=0.5, text=True)
+print("\nTraining Standalone Cosine-Rocchio took %s seconds\n" % (time.time() - start_time))
+
+civ_lab_sim = sorted(zip(roc.predict_proba(civic), civic), key=itemgetter(0), reverse=True)
+print("\ncos-rocchio civic prediction", sum([1 for x in civ_lab_sim if x[0] > 0.5]), "/", num_rows(civ_lab_sim))
+print("civic top-12")
+[print(x) for x in (civ_lab_sim[0:12])]
+print("civic bot-12")
+[print(x) for x in (civ_lab_sim[-12:])]
+
+abs_lab_sim = sorted(zip(roc.predict_proba(abstracts), abstracts), key=itemgetter(0), reverse=True)
+print("\ncos-rocchio abstracts prediction", sum([1 for x in abs_lab_sim if x[0] > 0.5]), "/", num_rows(abs_lab_sim))
+print("abstracts top-12")
+[print(x) for x in (abs_lab_sim[0:12])]
+print("abstracts bot-12")
+[print(x) for x in (abs_lab_sim[-12:])]
+
+oth_lab_sim = sorted(zip(roc.predict_proba(piboso_other), piboso_other), key=itemgetter(0), reverse=True)
+print("\ncos-rocchio piboso-other prediction", sum([1 for x in oth_lab_sim if x[0] > 0.5]), "/", num_rows(oth_lab_sim))
+print("piboso other top-12")
+[print(x) for x in (oth_lab_sim[0:12])]
+print("piboso other bot-12")
+[print(x) for x in (oth_lab_sim[-12:])]
+
+out_lab_sim = sorted(zip(roc.predict_proba(piboso_outcome), piboso_outcome), key=itemgetter(0), reverse=True)
+print("\ncos-rocchio piboso-outcome prediction", sum([1 for x in out_lab_sim if x[0] > 0.5]), "/", num_rows(out_lab_sim))
+print("piboso outcome top-12")
+[print(x) for x in (out_lab_sim[0:12])]
+print("piboso outcome bot-12")
+[print(x) for x in (out_lab_sim[-12:])]
+print("\n")
 
 # ------------------
 # fake S-EM-Test

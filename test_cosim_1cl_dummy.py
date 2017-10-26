@@ -31,33 +31,34 @@ y = ["pos"] * len(pos) + ["neg"] * len(neg)
 # cosine-ranking Test
 
 print("\n\n"
+      "-------------------\n"
       "COSINE RANKING TEST\n"
       "-------------------\n")
 
-ranking = ranking_cos_sim(civic)
+ranking = ranking_cos_sim(civic, compute_thresh=True)
 
-civ_lab_sim = sorted(zip(ranking.predict_proba(civic)[0], civic), key=itemgetter(0), reverse=True)
+civ_lab_sim = sorted(zip(ranking.predict_proba(civic), civic), key=itemgetter(0), reverse=True)
 # print("ranking civic prediction", sum([x for x in civ_lab_sim if x > (0 ]), "/", len(civ_lab_sim))
 print("\ncivic top-12")
 [print(x) for x in (civ_lab_sim[0:12])]
 print("civic bot-12")
 [print(x) for x in (civ_lab_sim[-12:])]
 
-abs_lab_sim = sorted(zip(ranking.predict_proba(abstracts)[0], abstracts), key=itemgetter(0), reverse=True)
+abs_lab_sim = sorted(zip(ranking.predict_proba(abstracts), abstracts), key=itemgetter(0), reverse=True)
 # print("ranking abstracts prediction", sum([x for x in abs_lab_sim if x > (0 ]), "/", len(abs_lab_sim))
 print("\nabstracts top-12")
 [print(x) for x in (abs_lab_sim[0:12])]
 print("abstracts bot-12")
 [print(x) for x in (abs_lab_sim[-12:])]
 
-oth_lab_sim = sorted(zip(ranking.predict_proba(piboso_other)[0], piboso_other), key=itemgetter(0), reverse=True)
+oth_lab_sim = sorted(zip(ranking.predict_proba(piboso_other), piboso_other), key=itemgetter(0), reverse=True)
 # print("ranking piboso-other prediction", sum([x for x in oth_lab_sim if x > (0 ]), "/", len(oth_lab_sim))
 print("\npiboso other top-12")
 [print(x) for x in (oth_lab_sim[0:12])]
 print("piboso other bot-12")
 [print(x) for x in (oth_lab_sim[-12:])]
 
-out_lab_sim = sorted(zip(ranking.predict_proba(piboso_outcome)[0], piboso_outcome), key=itemgetter(0), reverse=True)
+out_lab_sim = sorted(zip(ranking.predict_proba(piboso_outcome), piboso_outcome), key=itemgetter(0), reverse=True)
 # print("ranking piboso-outcome prediction", sum([x for x in out_lab_sim if x > (0 ]), "/", len(out_lab_sim))
 print("\npiboso outcome top-12")
 [print(x) for x in (out_lab_sim[0:12])]
@@ -69,6 +70,7 @@ print("\n")
 # one-class SVM Test
 
 print("\n\n"
+      "------------------\n"
       "ONE-CLASS SVM TEST\n"
       "------------------\n")
 
@@ -90,6 +92,7 @@ print("1-class svm piboso-outcome prediction", sum([x for x in out_lab_1cl if x 
 # CIViC vs abstracts normal classifier test
 
 print("\n\n"
+      "----------------------------------\n"
       "SUPERVISED CIVIC VS ABSTRACTS TEST\n"
       "----------------------------------\n")
 

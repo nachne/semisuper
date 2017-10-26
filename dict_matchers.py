@@ -28,7 +28,7 @@ class HypernymMapper(DictReplacer):
         try:
             with open("hypernyms.pickle", "rb") as f:
                 hypernyms = pickle.load(f)
-                print("Loaded hypernyms from disk.")
+                # print("Loaded hypernyms from disk.")
         except IOError:
             print("Building hypernym resources...")
             hypernyms = self.build_hypernym_dict()

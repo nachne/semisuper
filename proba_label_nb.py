@@ -6,7 +6,7 @@ from scipy.sparse import issparse
 from scipy.sparse import csr_matrix
 from scipy.misc import logsumexp
 import multiprocessing as multi
-from helpers import num_rows
+from helpers import num_rows, label2num
 
 
 # equations from "partially supervised classification of text documents"
@@ -95,16 +95,6 @@ def labels2probs(y):
     else:
         yp = np.array(y)
     return yp
-
-
-def label2num(label):
-    if isinstance(label, (int, float)):
-        return 1.0 * label
-    elif label in ['pos', 'POS', 'Pos', 'positive', 'Positive', 'yes', '1']:
-        return 1.0
-    else:
-        return 0.0
-
 
 # ----------------------------------------------------------------
 
