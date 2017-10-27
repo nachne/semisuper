@@ -45,6 +45,7 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.05, text=True, outp
 
     return model
 
+
 # TODO something wrong with partitioning!!!!!
 def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.1, alpha=16, beta=4, text=True, outpath=None):
     P, U = arrays([P, U])
@@ -55,8 +56,7 @@ def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.1, alpha=16, beta=4, text=True,
 
     # step2
     print("\nIterating SVM with P, U-RN, and RN")
-    model = iterate_SVM(P, U_minus_RN, RN, text=text, max_neg_ratio=max_neg_ratio,
-                        clf=svm.LinearSVC(class_weight='balanced'))
+    model = iterate_SVM(P, U_minus_RN, RN, text=text, max_neg_ratio=max_neg_ratio)
 
     # TODO list/array probs
     # report_save(model, P, U, outpath)
@@ -154,6 +154,7 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
     y_U = model.predict(U)
 
     U_minus_RN, RN = partition_pos_neg(U, y_U)
+    print("Reliable Negative examples in U:", num_rows(RN), "(", 100 * num_rows(RN) / num_rows(U), "%)")
 
     return U_minus_RN, RN
 
@@ -235,15 +236,15 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_rati
     return model
 
 
-def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05, clf=svm.LinearSVC(class_weight='balanced')):
+def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05,
+                clf=svm.SVC(kernel='linear', class_weight='balanced', probability=True)):
     """runs an SVM classifier trained on P and RN iteratively, augmenting RN
 
     after each iteration, the documents in U classified as negative are moved to RN until there are none left.
     max_neg_ratio is the maximum accepted ratio of P to be classified as negative by final classifier.
     if the final classifier regards more than max_neg_ratio of P as negative, return the initial one."""
 
-    y_P = np.ones(num_rows(P))
-    y_RN = np.zeros(num_rows(RN))
+    y_P, y_RN = np.ones(num_rows(P)), np.zeros(num_rows(RN))
 
     print("Building initial SVM classifier with Positive and Reliable Negative docs")
     initial_model = build_and_evaluate(np.concatenate((P, RN)),
@@ -255,10 +256,11 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05, clf=svm.LinearSVC(class
     y_U = initial_model.predict(U)
     Q, W = partition_pos_neg(U, y_U)
     iteration = 0
+    model = None
 
     # iterate SVM, each turn augmenting RN by the documents in Q classified negative
-    while num_rows(W) > 0:
-        print("new negative docs since last iteration:", num_rows(W))
+    while num_rows(W) > 0 and num_rows(Q) > 0:
+        print("new negative docs:", num_rows(W))
         iteration += 1
         print("Iteration #", iteration)
 
@@ -272,6 +274,12 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05, clf=svm.LinearSVC(class
 
         y_U = model.predict(Q)
         Q, W = partition_pos_neg(Q, y_U)
+
+    print("Iterative SVM converged. Positive examples remaining in U:", num_rows(Q), "(",
+          100 * num_rows(Q) / num_rows(U), "%)")
+
+    if not model:
+        return initial_model
 
     y_P_initial = initial_model.predict(P)
     y_P_final = model.predict(P)
