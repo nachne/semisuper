@@ -178,6 +178,7 @@ class FeatureNamePipeline(Pipeline):
         return self._final_estimator.get_feature_names()
 
 
+
 # TODO make piped class from this and DictVectorize
 class TextStats(BaseEstimator, TransformerMixin):
     """Extract features from tokenized document for DictVectorizer

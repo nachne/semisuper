@@ -27,66 +27,6 @@ y = ["pos"] * len(pos) + ["neg"] * len(neg)
 
 
 
-# ------------------
-# cosine-ranking Test
-
-print("\n\n"
-      "-------------------\n"
-      "COSINE RANKING TEST\n"
-      "-------------------\n")
-
-ranking = ranking_cos_sim(civic, compute_thresh=True)
-
-civ_lab_sim = sorted(zip(ranking.predict_proba(civic), civic), key=itemgetter(0), reverse=True)
-# print("ranking civic prediction", sum([x for x in civ_lab_sim if x > (0 ]), "/", len(civ_lab_sim))
-print("\ncivic top-12")
-[print(x) for x in (civ_lab_sim[0:12])]
-print("civic bot-12")
-[print(x) for x in (civ_lab_sim[-12:])]
-
-abs_lab_sim = sorted(zip(ranking.predict_proba(abstracts), abstracts), key=itemgetter(0), reverse=True)
-# print("ranking abstracts prediction", sum([x for x in abs_lab_sim if x > (0 ]), "/", len(abs_lab_sim))
-print("\nabstracts top-12")
-[print(x) for x in (abs_lab_sim[0:12])]
-print("abstracts bot-12")
-[print(x) for x in (abs_lab_sim[-12:])]
-
-oth_lab_sim = sorted(zip(ranking.predict_proba(piboso_other), piboso_other), key=itemgetter(0), reverse=True)
-# print("ranking piboso-other prediction", sum([x for x in oth_lab_sim if x > (0 ]), "/", len(oth_lab_sim))
-print("\npiboso other top-12")
-[print(x) for x in (oth_lab_sim[0:12])]
-print("piboso other bot-12")
-[print(x) for x in (oth_lab_sim[-12:])]
-
-out_lab_sim = sorted(zip(ranking.predict_proba(piboso_outcome), piboso_outcome), key=itemgetter(0), reverse=True)
-# print("ranking piboso-outcome prediction", sum([x for x in out_lab_sim if x > (0 ]), "/", len(out_lab_sim))
-print("\npiboso outcome top-12")
-[print(x) for x in (out_lab_sim[0:12])]
-print("piboso outcome bot-12")
-[print(x) for x in (out_lab_sim[-12:])]
-print("\n")
-
-# ------------------
-# one-class SVM Test
-
-print("\n\n"
-      "------------------\n"
-      "ONE-CLASS SVM TEST\n"
-      "------------------\n")
-
-one_class = one_class_svm(civic, kernel="rbf")
-
-abs_lab_1cl = one_class.predict(abstracts)
-print("1-class svm abstracts prediction", sum([x for x in abs_lab_1cl if x > 0 ]), "/", len(abs_lab_1cl))
-
-civ_lab_1cl = one_class.predict(civic)
-print("1-class svm civic prediction", sum([x for x in civ_lab_1cl if x > 0 ]), "/", len(civ_lab_1cl))
-
-oth_lab_1cl = one_class.predict(piboso_other)
-print("1-class svm piboso-other prediction", sum([x for x in oth_lab_1cl if x > 0 ]), "/", len(oth_lab_1cl))
-
-out_lab_1cl = one_class.predict(piboso_outcome)
-print("1-class svm piboso-outcome prediction", sum([x for x in out_lab_1cl if x > 0 ]), "/", len(out_lab_1cl))
 
 # ----------------------------------------------------------------
 # CIViC vs abstracts normal classifier test
@@ -200,3 +140,67 @@ print("piboso other: prediction", sum(yhat4), "/", len(yhat4))
 yhat5 = model.predict(loaders.sentences_piboso_outcome())
 print("piboso outcome: prediction", sum(yhat5), "/", len(yhat5))
 
+
+
+
+
+# ------------------
+# cosine-ranking Test
+
+print("\n\n"
+      "-------------------\n"
+      "COSINE RANKING TEST\n"
+      "-------------------\n")
+
+ranking = ranking_cos_sim(civic, compute_thresh=True)
+
+civ_lab_sim = sorted(zip(ranking.predict_proba(civic), civic), key=itemgetter(0), reverse=True)
+# print("ranking civic prediction", sum([x for x in civ_lab_sim if x > (0 ]), "/", len(civ_lab_sim))
+print("\ncivic top-12")
+[print(x) for x in (civ_lab_sim[0:12])]
+print("civic bot-12")
+[print(x) for x in (civ_lab_sim[-12:])]
+
+abs_lab_sim = sorted(zip(ranking.predict_proba(abstracts), abstracts), key=itemgetter(0), reverse=True)
+# print("ranking abstracts prediction", sum([x for x in abs_lab_sim if x > (0 ]), "/", len(abs_lab_sim))
+print("\nabstracts top-12")
+[print(x) for x in (abs_lab_sim[0:12])]
+print("abstracts bot-12")
+[print(x) for x in (abs_lab_sim[-12:])]
+
+oth_lab_sim = sorted(zip(ranking.predict_proba(piboso_other), piboso_other), key=itemgetter(0), reverse=True)
+# print("ranking piboso-other prediction", sum([x for x in oth_lab_sim if x > (0 ]), "/", len(oth_lab_sim))
+print("\npiboso other top-12")
+[print(x) for x in (oth_lab_sim[0:12])]
+print("piboso other bot-12")
+[print(x) for x in (oth_lab_sim[-12:])]
+
+out_lab_sim = sorted(zip(ranking.predict_proba(piboso_outcome), piboso_outcome), key=itemgetter(0), reverse=True)
+# print("ranking piboso-outcome prediction", sum([x for x in out_lab_sim if x > (0 ]), "/", len(out_lab_sim))
+print("\npiboso outcome top-12")
+[print(x) for x in (out_lab_sim[0:12])]
+print("piboso outcome bot-12")
+[print(x) for x in (out_lab_sim[-12:])]
+print("\n")
+
+# ------------------
+# one-class SVM Test
+
+print("\n\n"
+      "------------------\n"
+      "ONE-CLASS SVM TEST\n"
+      "------------------\n")
+
+one_class = one_class_svm(civic, kernel="rbf")
+
+abs_lab_1cl = one_class.predict(abstracts)
+print("1-class svm abstracts prediction", sum([x for x in abs_lab_1cl if x > 0 ]), "/", len(abs_lab_1cl))
+
+civ_lab_1cl = one_class.predict(civic)
+print("1-class svm civic prediction", sum([x for x in civ_lab_1cl if x > 0 ]), "/", len(civ_lab_1cl))
+
+oth_lab_1cl = one_class.predict(piboso_other)
+print("1-class svm piboso-other prediction", sum([x for x in oth_lab_1cl if x > 0 ]), "/", len(oth_lab_1cl))
+
+out_lab_1cl = one_class.predict(piboso_outcome)
+print("1-class svm piboso-outcome prediction", sum([x for x in out_lab_1cl if x > 0 ]), "/", len(out_lab_1cl))

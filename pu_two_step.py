@@ -11,7 +11,7 @@ import numpy as np
 from numpy import array_equal as equal
 from scipy import sparse
 import pickle
-
+from copy import deepcopy
 from helpers import identity, num_rows, arrays, partition_pos_neg
 from pu_ranking import ranking_cos_sim, rocchio
 from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
@@ -149,7 +149,7 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
     _, PN = select_PN_below_score(sims_P, U, sims_U, noise_lvl=noise_lvl)
 
     print("Building Rocchio model to determine Reliable Negative examples")
-    model = rocchio(P, PN, alpha, beta, text)
+    model = rocchio(P, PN, alpha=alpha, beta=beta, text=text)
 
     y_U = model.predict(U)
 
@@ -157,6 +157,11 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
     print("Reliable Negative examples in U:", num_rows(RN), "(", 100 * num_rows(RN) / num_rows(U), "%)")
 
     return U_minus_RN, RN
+
+
+# TODO
+def get_RN_1_DNF(P, U):
+    return U, []
 
 
 # ----------------------------------------------------------------
@@ -237,19 +242,20 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_rati
 
 
 def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05,
-                clf=svm.SVC(kernel='linear', class_weight='balanced', probability=True)):
+                classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True)):
     """runs an SVM classifier trained on P and RN iteratively, augmenting RN
 
     after each iteration, the documents in U classified as negative are moved to RN until there are none left.
     max_neg_ratio is the maximum accepted ratio of P to be classified as negative by final classifier.
     if the final classifier regards more than max_neg_ratio of P as negative, return the initial one."""
 
-    y_P, y_RN = np.ones(num_rows(P)), np.zeros(num_rows(RN))
+    y_P = np.ones(num_rows(P))
+    y_RN = np.zeros(num_rows(RN))
 
     print("Building initial SVM classifier with Positive and Reliable Negative docs")
     initial_model = build_and_evaluate(np.concatenate((P, RN)),
                                        np.concatenate((y_P, y_RN)),
-                                       classifier=clf,
+                                       classifier=deepcopy(classifier),
                                        text=text)
 
     print("Predicting U with initial SVM, adding negatively classified docs to RN for iteration")
@@ -269,34 +275,32 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05,
 
         model = build_and_evaluate(np.concatenate((P, RN)),
                                    np.concatenate((y_P, y_RN)),
-                                   classifier=clf,
+                                   classifier=deepcopy(classifier),
                                    text=text)
-
         y_U = model.predict(Q)
         Q, W = partition_pos_neg(Q, y_U)
 
     print("Iterative SVM converged. Positive examples remaining in U:", num_rows(Q), "(",
           100 * num_rows(Q) / num_rows(U), "%)")
 
-    if not model:
+    y_P_initial = initial_model.predict(P)
+    initial_neg_ratio = 1 - num_rows(np.nonzero(y_P_initial)) / num_rows(y_P_initial)
+    print("Ratio of positive samples classified as negative by initial SVM:", initial_neg_ratio)
+
+    if model == None:
         return initial_model
 
-    y_P_initial = initial_model.predict(P)
     y_P_final = model.predict(P)
-
-    initial_neg_ratio = 1 - num_rows(np.nonzero(y_P_initial)) / num_rows(y_P_initial)
     final_neg_ratio = 1 - num_rows(np.nonzero(y_P_final)) / num_rows(y_P_final)
-
-    print("Ratio of positive samples classified as negative by initial SVM:", initial_neg_ratio)
     print("Ratio of positive samples classified as negative by final SVM:", final_neg_ratio)
 
     if (final_neg_ratio > max_neg_ratio):
         print("Final classifier discards too many positive examples.")
         print("Returning initial classifier instead")
         return initial_model
-    else:
-        print("Returning final classifier")
-        return model
+
+    print("Returning final classifier")
+    return model
 
 
 # ----------------------------------------------------------------
