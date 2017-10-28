@@ -44,35 +44,32 @@ print("\n\n"
       "-----------\n")
 
 start_time = time.time()
-crsvm = pu_two_step.cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.1, text=True)
+crsvm = pu_two_step.cr_SVM(civic, abstracts, max_neg_ratio=0.1, noise_lvl=0.1, text=True)
 print("\nTraining CR-SVM took %s seconds\n" % (time.time() - start_time))
 
-
-civ_lab_sim = zip(crsvm.predict_proba(civic), civic)
-print("civ_lab_sim[0]:", civ_lab_sim[0])
-civ_lab_sim = sorted(civ_lab_sim, key=itemgetter(0,0), reverse=True)
-print("\ncos-rocchio civic prediction", sum([1 for x in civ_lab_sim if x[0,0] > 0.5]), "/", num_rows(civ_lab_sim))
+civ_lab_sim = sorted(zip(crsvm.predict_proba(civic), civic), key=lambda x: x[0][0], reverse=True)
+print("\ncos-rocchio civic prediction", sum([1 for x in civ_lab_sim if x[0][0] > 0.5]), "/", num_rows(civ_lab_sim))
 print("civic top-12")
 [print(x) for x in (civ_lab_sim[0:12])]
 print("civic bot-12")
 [print(x) for x in (civ_lab_sim[-12:])]
 
-abs_lab_sim = sorted(zip(crsvm.predict_proba(abstracts), abstracts), reverse=True)
-print("\ncos-rocchio abstracts prediction", sum([1 for x in abs_lab_sim if x[0,0] > 0.5]), "/", num_rows(abs_lab_sim))
+abs_lab_sim = sorted(zip(crsvm.predict_proba(abstracts), abstracts), key=lambda x: x[0][0], reverse=True)
+print("\ncos-rocchio abstracts prediction", sum([1 for x in abs_lab_sim if x[0][0] > 0.5]), "/", num_rows(abs_lab_sim))
 print("abstracts top-12")
 [print(x) for x in (abs_lab_sim[0:12])]
 print("abstracts bot-12")
 [print(x) for x in (abs_lab_sim[-12:])]
 
-oth_lab_sim = sorted(zip(crsvm.predict_proba(piboso_other), piboso_other), reverse=True)
-print("\ncos-rocchio piboso-other prediction", sum([1 for x in oth_lab_sim if x[0,0] > 0.5]), "/", num_rows(oth_lab_sim))
+oth_lab_sim = sorted(zip(crsvm.predict_proba(piboso_other), piboso_other), key=lambda x: x[0][0], reverse=True)
+print("\ncos-rocchio piboso-other prediction", sum([1 for x in oth_lab_sim if x[0][0] > 0.5]), "/", num_rows(oth_lab_sim))
 print("piboso other top-12")
 [print(x) for x in (oth_lab_sim[0:12])]
 print("piboso other bot-12")
 [print(x) for x in (oth_lab_sim[-12:])]
 
-out_lab_sim = sorted(zip(crsvm.predict_proba(piboso_outcome), piboso_outcome), reverse=True)
-print("\ncos-rocchio piboso-outcome prediction", sum([1 for x in out_lab_sim if x[0,0] > 0.5]), "/",
+out_lab_sim = sorted(zip(crsvm.predict_proba(piboso_outcome), piboso_outcome), key=lambda x: x[0][0], reverse=True)
+print("\ncos-rocchio piboso-outcome prediction", sum([1 for x in out_lab_sim if x[0][0] > 0.5]), "/",
       num_rows(out_lab_sim))
 print("piboso outcome top-12")
 [print(x) for x in (out_lab_sim[0:12])]

@@ -284,14 +284,14 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05,
           100 * num_rows(Q) / num_rows(U), "%)")
 
     y_P_initial = initial_model.predict(P)
-    initial_neg_ratio = 1 - num_rows(np.nonzero(y_P_initial)) / num_rows(y_P_initial)
+    initial_neg_ratio = 1 - np.average(y_P_initial)
     print("Ratio of positive samples classified as negative by initial SVM:", initial_neg_ratio)
 
     if model == None:
         return initial_model
 
     y_P_final = model.predict(P)
-    final_neg_ratio = 1 - num_rows(np.nonzero(y_P_final)) / num_rows(y_P_final)
+    final_neg_ratio = 1 - np.average(y_P_final)
     print("Ratio of positive samples classified as negative by final SVM:", final_neg_ratio)
 
     if (final_neg_ratio > max_neg_ratio):
