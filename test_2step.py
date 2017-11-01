@@ -27,55 +27,8 @@ print("PIBOSO sentences:", len(piboso_other))
 P = civic
 U = abstracts
 
-P = random.sample(civic, 1000) + random.sample(piboso_outcome, 0)
-U = random.sample(abstracts, 1000) + random.sample(P, 0)
-
-# y_P = [1] * num_rows(P)
-# y_U = [0] * num_rows(U)
-
-
-
-# ------------------
-# CR-SVM Test
-
-print("\n\n"
-      "-----------\n"
-      "CR-SVM TEST\n"
-      "-----------\n")
-
-start_time = time.time()
-crsvm = pu_two_step.cr_SVM(civic, abstracts, max_neg_ratio=0.1, noise_lvl=0.1, text=True)
-print("\nTraining CR-SVM took %s seconds\n" % (time.time() - start_time))
-
-civ_lab_sim = sorted(zip(crsvm.predict_proba(civic), civic), key=lambda x: x[0][0], reverse=True)
-print("\ncos-rocchio civic prediction", sum([1 for x in civ_lab_sim if x[0][0] > 0.5]), "/", num_rows(civ_lab_sim))
-print("civic top-12")
-[print(x) for x in (civ_lab_sim[0:12])]
-print("civic bot-12")
-[print(x) for x in (civ_lab_sim[-12:])]
-
-abs_lab_sim = sorted(zip(crsvm.predict_proba(abstracts), abstracts), key=lambda x: x[0][0], reverse=True)
-print("\ncos-rocchio abstracts prediction", sum([1 for x in abs_lab_sim if x[0][0] > 0.5]), "/", num_rows(abs_lab_sim))
-print("abstracts top-12")
-[print(x) for x in (abs_lab_sim[0:12])]
-print("abstracts bot-12")
-[print(x) for x in (abs_lab_sim[-12:])]
-
-oth_lab_sim = sorted(zip(crsvm.predict_proba(piboso_other), piboso_other), key=lambda x: x[0][0], reverse=True)
-print("\ncos-rocchio piboso-other prediction", sum([1 for x in oth_lab_sim if x[0][0] > 0.5]), "/", num_rows(oth_lab_sim))
-print("piboso other top-12")
-[print(x) for x in (oth_lab_sim[0:12])]
-print("piboso other bot-12")
-[print(x) for x in (oth_lab_sim[-12:])]
-
-out_lab_sim = sorted(zip(crsvm.predict_proba(piboso_outcome), piboso_outcome), key=lambda x: x[0][0], reverse=True)
-print("\ncos-rocchio piboso-outcome prediction", sum([1 for x in out_lab_sim if x[0][0] > 0.5]), "/",
-      num_rows(out_lab_sim))
-print("piboso outcome top-12")
-[print(x) for x in (out_lab_sim[0:12])]
-print("piboso outcome bot-12")
-[print(x) for x in (out_lab_sim[-12:])]
-print("\n")
+P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
+U = random.sample(abstracts, 4000) + random.sample(P, 0)
 
 # ------------------
 # standalone Rocchio Test
@@ -89,35 +42,113 @@ start_time = time.time()
 roc = pu_two_step.standalone_cos_rocchio(P, U, noise_lvl=0.5, text=True)
 print("\nTraining Standalone Cosine-Rocchio took %s seconds\n" % (time.time() - start_time))
 
-civ_lab_sim = sorted(zip(roc.predict_proba(civic), civic), key=itemgetter(0), reverse=True)
-print("\ncos-rocchio civic prediction", sum([1 for x in civ_lab_sim if x[0] > 0.5]), "/", num_rows(civ_lab_sim))
-print("civic top-12")
-[print(x) for x in (civ_lab_sim[0:12])]
-print("civic bot-12")
-[print(x) for x in (civ_lab_sim[-12:])]
 
-abs_lab_sim = sorted(zip(roc.predict_proba(abstracts), abstracts), key=itemgetter(0), reverse=True)
-print("\ncos-rocchio abstracts prediction", sum([1 for x in abs_lab_sim if x[0] > 0.5]), "/", num_rows(abs_lab_sim))
-print("abstracts top-12")
-[print(x) for x in (abs_lab_sim[0:12])]
-print("abstracts bot-12")
-[print(x) for x in (abs_lab_sim[-12:])]
+def sort_cos_roc(sentences):
+    return sorted(zip(roc.predict_proba(sentences),
+                      sentences),
+                  key=lambda x: x[0],
+                  reverse=True)
 
-oth_lab_sim = sorted(zip(roc.predict_proba(piboso_other), piboso_other), key=itemgetter(0), reverse=True)
-print("\ncos-rocchio piboso-other prediction", sum([1 for x in oth_lab_sim if x[0] > 0.5]), "/", num_rows(oth_lab_sim))
-print("piboso other top-12")
-[print(x) for x in (oth_lab_sim[0:12])]
-print("piboso other bot-12")
-[print(x) for x in (oth_lab_sim[-12:])]
 
-out_lab_sim = sorted(zip(roc.predict_proba(piboso_outcome), piboso_outcome), key=itemgetter(0), reverse=True)
-print("\ncos-rocchio piboso-outcome prediction", sum([1 for x in out_lab_sim if x[0] > 0.5]), "/",
-      num_rows(out_lab_sim))
-print("piboso outcome top-12")
-[print(x) for x in (out_lab_sim[0:12])]
-print("piboso outcome bot-12")
-[print(x) for x in (out_lab_sim[-12:])]
-print("\n")
+def top_bot_12_cos_roc(predictions, name):
+    print("\ncos-rocchio", name, "prediction", sum([1 for x in predictions if x[0] > 0.5]), "/",
+          num_rows(predictions))
+    print(name, "top-12")
+    [print(x) for x in (predictions[0:12])]
+    print(name, "bot-12")
+    [print(x) for x in (predictions[-12:])]
+
+
+civ_lab_sim = sort_cos_roc(civic)
+top_bot_12_cos_roc(civ_lab_sim, "civic")
+
+abs_lab_sim = sort_cos_roc(abstracts)
+top_bot_12_cos_roc(abs_lab_sim, "abstracts")
+
+oth_lab_sim = sort_cos_roc(piboso_other)
+top_bot_12_cos_roc(oth_lab_sim, "piboso-other")
+
+out_lab_sim = sort_cos_roc(piboso_outcome)
+top_bot_12_cos_roc(out_lab_sim, "piboso-outcome")
+
+# ------------------
+# ROC-SVM Test
+
+print("\n\n"
+      "------------\n"
+      "ROC-SVM TEST\n"
+      "------------\n")
+
+start_time = time.time()
+rocsvm = pu_two_step.roc_SVM(P, U, max_neg_ratio=0.1, text=True)
+print("\nTraining ROC-SVM took %s seconds\n" % (time.time() - start_time))
+
+def sort_roc_svm(sentences):
+    return sorted(zip(rocsvm.predict_proba(sentences),
+                      sentences),
+                  key=lambda x: x[0][1],
+                  reverse=True)
+
+def top_bot_12_cr_svm(predictions, name):
+    print("\nroc-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > 0.5]), "/",
+          num_rows(predictions))
+    print(name, "top-12")
+    [print(x) for x in (predictions[0:12])]
+    print(name, "bot-12")
+    [print(x) for x in (predictions[-12:])]
+
+
+civ_lab_sim = sort_roc_svm(civic)
+top_bot_12_cr_svm(civ_lab_sim, "civic")
+
+abs_lab_sim = sort_roc_svm(abstracts)
+top_bot_12_cr_svm(abs_lab_sim, "abstracts")
+
+oth_lab_sim = sort_roc_svm(piboso_other)
+top_bot_12_cr_svm(oth_lab_sim, "piboso-other")
+
+out_lab_sim = sort_roc_svm(piboso_outcome)
+top_bot_12_cr_svm(out_lab_sim, "piboso-outcome")
+
+
+# ------------------
+# CR-SVM Test
+
+print("\n\n"
+      "-----------\n"
+      "CR-SVM TEST\n"
+      "-----------\n")
+
+start_time = time.time()
+crsvm = pu_two_step.cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.1, text=True)
+print("\nTraining CR-SVM took %s seconds\n" % (time.time() - start_time))
+
+def sort_cr_svm(sentences):
+    return sorted(zip(crsvm.predict_proba(sentences),
+                      sentences),
+                  key=lambda x: x[0][1],
+                  reverse=True)
+
+def top_bot_12_cr_svm(predictions, name):
+    print("\ncr-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > 0.5]), "/",
+          num_rows(predictions))
+    print(name, "top-12")
+    [print(x) for x in (predictions[0:12])]
+    print(name, "bot-12")
+    [print(x) for x in (predictions[-12:])]
+
+
+civ_lab_sim = sort_cr_svm(civic)
+top_bot_12_cr_svm(civ_lab_sim, "civic")
+
+abs_lab_sim = sort_cr_svm(abstracts)
+top_bot_12_cr_svm(abs_lab_sim, "abstracts")
+
+oth_lab_sim = sort_cr_svm(piboso_other)
+top_bot_12_cr_svm(oth_lab_sim, "piboso-other")
+
+out_lab_sim = sort_cr_svm(piboso_outcome)
+top_bot_12_cr_svm(out_lab_sim, "piboso-outcome")
 
 # ------------------
 # S-EM-Test
@@ -148,50 +179,34 @@ print("\nEM took %s seconds\n" % (time.time() - start_time))
 # print(dummy_pipeline.show_most_informative_features(model))
 
 # ----------------------------------------------------------------
-sys.exit(0)
+# sys.exit(0)
 # ----------------------------------------------------------------
+
+def predicted_df(sentences):
+    return pd.DataFrame(data={"Label" : model.predict(sentences),
+                              "Text"  : sentences,
+                              "Tokens": preppy.transform(sentences)},
+                        columns=["Label", "Text", "Tokens"])
 
 
 preppy = transformers.BasicPreprocessor()
 
-lab_civ = pd.DataFrame(data={"Label" : model.predict(civic),
-                             "Text"  : civic,
-                             "Tokens": preppy.transform(civic)},
-                       columns=["Label", "Text", "Tokens"])
-
-lab_civ.to_csv("./labelled_i-em_civic.csv")
-
-lab_abs = pd.DataFrame(data={"Label" : model.predict(abstracts),
-                             "Text"  : abstracts,
-                             "Tokens": preppy.transform(abstracts)},
-                       columns=["Label", "Text", "Tokens"])
-
-lab_abs.to_csv("./labelled_i-em_abstracts.csv")
-
-lab_oth = pd.DataFrame(data={"Label" : model.predict(piboso_other),
-                             "Text"  : piboso_other,
-                             "Tokens": preppy.transform(piboso_other)},
-                       columns=["Label", "Text", "Tokens"])
-
-lab_oth.to_csv("./labelled_i-em_other.csv")
-
-lab_out = pd.DataFrame(data={"Label" : model.predict(piboso_outcome),
-                             "Text"  : piboso_outcome,
-                             "Tokens": preppy.transform(piboso_outcome)},
-                       columns=["Label", "Text", "Tokens"])
-
-lab_out.to_csv("./labelled_i-em_outcome.csv")
+lab_civ = predicted_df(civic)
+lab_abs = predicted_df(abstracts)
+lab_oth = predicted_df(piboso_other)
+lab_out = predicted_df(piboso_outcome)
 
 # save sentences with predicted labels to csv
 
-
 print("civic: prediction", sum(lab_civ["Label"].values), "/", len(civic))
-
 print("abstracts: prediction", sum(lab_abs["Label"].values), "/", len(abstracts))
-
 print("piboso other: prediction", sum(lab_oth["Label"].values), "/", len(piboso_other))
-
 print("piboso outcome: prediction", sum(lab_out["Label"].values), "/", len(piboso_outcome))
+
+lab_civ.to_csv("./labelled_i-em_civic.csv")
+lab_abs.to_csv("./labelled_i-em_abstracts.csv")
+lab_oth.to_csv("./labelled_i-em_other.csv")
+lab_out.to_csv("./labelled_i-em_outcome.csv")
 
 yhat3 = model.predict(loaders.sentences_piboso_pop_bg_oth())
 print("piboso pop bg oth: prediction", sum(yhat3), "/", len(yhat3))

@@ -109,6 +109,7 @@ print("done preparing")
 # print(P[0])
 # print(U[0])
 
+
 print("\n---------------------------------------------------------------------------")
 print("\nI_EM\n")
 pu_two_step.i_EM(P, U, max_pos_ratio=1, max_imbalance=10, tolerance=0.1, text=False)

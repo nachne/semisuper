@@ -1,12 +1,53 @@
 from helpers import prod, positive
 from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
+from sklearn.feature_extraction import DictVectorizer
 import numpy as np
 import numexpr as ne
 from scipy.sparse import issparse
 from scipy.sparse import csr_matrix
 from scipy.misc import logsumexp
 import multiprocessing as multi
-from helpers import num_rows, label2num
+from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
+from helpers import num_rows, label2num, unsparsify, identity
+
+
+# ----------------------------------------------------------------
+# general MNB model builder
+# ----------------------------------------------------------------
+
+# TODO: Make versatile module for this and reuse in respective functions
+# TODO: Do vectorization only once (not every time a new model is made in an iteration)
+def build_proba_MNB(X, y, verbose=True, text=True):
+    """build multinomial Naive Bayes classifier that accepts probabilistic labels
+    if text is true, preprocess Text with binary encoding"""
+
+    def build(X, y):
+        """
+        Inner build function that builds a single model.
+        """
+        clf = ProbaLabelMNB(alpha=1)
+
+        if text:
+            model = Pipeline([
+                ('preprocessor', BasicPreprocessor()),
+                ('vectorizer', CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 3))),
+                ('classifier', clf)
+            ])
+        else:
+            model = Pipeline([
+                ('classifier', clf)
+            ])
+
+        model.fit(X, y)
+        return model
+
+    if verbose:
+        print("Building model ...")
+    model = build(X, y)
+
+    return model
 
 
 # equations from "partially supervised classification of text documents"
@@ -14,13 +55,16 @@ from helpers import num_rows, label2num
 class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
     def __init__(self, alpha=0.1):
         self.alpha = alpha
+        self.pr_c = None
+        self.log_pr_c = None
+        self.log_pr_w = None
         return
 
     def fit(self, X, y):
         """calculate class and word probabilities from labels or probabilistic labels"""
 
         yp = labels2probs(y)
-        npX = unsparse(X)
+        npX = unsparsify(X)
 
         self.pr_c = np.array(self.proba_c(yp))
         self.log_pr_c = np.log(self.pr_c)
@@ -56,7 +100,8 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
         """predict class labels using probabilistic class labels"""
         return np.round(self.predict_proba(X))
 
-    def proba_c(self, y):
+    @staticmethod
+    def proba_c(y):
         """the two classes' prior probabilities: average of training data"""
         return sum(y) / num_rows(y)
 
@@ -80,13 +125,6 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
 # ----------------------------------------------------------------
 # helpers
 
-def unsparse(X):
-    if issparse(X):
-        return X.todense()
-    else:
-        return np.array(X)
-
-
 def labels2probs(y):
     if np.isscalar(y[0]):
         yp = np.array([[label2num(label),
@@ -95,6 +133,7 @@ def labels2probs(y):
     else:
         yp = np.array(y)
     return yp
+
 
 # ----------------------------------------------------------------
 

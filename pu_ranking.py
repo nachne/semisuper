@@ -9,7 +9,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, 
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import train_test_split as tts
 from numpy import concatenate, ones, zeros
-from helpers import identity, partition_pos_neg, num_rows, label2num
+from helpers import identity, partition_pos_neg, num_rows, label2num, unsparsify
 from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
 
 
@@ -42,6 +42,7 @@ def ranking_cos_sim(X, threshold=0.1, compute_thresh=False, text=True):
                 ('normalizer', Normalizer()),
                 ('classifier', SimRanker(threshold, compute_thresh))
             ])
+
         model.fit(X)
         return model
 
@@ -68,7 +69,6 @@ def rocchio(P, N, alpha=16, beta=4, text=True):
             ])
         else:
             model = Pipeline([
-                ('normalizer', Normalizer()),
                 ('classifier', BinaryRocchio(alpha, beta))
             ])
 

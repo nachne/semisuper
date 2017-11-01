@@ -1,7 +1,9 @@
 from itertools import islice
 from functools import reduce
 from operator import itemgetter, mul
-from numpy import shape, array, nonzero, ones
+from numpy import shape, array, nonzero, ones, sum
+from scipy.sparse import issparse
+from sklearn.utils import check_array
 
 
 # helper
@@ -54,6 +56,7 @@ def partition_pos_neg(X, y):
 
     return X[pos_idx], X[neg_idx]
 
+
 def label2num(label):
     """convert labels like POS into 0 or 1 values; 0 for anything not in the positive list. don't touch floats"""
     if isinstance(label, (int, float)):
@@ -62,3 +65,25 @@ def label2num(label):
         return 1.0
     else:
         return 0.0
+
+
+def unsparsify(X):
+    if issparse(X):
+        return X.todense()
+    else:
+        return array(X)
+
+
+def pu_measure(y_P, y_U):
+    """performance measure for PU problems (r^2)/Pr[f(X)=1], equivalent to (p*r)/Pr[Y=1]
+
+    i.e. divide
+    requires validation set to be partitioned into P and U before classification, labels to be 1 and 0"""
+
+    if sum(y_U) == len(y_U) or sum(y_P) == 0:
+        return 0
+
+    r_sq = (sum(y_P) / len(y_P)) ** 2
+    Pr_fx_1 = (sum(y_P) + sum(y_U)) / (len(y_P) + len(y_U))
+
+    return r_sq / Pr_fx_1

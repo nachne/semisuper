@@ -1,9 +1,5 @@
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.linear_model import SGDClassifier
 from sklearn import svm, naive_bayes
 from sklearn.metrics import classification_report as clsr
-from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
-from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import train_test_split as tts
 from operator import itemgetter
 from random import sample
@@ -11,17 +7,51 @@ import numpy as np
 from numpy import array_equal as equal
 from scipy import sparse
 import pickle
-from copy import deepcopy
 from helpers import identity, num_rows, arrays, partition_pos_neg
 from pu_ranking import ranking_cos_sim, rocchio
-from transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
-from proba_label_nb import ProbaLabelMNB
+from proba_label_nb import build_proba_MNB
 from dummy_pipeline import build_and_evaluate, show_most_informative_features
 
 
 # ----------------------------------------------------------------
 # COMPLETE 2-STEP METHODS
 # ----------------------------------------------------------------
+
+# TODO something wrong with partitioning?
+def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.1, alpha=16, beta=4, text=True, outpath=None):
+    P, U = arrays([P, U])
+
+    # step 1
+    print("Determining RN using Cosine Similarity threshold and Rocchio\n")
+    U_minus_RN, RN = get_RN_cosine_rocchio(P, U, noise_lvl=noise_lvl, alpha=alpha, beta=beta, text=text)
+
+    # step2
+    print("\nIterating SVM with P, U-RN, and RN")
+    model = iterate_SVM(P, U_minus_RN, RN, text=text, max_neg_ratio=max_neg_ratio)
+
+    # TODO list/array probs
+    report_save(model, P, U, outpath)
+
+    return model
+
+
+# TODO something wrong with partitioning?
+def roc_SVM(P, U, max_neg_ratio=0.05, alpha=16, beta=4, text=True, outpath=None):
+    P, U = arrays([P, U])
+
+    # step 1
+    print("Determining RN using Cosine Similarity threshold and Rocchio\n")
+    U_minus_RN, RN = get_RN_rocchio(P, U, alpha=alpha, beta=beta, text=text)
+
+    # step2
+    print("\nIterating SVM with P, U-RN, and RN")
+    model = iterate_SVM(P, U_minus_RN, RN, text=text, max_neg_ratio=max_neg_ratio)
+
+    # TODO list/array probs
+    report_save(model, P, U, outpath)
+
+    return model
+
 
 # TODO implement model selection/iteration halting formula
 def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.05, text=True, outpath=None):
@@ -42,24 +72,6 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.05, text=True, outp
     model = run_EM_with_RN(P, U_minus_RN, RN, tolerance=tolerance, max_pos_ratio=max_pos_ratio, text=text)
 
     report_save(model, P, U, outpath)
-
-    return model
-
-
-# TODO something wrong with partitioning!!!!!
-def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.1, alpha=16, beta=4, text=True, outpath=None):
-    P, U = arrays([P, U])
-
-    # step 1
-    print("Determining RN using Cosine Similarity threshold and Rocchio\n")
-    U_minus_RN, RN = get_RN_cosine_rocchio(P, U, noise_lvl=noise_lvl, alpha=alpha, beta=beta, text=text)
-
-    # step2
-    print("\nIterating SVM with P, U-RN, and RN")
-    model = iterate_SVM(P, U_minus_RN, RN, text=text, max_neg_ratio=max_neg_ratio)
-
-    # TODO list/array probs
-    # report_save(model, P, U, outpath)
 
     return model
 
@@ -87,7 +99,7 @@ def standalone_cos_rocchio(P, U, noise_lvl=0.4, alpha=16, beta=4, text=True, out
     P, U = arrays([P, U])
 
     print("Computing ranking (cosine similarity to mean positive example)")
-    mean_p_ranker = ranking_cos_sim(P)
+    mean_p_ranker = ranking_cos_sim(P, text=text)
 
     sims_P = mean_p_ranker.predict_proba(P)
     sims_U = mean_p_ranker.predict_proba(U)
@@ -99,14 +111,16 @@ def standalone_cos_rocchio(P, U, noise_lvl=0.4, alpha=16, beta=4, text=True, out
     model = rocchio(P, PN, alpha, beta, text)
 
     # TODO something weird is going on
-    # print(model.predict(P))
-    # print(model.predict(U))
+    print(model.predict(P))
+    print(model.predict(U))
 
     # TODO list/array probs
-    # report_save(model, P, U, outpath)
+    report_save(model, P, U, outpath)
 
     return model
 
+
+# TODO PEBL (1-DNF, SVM)
 
 # ----------------------------------------------------------------
 # FIRST STEP TECHNIQUES
@@ -129,6 +143,22 @@ def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise
     return U_minus_RN, RN
 
 
+def get_RN_rocchio(P, U, alpha=16, beta=4, text=True):
+    """extract Reliable Negative documents using BinaryRocchio algorithm"""
+
+    P, U = arrays([P, U])
+
+    print("Building Rocchio model to determine Reliable Negative examples")
+    model = rocchio(P, U, alpha=alpha, beta=beta, text=text)
+
+    y_U = model.predict(U)
+
+    U_minus_RN, RN = partition_pos_neg(U, y_U)
+    print("Reliable Negative examples in U:", num_rows(RN), "(", 100 * num_rows(RN) / num_rows(U), "%)")
+
+    return U_minus_RN, RN
+
+
 def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
     """extract Reliable Negative documents using cosine similarity and BinaryRocchio algorithm
 
@@ -140,7 +170,7 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
     P, U = arrays([P, U])
 
     print("Computing ranking (cosine similarity to mean positive example)")
-    mean_p_ranker = ranking_cos_sim(P)
+    mean_p_ranker = ranking_cos_sim(P, text=text)
 
     sims_P = mean_p_ranker.predict_proba(P)
     sims_U = mean_p_ranker.predict_proba(U)
@@ -159,9 +189,7 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
     return U_minus_RN, RN
 
 
-# TODO
-def get_RN_1_DNF(P, U):
-    return U, []
+# TODO 1-DNF for PEBL
 
 
 # ----------------------------------------------------------------
@@ -241,8 +269,7 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_rati
     return model
 
 
-def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05,
-                classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True)):
+def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05):
     """runs an SVM classifier trained on P and RN iteratively, augmenting RN
 
     after each iteration, the documents in U classified as negative are moved to RN until there are none left.
@@ -255,7 +282,7 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05,
     print("Building initial SVM classifier with Positive and Reliable Negative docs")
     initial_model = build_and_evaluate(np.concatenate((P, RN)),
                                        np.concatenate((y_P, y_RN)),
-                                       classifier=deepcopy(classifier),
+                                       classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True),
                                        text=text)
 
     print("Predicting U with initial SVM, adding negatively classified docs to RN for iteration")
@@ -275,7 +302,7 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05,
 
         model = build_and_evaluate(np.concatenate((P, RN)),
                                    np.concatenate((y_P, y_RN)),
-                                   classifier=deepcopy(classifier),
+                                   classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True),
                                    text=text)
         y_U = model.predict(Q)
         Q, W = partition_pos_neg(Q, y_U)
@@ -287,54 +314,19 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05,
     initial_neg_ratio = 1 - np.average(y_P_initial)
     print("Ratio of positive samples classified as negative by initial SVM:", initial_neg_ratio)
 
-    if model == None:
+    if model is None:
         return initial_model
 
     y_P_final = model.predict(P)
     final_neg_ratio = 1 - np.average(y_P_final)
     print("Ratio of positive samples classified as negative by final SVM:", final_neg_ratio)
 
-    if (final_neg_ratio > max_neg_ratio):
+    if final_neg_ratio > max_neg_ratio:
         print("Final classifier discards too many positive examples.")
         print("Returning initial classifier instead")
         return initial_model
 
     print("Returning final classifier")
-    return model
-
-
-# ----------------------------------------------------------------
-# general MNB model builder
-# ----------------------------------------------------------------
-
-# TODO: Make versatile module for this and reuse in respective functions
-# TODO: Do vectorization only once (not every time a new model is made in an iteration)
-def build_proba_MNB(X, y, verbose=True, text=True):
-    """build multinomial Naive Bayes classifier that accepts probabilistic labels
-    if text is true, preprocess Text with binary encoding"""
-
-    def build(X, y):
-        """
-        Inner build function that builds a single model.
-        """
-        if text:
-            model = Pipeline([
-                ('preprocessor', BasicPreprocessor()),
-                ('vectorizer', CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 3))),
-                ('classifier', ProbaLabelMNB(alpha=1))
-            ])
-        else:
-            model = Pipeline([
-                ('classifier', ProbaLabelMNB(alpha=1))
-            ])
-
-        model.fit(X, y)
-        return model
-
-    if verbose:
-        print("Building model ...")
-    model = build(X, y)
-
     return model
 
 
