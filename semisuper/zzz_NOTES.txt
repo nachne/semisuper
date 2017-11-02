@@ -1,0 +1,19 @@
+tagging:
+
+tokens : tags : "token_tag"s
+
+do not split at "-", "."
+
+DONE dict replaces "can" with gene
+
+replace · with .
+single dots
+
+sentence length!
+don't split sentences at "i.e.", "I.e.", "ie", "approx.", "e.g.", "b.i.d.)", "i.v.", "no.", "p.o.", "NCT00567190.", "ref.", "fig." "et al. [LOWERCASE]" "y.o."
+".)." -> ")."
+
+the authors' -> our
+by the authors -> by us
+
+falsches mapping: wild-type -> _disease_
