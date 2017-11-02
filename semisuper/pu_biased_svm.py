@@ -17,11 +17,11 @@ def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None,
     # default values
     # TODO remove C as a parameter, find meaningful range of pos and neg weights
     if Cs is None:
-        Cs = [10 ** x for x in range(-1, 5)]
+        Cs = [10 ** x for x in range(0, 4)]
     if Cs_neg is None:
-        Cs_neg = arange(0.01, 0.63, 0.02)
+        Cs_neg = arange(0.01, 0.63, 0.04)
     if Cs_pos_factors is None:
-        Cs_pos_factors = range(1, 210, 10)
+        Cs_pos_factors = range(10, 210, 20)
 
     Cs = [(C, C_neg * j, C_neg)
           for C in Cs for C_neg in Cs_neg for j in Cs_pos_factors]

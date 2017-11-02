@@ -3,6 +3,7 @@ from semisuper.helpers import num_rows
 import random
 import pandas as pd
 import time
+import os.path
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 
@@ -19,6 +20,12 @@ U = abstracts
 
 P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
 U = random.sample(abstracts, 4000) + random.sample(P, 0)
+
+
+def file_path(file_relative):
+    """return the correct file path given the file's path relative to calling script"""
+    return os.path.join(os.path.dirname(__file__), file_relative)
+
 
 # ------------------
 # S-EM-Test
@@ -74,10 +81,10 @@ print("abstracts: prediction", sum(lab_abs["Label"].values), "/", len(abstracts)
 print("piboso other: prediction", sum(lab_oth["Label"].values), "/", len(piboso_other))
 print("piboso outcome: prediction", sum(lab_out["Label"].values), "/", len(piboso_outcome))
 
-lab_civ.to_csv("./labelled_i-em_civic.csv")
-lab_abs.to_csv("./labelled_i-em_abstracts.csv")
-lab_oth.to_csv("./labelled_i-em_other.csv")
-lab_out.to_csv("./labelled_i-em_outcome.csv")
+lab_civ.to_csv(file_path("../output/labelled_i-em_civic.csv"))
+lab_abs.to_csv(file_path("../output/labelled_i-em_abstracts.csv"))
+lab_oth.to_csv(file_path("../output/labelled_i-em_other.csv"))
+lab_out.to_csv(file_path("../output/labelled_i-em_outcome.csv"))
 
 yhat3 = model.predict(loaders.sentences_piboso_pop_bg_oth())
 print("piboso pop bg oth: prediction", sum(yhat3), "/", len(yhat3))

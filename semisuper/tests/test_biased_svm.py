@@ -16,8 +16,8 @@ print("PIBOSO sentences:", len(piboso_other))
 P = civic
 U = abstracts
 
-P = random.sample(civic, 2000) + random.sample(piboso_outcome, 0)
-U = random.sample(abstracts, 2000) + random.sample(P, 0)
+P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
+U = random.sample(abstracts, 4000) + random.sample(P, 0)
 
 # ------------------
 

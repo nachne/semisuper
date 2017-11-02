@@ -37,7 +37,7 @@ def one_class_svm(X, X_test=None, y_test=None, outpath=None, verbose=True,
     if verbose:
         print("Building for evaluation")
     model = build(X)
-    if X_test and y_test:
+    if X_test is not None and y_test is not None:
         if verbose:
             print("Classification Report:\n")
         y_pred = model.predict(X_test)
