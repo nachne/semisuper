@@ -33,12 +33,12 @@ def ranking_cos_sim(X, threshold=0.1, compute_thresh=False, text=True):
                 ('vectorizer', TfidfVectorizer(
                         tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
                  ),
-                ('normalizer', Normalizer()),
+                # ('normalizer', Normalizer()),
                 ('classifier', SimRanker(threshold, compute_thresh))
             ])
         else:
             model = Pipeline([
-                ('normalizer', Normalizer()),
+                # ('normalizer', Normalizer()),
                 ('classifier', SimRanker(threshold, compute_thresh))
             ])
 
@@ -63,7 +63,7 @@ def rocchio(P, N, alpha=16, beta=4, text=True):
                 ('vectorizer', TfidfVectorizer(
                         tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
                  ),
-                ('normalizer', Normalizer()),
+                # ('normalizer', Normalizer()),
                 ('classifier', BinaryRocchio(alpha, beta))
             ])
         else:

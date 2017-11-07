@@ -50,7 +50,8 @@ def roc_SVM(P, U, max_neg_ratio=0.05, alpha=16, beta=4, text=True, outpath=None)
 
 
 # TODO implement model selection/iteration halting formula
-def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.05, text=True, outpath=None):
+# Pr[f(X) ≠ Y] = Pr[f(X) = 1] - Pr[Y = 1] + 2 Pr[f(X) = 0 | Y = 1] * Pr[Y = 1]
+def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.1, noise_lvl=0.1, text=True, clf_selection=True, outpath=None):
     """S-EM algorithm as desscribed in \"Partially Supervised Classification...\". Two-step PU learning technique.
 
     1st step: get Reliable Negative documents using Spy Documents
@@ -61,18 +62,21 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.05, text=True, outp
 
     # step 1
     print("Determining confidence threshold using Spy Documents and rough I-EM\n")
-    U_minus_RN, RN = get_RN_Spy_Docs(P, U, spy_ratio=spy_ratio, tolerance=0.5, noise_lvl=0.05, text=text)
+    U_minus_RN, RN = get_RN_Spy_Docs(P, U,
+                                     spy_ratio=spy_ratio, tolerance=tolerance, noise_lvl=noise_lvl, text=text)
 
     # step2
     print("\nIterating I-EM with P, U-RN, and RN")
-    model = run_EM_with_RN(P, U_minus_RN, RN, tolerance=tolerance, max_pos_ratio=max_pos_ratio, text=text)
+    model = run_EM_with_RN(P, U_minus_RN, RN,
+                           tolerance=tolerance, max_pos_ratio=max_pos_ratio, text=text,
+                           clf_selection=clf_selection)
 
     report_save(model, P, U, outpath)
 
     return model
 
 
-def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.05, text=True):
+def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.1, text=True):
     """all-in-one PU method: I-EM algorithm for positive set P and unlabelled set U
 
     iterate NB classifier with updated labels for unlabelled set (initially negative) until convergence
@@ -81,7 +85,7 @@ def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.0
     if num_rows(U) > max_imbalance * num_rows(P):
         U = np.array(sample(list(U), int(max_imbalance * num_rows(P))))
 
-    model = iterate_EM(P, U, tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio)
+    model = iterate_EM(P, U, tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio, clf_selection=False)
 
     report_save(model, P, U, outpath)
 
@@ -89,7 +93,7 @@ def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.0
 
 
 # TODO noise level is quite crucial, should be set very high to give reasonable results
-def standalone_cos_rocchio(P, U, noise_lvl=0.4, alpha=16, beta=4, text=True, outpath=None):
+def standalone_cos_rocchio(P, U, noise_lvl=0.1, alpha=16, beta=4, text=True, outpath=None):
     """Naive P vs. U classification: Use first step cosine-Rocchio model as final classifier"""
 
     P, U = arrays([P, U])
@@ -124,7 +128,8 @@ def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise
     P_minus_spies, spies = spy_partition(P, spy_ratio)
     U_plus_spies = np.concatenate((U, spies))
 
-    model = iterate_EM(P_minus_spies, U_plus_spies, tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio)
+    model = iterate_EM(P_minus_spies, U_plus_spies, tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio,
+                       clf_selection=False)
 
     y_spies = model.predict_proba(spies)
     y_U = model.predict_proba(U)
@@ -187,7 +192,7 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
 # SECOND STEP TECHNIQUES
 # ----------------------------------------------------------------
 
-def run_EM_with_RN(P, U, RN, max_pos_ratio=0.5, tolerance=0.05, text=True):
+def run_EM_with_RN(P, U, RN, max_pos_ratio=0.5, tolerance=0.05, text=True, clf_selection=True):
     """second step PU method: train NB with P and RN to get probabilistic labels for U, then iterate EM"""
 
     if num_rows(P) > 1.5 * num_rows(RN):
@@ -209,13 +214,14 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=0.5, tolerance=0.05, text=True):
     print("\nIterating EM algorithm on P, RN and U\n")
     model = iterate_EM(P, np.concatenate((RN, U)),
                        y_P, np.concatenate((ypN, ypU)),
-                       tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio)
+                       tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio,
+                       clf_selection=clf_selection)
 
     return model
 
 
 # TODO yield models in order to be able to choose best one
-def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_ratio=0.5):
+def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=0.5, text=True, clf_selection=False):
     """EM algorithm for positive set P and unlabelled set U
 
         iterate NB classifier with updated labels for unlabelled set (with optional initial labels) until convergence"""
@@ -228,7 +234,8 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_rati
     ypU_old = [-999]
 
     iterations = 0
-    model = None
+    old_model = None
+    new_model = None
 
     while not almost_equal(ypU_old, ypU, tolerance):
 
@@ -237,13 +244,15 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_rati
         print("Iteration #", iterations)
         print("Building new model using probabilistic labels")
 
-        model = build_proba_MNB(np.concatenate((P, U)),
-                                np.concatenate((y_P, ypU)), text=text)
+        if clf_selection:
+            old_model = new_model
 
-        ypU_old = ypU
+        new_model = build_proba_MNB(np.concatenate((P, U)),
+                                    np.concatenate((y_P, ypU)), text=text)
+
         print("Predicting probabilities for U")
-        ypU = model.predict_proba(U)
-        # print(ypU[:10], ypU[-10:])
+        ypU_old = ypU
+        ypU = new_model.predict_proba(U)
 
         predU = [round(p) for p in ypU]
         pos_ratio = sum(predU) / len(U)
@@ -251,12 +260,18 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, text=True, max_pos_rati
         print("Unlabelled instances classified as positive:", sum(predU), "/", len(U),
               "(", pos_ratio * 100, "%)\n")
 
+        if clf_selection and old_model is not None:
+            if em_getting_worse(old_model, new_model, P, U):
+                print("Approximated error has grown since last iteration.\n"
+                      "Aborting and returning classifier #", iterations - 1)
+                return old_model
+
         if pos_ratio >= max_pos_ratio:
             print("Acceptable ratio of positively labelled sentences in U is reached.")
             break
 
     print("Returning final model after", iterations, "iterations")
-    return model
+    return new_model
 
 
 def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05):
@@ -324,9 +339,11 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05):
 # helpers
 # ----------------------------------------------------------------
 
-def almost_equal(pairs1, pairs2, tolerance=0.1):
+def almost_equal(probas1, probas2, tolerance=0.1):
     """helper function that checks if difference of probabilistic labels is smaller than tolerance for all indices"""
-    zipped = zip(pairs1, pairs2)
+    return np.array_equiv(np.round(probas1), np.round(probas2))
+
+    zipped = zip(probas1, probas2)
     diffs = [abs(p1 - p2) <= tolerance
              for p1, p2 in zipped]
     return all(diffs)
@@ -348,6 +365,38 @@ def spy_partition(P, spy_ratio=0.1):
     P_minus_spies = P[mask]
 
     return P_minus_spies, spies
+
+
+def em_getting_worse(old_model, new_model, P, U):
+    """calculates approximated change in probability of error for iterative EM
+
+    should be used in S-EM, but not in I-EM,
+    according to \"Partially Supervised Classification of Text Documents\""""
+
+    # probability of error:
+    # Pr[f(X) =\= Y] = Pr[f(X) = 1] - Pr[Y = 1] + 2 * Pr[f(X) = 0 | Y = 1] * Pr[Y = 1]
+    # change in probability of error has to be approximated since ground truth is unavailable:
+    # Delta_i = Pr_U
+
+    # predict P and U with old models to compare predicted class distributions
+    y_P_old = old_model.predict(P)
+    y_U_old = old_model.predict(U)
+
+    y_P_new = new_model.predict(P)
+    y_U_new = new_model.predict(U)
+
+    Pr_U_pos_old = num_rows(y_U_old[y_U_old == 1])
+    Pr_P_neg_old = num_rows(y_P_old[y_P_old == 0])
+
+    Pr_U_pos_new = num_rows(y_U_new[y_U_new == 1])
+    Pr_P_neg_new = num_rows(y_P_new[y_P_new == 0])
+
+    Delta_i = (Pr_U_pos_new - Pr_U_pos_old
+               + 2 * (Pr_P_neg_new - Pr_P_neg_old) * Pr_U_pos_old)
+
+    print("Delta_i:", Delta_i)
+
+    return Delta_i > 0
 
 
 def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1):
