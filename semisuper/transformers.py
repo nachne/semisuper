@@ -86,50 +86,50 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
 def map_regex_concepts(token):
     """replaces abbreviations matching simple REs, e.g. for numbers, percentages, gene names, by class tokens"""
 
-    for regex in regex_concept_dict.keys():
+    for regex, repl in regex_concept_dict:
         if regex.findall(token):
-            return regex_concept_dict[regex]
+            return repl
 
     return token
 
 
 # TODO dict ist nicht gut, weil Reihenfolge (z.B. Prozent kommt nie durch)
-regex_concept_dict = {  # number-related concepts
-    re.compile("^[Pp]([=<>≤≥]|</?=|>/?=)\d")                                : "_p_val_",
-    re.compile("^((\d+-)?year-old|y\.?o\.?)$")                              : "_age_",
-    re.compile("^~?-?\d*[·.]?\d+--?\d*[·.]?\d+$")                           : "_range_",
-    re.compile("[a-zA-Z]?(~?[=<>≤≥]|</?=|>/?=)\d|^(lt|gt|geq|leq)$")        : "_ineq_",
-    re.compile("^~?\d+-fold$")                                              : "_n_fold_",
-    re.compile("^~?\d+/\d+$|^\d+:\d+$")                                     : "_ratio_",
-    re.compile("^~?-?\d*[·.]?\d*%$")                                        : "_percent_",
-    re.compile("^~?\d*(("
-               "(kg|g|mg|ug|ng)|"
-               "(m|cm|mm|um|nm)|"
-               "(l|ml|cl|ul|mol|mmol|nmol|mumol|mo))/?)+$")                 : "_unit_",
+regex_concept_dict = [  # number-related concepts
+    (re.compile("^[Pp]([=<>≤≥]|</?=|>/?=)\d"), "_p_val_"),
+    (re.compile("^((\d+-)?year-old|y\.?o\.?)$"), "_age_"),
+    (re.compile("^~?-?\d*[·.]?\d+--?\d*[·.]?\d+$"), "_range_"),
+    (re.compile("[a-zA-Z]?(~?[=<>≤≥]|</?=|>/?=)\d|^(lt|gt|geq|leq)$"), "_ineq_"),
+    (re.compile("^~?\d+-fold$"), "_n_fold_"),
+    (re.compile("^~?\d+/\d+$|^\d+:\d+$"), "_ratio_"),
+    (re.compile("^~?-?\d*[·.]?\d*%$"), "_percent_"),
+    (re.compile("^~?\d*(("
+                "(kg|g|mg|ug|ng)|"
+                "(m|cm|mm|um|nm)|"
+                "(l|ml|cl|ul|mol|mmol|nmol|mumol|mo))/?)+$"), "_unit_"),
     # abbreviation starting with letters and containing nums
-    re.compile("^rs\d+$")                                                   : "_mutation_",
-    re.compile("^([a-zA-Z]+-?\w*\d+)+")                                     : "_abbrev_",
+    (re.compile("^rs\d+$"), "_mutation_"),
+    (re.compile("^([a-zA-Z]+-?\w*\d+)+"), "_abbrev_"),
     # time
-    re.compile("^([jJ]an\.(uary)?|[fF]eb\.(ruary)?|[mM]ar\.(ch)?|"
-               "[Aa]pr\.(il)?|[Mm]ay\.|[jJ]un\.(e)?|"
-               "[jJ]ul\.(y)?|[aA]ug\.(ust)?|[sS]ep\.(tember)?|"
-               "[oO]ct\.(ober)?|[nN]ov\.(ember)?|[dD]ec\.(ember)?)$")       : "_month_",
-    re.compile("^(19|20)\d\d$")                                             : "_year_",
+    (re.compile("^([jJ]an\.(uary)?|[fF]eb\.(ruary)?|[mM]ar\.(ch)?|"
+                "[Aa]pr\.(il)?|[Mm]ay\.|[jJ]un\.(e)?|"
+                "[jJ]ul\.(y)?|[aA]ug\.(ust)?|[sS]ep\.(tember)?|"
+                "[oO]ct\.(ober)?|[nN]ov\.(ember)?|[dD]ec\.(ember)?)$"), "_month_"),
+    (re.compile("^(19|20)\d\d$"), "_year_"),
     # numbers
-    re.compile("^([Zz]ero(th)?|[Oo]ne|[Tt]wo|[Tt]hree|[Ff]our(th)?|"
-               "[Ff]i(ve|fth)|[Ss]ix(th)?|[Ss]even(th)?|[Ee]ight(th)?|"
-               "[Nn]in(e|th)|[Tt]en(th)?|[Ee]leven(th)?|"
-               "[Tt]welv(e|th)|[Hh]undred(th)?|[Tt]housand(th)?|"
-               "[Ff]irst|[Ss]econd|[Tt]hird|\d*1st|\d*2nd|\d*3rd|\d+-?th)$"): "_num_",
-    re.compile("^~?-?\d+(,\d+)?$")                                          : "_num_",  # int (+ or -)
-    re.compile("^~?-?((-?\d*[·.]\d+$|^-?\d+[·.]\d*)(\+/-)?)+$")             : "_num_",  # float (+ or -)
+    (re.compile("^([Zz]ero(th)?|[Oo]ne|[Tt]wo|[Tt]hree|[Ff]our(th)?|"
+                "[Ff]i(ve|fth)|[Ss]ix(th)?|[Ss]even(th)?|[Ee]ight(th)?|"
+                "[Nn]in(e|th)|[Tt]en(th)?|[Ee]leven(th)?|"
+                "[Tt]welv(e|th)|[Hh]undred(th)?|[Tt]housand(th)?|"
+                "[Ff]irst|[Ss]econd|[Tt]hird|\d*1st|\d*2nd|\d*3rd|\d+-?th)$"), "_num_"),
+    (re.compile("^~?-?\d+(,\d+)?$"), "_num_"),  # int (+ or -)
+    (re.compile("^~?-?((-?\d*[·.]\d+$|^-?\d+[·.]\d*)(\+/-)?)+$"), "_num_"),  # float (+ or -)
     # misc. abbrevs
-    re.compile("^[Vv]\.?[Ss]\.?$|^[Vv]ersus$")                              : "vs",
-    re.compile("^[Ii]\.?[Ee]\.?$")                                          : "ie",
-    re.compile("^[Ee]\.?[Gg]\.?$")                                          : "eg",
-    re.compile("^[Ii]\.?[Vv]\.?$")                                          : "iv",
-    re.compile("^[Pp]\.?[Oo]\.?$")                                          : "po"
-}
+    (re.compile("^[Vv]\.?[Ss]\.?$|^[Vv]ersus$"), "vs"),
+    (re.compile("^[Ii]\.?[Ee]\.?$"), "ie"),
+    (re.compile("^[Ee]\.?[Gg]\.?$"), "eg"),
+    (re.compile("^[Ii]\.?[Vv]\.?$"), "iv"),
+    (re.compile("^[Pp]\.?[Oo]\.?$"), "po")
+]
 
 
 def sentence_tokenize(text):
@@ -141,42 +141,41 @@ def sentence_tokenize(text):
 # TODO: switch from dict to hardcoded to capture following lower-cases?
 def prenormalize(text):
     """normalize common abbreviations and symbols known to mess with sentence boundary disambiguation"""
-    for regex in prenormalize_dict.keys():
-        text = regex.sub(prenormalize_dict[regex], text)
+    for regex, repl in prenormalize_dict:
+        text = regex.sub(repl, text)
 
     return text
 
 
-prenormalize_dict = {
+prenormalize_dict = [
     # usual abbreviations
-    re.compile("\W[Ee]\.[Gg]\.\s") : " eg ",
-    re.compile("\W[Ii]\.[Ee]\.\s") : " ie ",
-    re.compile("\W[Aa]pprox\.\s")  : " approx ",
-    re.compile("\W[Nn]o\.\s")      : " no ",
+    (re.compile("\W[Ee]\.[Gg]\.\s"), " eg "),
+    (re.compile("\W[Ii]\.[Ee]\.\s"), " ie "),
+    (re.compile("\W[Aa]pprox\.\s"), " approx "),
+    (re.compile("\W[Nn]o\.\s"), " no "),
     # scientific writing
-    re.compile("\Wet al\.\s")      : " et al ",
-    re.compile("\W[Rr]ef\.\s")     : " ref ",
-    re.compile("\W[Ff]ig\.\s")     : " fig ",
+    (re.compile("\Wet al\.\s"), " et al "),
+    (re.compile("\W[Rr]ef\.\s"), " ref "),
+    (re.compile("\W[Ff]ig\.\s"), " fig "),
     # medical
-    re.compile("\Wy\.?o\.\s")      : " year-old ",
-    re.compile("\W[Pp]\.o\.\s")    : " po ",
-    re.compile("\W[Ii]\.v\.\s")    : " iv ",
-    re.compile("\W[Qq]\.i\.\d\.\s"): " qd ",
-    re.compile("\W[Bb]\.i\.\d\.\s"): " bid ",
-    re.compile("\W[Tt]\.i\.\d\.\s"): " tid ",
-    re.compile("\W[Qq]\.i\.\d\.\s"): " qid ",
+    (re.compile("\Wy\.?o\.\s"), " year-old "),
+    (re.compile("\W[Pp]\.o\.\s"), " po "),
+    (re.compile("\W[Ii]\.v\.\s"), " iv "),
+    (re.compile("\W[Qq]\.i\.\d\.\s"), " qd "),
+    (re.compile("\W[Bb]\.i\.\d\.\s"), " bid "),
+    (re.compile("\W[Tt]\.i\.\d\.\s"), " tid "),
+    (re.compile("\W[Qq]\.i\.\d\.\s"), " qid "),
     # bracket complications
-    re.compile("\.\s*\).")         : ").",
+    (re.compile("\.\s*\)."), ")."),
     # double dots
-    re.compile("(\.\s*\.)+")       : ".",
-    re.compile("wild-type")        : "wild type"
-}
+    (re.compile("(\.\s*\.)+"), "."),
+    (re.compile("wild-type"), "wild type")
+]
 
 
 class FeatureNamePipeline(Pipeline):
     def get_feature_names(self):
         return self._final_estimator.get_feature_names()
-
 
 
 # TODO make piped class from this and DictVectorize

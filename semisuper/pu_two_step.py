@@ -7,7 +7,7 @@ import numpy as np
 from numpy import array_equal as equal
 from scipy import sparse
 import pickle
-from semisuper.helpers import identity, num_rows, arrays, partition_pos_neg
+from semisuper.helpers import identity, num_rows, arrays, partition_pos_neg, pu_measure
 from semisuper.pu_ranking import ranking_cos_sim, rocchio
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.dummy_pipeline import build_and_evaluate, show_most_informative_features
@@ -17,7 +17,8 @@ from semisuper.dummy_pipeline import build_and_evaluate, show_most_informative_f
 # COMPLETE 2-STEP METHODS
 # ----------------------------------------------------------------
 
-def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.1, alpha=16, beta=4, text=True, outpath=None):
+# TODO noise level is quite crucial, should be set very high to give reasonable results
+def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.2, alpha=16, beta=4, text=True, outpath=None):
     P, U = arrays([P, U])
 
     # step 1
@@ -37,7 +38,7 @@ def roc_SVM(P, U, max_neg_ratio=0.05, alpha=16, beta=4, text=True, outpath=None)
     P, U = arrays([P, U])
 
     # step 1
-    print("Determining RN using Cosine Similarity threshold and Rocchio\n")
+    print("Determining RN using Rocchio method\n")
     U_minus_RN, RN = get_RN_rocchio(P, U, alpha=alpha, beta=beta, text=text)
 
     # step2
@@ -51,7 +52,8 @@ def roc_SVM(P, U, max_neg_ratio=0.05, alpha=16, beta=4, text=True, outpath=None)
 
 # TODO implement model selection/iteration halting formula
 # Pr[f(X) ≠ Y] = Pr[f(X) = 1] - Pr[Y = 1] + 2 Pr[f(X) = 0 | Y = 1] * Pr[Y = 1]
-def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.1, noise_lvl=0.1, text=True, clf_selection=True, outpath=None):
+def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=1.0, tolerance=0.1, noise_lvl=0.1, text=True, clf_selection=True,
+         outpath=None):
     """S-EM algorithm as desscribed in \"Partially Supervised Classification...\". Two-step PU learning technique.
 
     1st step: get Reliable Negative documents using Spy Documents
@@ -61,7 +63,7 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.1, noise_lvl=0.1, t
     P, U = arrays([P, U])
 
     # step 1
-    print("Determining confidence threshold using Spy Documents and rough I-EM\n")
+    print("Determining confidence threshold using Spy Documents and I-EM\n")
     U_minus_RN, RN = get_RN_Spy_Docs(P, U,
                                      spy_ratio=spy_ratio, tolerance=tolerance, noise_lvl=noise_lvl, text=text)
 
@@ -76,7 +78,7 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.1, noise_lvl=0.1, t
     return model
 
 
-def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.1, text=True):
+def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=1.0, tolerance=0.1, text=True):
     """all-in-one PU method: I-EM algorithm for positive set P and unlabelled set U
 
     iterate NB classifier with updated labels for unlabelled set (initially negative) until convergence
@@ -86,29 +88,6 @@ def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=0.5, tolerance=0.1
         U = np.array(sample(list(U), int(max_imbalance * num_rows(P))))
 
     model = iterate_EM(P, U, tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio, clf_selection=False)
-
-    report_save(model, P, U, outpath)
-
-    return model
-
-
-# TODO noise level is quite crucial, should be set very high to give reasonable results
-def standalone_cos_rocchio(P, U, noise_lvl=0.1, alpha=16, beta=4, text=True, outpath=None):
-    """Naive P vs. U classification: Use first step cosine-Rocchio model as final classifier"""
-
-    P, U = arrays([P, U])
-
-    print("Computing ranking (cosine similarity to mean positive example)")
-    mean_p_ranker = ranking_cos_sim(P, text=text)
-
-    sims_P = mean_p_ranker.predict_proba(P)
-    sims_U = mean_p_ranker.predict_proba(U)
-
-    print("Choosing Potential Negative examples with ranking threshold")
-    _, PN = select_PN_below_score(sims_P, U, sims_U, noise_lvl=noise_lvl)
-
-    print("Building Rocchio model")
-    model = rocchio(P, PN, alpha, beta, text)
 
     report_save(model, P, U, outpath)
 
@@ -155,7 +134,7 @@ def get_RN_rocchio(P, U, alpha=16, beta=4, text=True):
     return U_minus_RN, RN
 
 
-def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
+def get_RN_cosine_rocchio(P, U, noise_lvl=0.20, alpha=16, beta=4, text=True):
     """extract Reliable Negative documents using cosine similarity and BinaryRocchio algorithm
 
     similarity is the cosine similarity compared to the mean positive sample.
@@ -170,6 +149,10 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
 
     sims_P = mean_p_ranker.predict_proba(P)
     sims_U = mean_p_ranker.predict_proba(U)
+
+    # TODO write useful method for this; with PU-score, it's terrible
+    # noise_lvl = choose_noise_lvl(sims_P, sims_U)
+    # print("Choosing noise level that maximises score:", noise_lvl)
 
     print("Choosing Potential Negative examples with ranking threshold")
     _, PN = select_PN_below_score(sims_P, U, sims_U, noise_lvl=noise_lvl)
@@ -192,7 +175,7 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.05, alpha=16, beta=4, text=True):
 # SECOND STEP TECHNIQUES
 # ----------------------------------------------------------------
 
-def run_EM_with_RN(P, U, RN, max_pos_ratio=0.5, tolerance=0.05, text=True, clf_selection=True):
+def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, text=True, clf_selection=True):
     """second step PU method: train NB with P and RN to get probabilistic labels for U, then iterate EM"""
 
     if num_rows(P) > 1.5 * num_rows(RN):
@@ -221,7 +204,7 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=0.5, tolerance=0.05, text=True, clf_s
 
 
 # TODO yield models in order to be able to choose best one
-def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=0.5, text=True, clf_selection=False):
+def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, text=True, clf_selection=False):
     """EM algorithm for positive set P and unlabelled set U
 
         iterate NB classifier with updated labels for unlabelled set (with optional initial labels) until convergence"""
@@ -340,13 +323,14 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05):
 # ----------------------------------------------------------------
 
 def almost_equal(probas1, probas2, tolerance=0.1):
-    """helper function that checks if difference of probabilistic labels is smaller than tolerance for all indices"""
+    """helper function that checks if vectors of probabilistic labels are similar"""
     return np.array_equiv(np.round(probas1), np.round(probas2))
 
-    zipped = zip(probas1, probas2)
-    diffs = [abs(p1 - p2) <= tolerance
-             for p1, p2 in zipped]
-    return all(diffs)
+    # # below: somewhat more precise, slower convergence criterion
+    # zipped = zip(probas1, probas2)
+    # diffs = [abs(p1 - p2) <= tolerance
+    #          for p1, p2 in zipped]
+    # return all(diffs)
 
 
 def spy_partition(P, spy_ratio=0.1):
@@ -397,6 +381,26 @@ def em_getting_worse(old_model, new_model, P, U):
     print("Delta_i:", Delta_i)
 
     return Delta_i > 0
+
+
+def choose_noise_lvl(sims_P, sims_U):
+    """selects the best percentage of assumed noise in terms of PU score (r_P^2 / Pr_{P+U} [f(X)=1])"""
+    lvls = [0.01 * x for x in range(50)]
+    scores = []
+
+    for lvl in lvls:
+        U_minus_PN, PN = select_PN_below_score(y_pos=sims_P, U=sims_U, y_U=sims_U,
+                                               noise_lvl=lvl)
+        y_U = [1] * num_rows(U_minus_PN) + \
+              [0] * num_rows(PN)
+        y_P = [1] * int((1 - lvl) * num_rows(sims_P)) + \
+              [0] * int((lvl) * num_rows(sims_P))
+
+        scores.append(pu_measure(y_P, y_U))
+
+    [print(x) for x in zip(lvls, scores)]
+
+    return lvls[np.argmax(scores)]
 
 
 def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1):
