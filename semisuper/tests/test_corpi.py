@@ -35,6 +35,12 @@ def prepare_corpus(data_tuple):
 def train_test_all_clfs(data_tuple):
     P, U, X, y, X_test, y_test, P_test, y_P_test, N_test, y_N_test = data_tuple
 
+    # Move down!
+    print("\n\n---------------------------")
+    print("Training CR_SVM classifier")
+    print("---------------------------\n")
+    cr_svm = pu_two_step.cr_SVM(P, U, noise_lvl=0.4)
+
     print("\n\n---------------------------")
     print("Training dummy classifier")
     print("---------------------------\n")
@@ -46,19 +52,11 @@ def train_test_all_clfs(data_tuple):
     one_class = pu_one_class_svm.one_class_svm(P, X_test)
 
     print("\n\n---------------------------")
-    print("Training cos-roc classifier")
-    print("---------------------------\n")
-    cos_roc = pu_two_step.standalone_cos_rocchio(P, U)
-
-    print("\n\n---------------------------")
     print("Training roc-SVM classifier")
     print("---------------------------\n")
     roc_svm = pu_two_step.roc_SVM(P, U)
 
-    print("\n\n---------------------------")
-    print("Training CR_SVM classifier")
-    print("---------------------------\n")
-    cr_svm = pu_two_step.cr_SVM(P, U)
+    # CR-Roc here!
 
     print("\n\n---------------------------")
     print("Training I-EM classifier")
@@ -92,10 +90,6 @@ def train_test_all_clfs(data_tuple):
     print(clsr([1] * len(P_test) + [-1] * len(N_test), one_class.predict(X_test)))
 
     print("---------------------------")
-    print("Cos-Roc:")
-    print(clsr(y_test, cos_roc.predict(X_test)))
-
-    print("---------------------------")
     print("Roc-SVM:")
     print(clsr(y_test, roc_svm.predict(X_test)))
 
@@ -127,6 +121,16 @@ pos_in_u = 0.5
 
 print("---------------------------")
 print("---------------------------")
+print("AMAZON-IMDB-YELP CORPUS")
+print("---------------------------")
+print("---------------------------")
+
+train_test_all_clfs(prepare_corpus(test_corpus.P_U_p_n_amazon(neg_noise=neg_noise,
+                                                              pos_in_u=pos_in_u,
+                                                              test_size=0.2)))
+
+print("---------------------------")
+print("---------------------------")
 print("SMS SPAM CORPUS")
 print("---------------------------")
 print("---------------------------")
@@ -134,16 +138,6 @@ print("---------------------------")
 train_test_all_clfs(prepare_corpus(test_corpus.P_U_p_n_sms_spam(neg_noise=neg_noise,
                                                                 pos_in_u=pos_in_u,
                                                                 test_size=0.2)))
-
-print("---------------------------")
-print("---------------------------")
-print("AMAZON CORPUS")
-print("---------------------------")
-print("---------------------------")
-
-train_test_all_clfs(prepare_corpus(test_corpus.P_U_p_n_amazon(neg_noise=neg_noise,
-                                                              pos_in_u=pos_in_u,
-                                                              test_size=0.2)))
 
 print("---------------------------")
 print("---------------------------")

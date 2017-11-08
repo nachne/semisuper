@@ -66,16 +66,30 @@ def pos_neg_uci():
 
 
 def pos_neg_amazon():
-    return pos_neg_single_file(path="../resources/corpi/sentiment_labelled_sentences/"
-                                                  "amazon_cells_labelled.txt",
-                               label_re_str="\t[01]",
-                               pos_str="\t1")
+    p_amaz, n_amaz = pos_neg_single_file(path="../resources/corpi/sentiment_labelled_sentences/"
+                                              "amazon_cells_labelled.txt",
+                                         label_re_str="\t[01]",
+                                         pos_str="\t1")
+
+    p_yelp, n_yelp = pos_neg_single_file(path="../resources/corpi/sentiment_labelled_sentences/"
+                                              "yelp_labelled.txt",
+                                         label_re_str="\t[01]",
+                                         pos_str="\t1")
+
+    p_imdb, n_imdb = pos_neg_single_file(path="../resources/corpi/sentiment_labelled_sentences/"
+                                              "imdb_labelled.txt",
+                                         label_re_str="\t[01]",
+                                         pos_str="\t1")
+
+    return (p_amaz + p_imdb + p_yelp,
+            n_amaz + n_imdb + n_yelp)
+
 
 def pos_neg_sms_spam():
     return pos_neg_single_file(path="../resources/corpi/smsspamcollection/"
-                                                  "SMSSpamCollection",
+                                    "SMSSpamCollection",
                                label_re_str="\w+\t",
-                               pos_str="ham\t")
+                               pos_str="spam\t")
 
 
 def pos_neg_single_file(path, label_re_str, pos_str):
@@ -121,13 +135,13 @@ def mixed_pu(P, N, neg_noise=0.05, pos_in_u=0.6, test_size=0.2):
     """returns P with optional negative noise, U with pos_in_u of P, and positive and negative validation set"""
 
     print("\nParameters for training data:\n",
-          100*pos_in_u, "% of positive documents are hidden in unlabelled set U.\n",
-          100*neg_noise, "% of P is actually negative, to simulate noise.\n")
+          100 * pos_in_u, "% of positive documents are hidden in unlabelled set U.\n",
+          100 * neg_noise, "% of P is actually negative, to simulate noise.\n")
 
     P_train, P_test = train_test_split(P, test_size=test_size)
     N_train, N_test = train_test_split(N, test_size=test_size)
     P_P, P_U = train_test_split(P_train, test_size=pos_in_u)
-    N_U, N_noise = train_test_split(N_train, test_size=neg_noise*(len(P)/len(N)))
+    N_U, N_noise = train_test_split(N_train, test_size=neg_noise * (len(P) / len(N)))
 
     P_ = P_P + N_noise
     U_ = P_U + N_U

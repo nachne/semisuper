@@ -4,6 +4,7 @@ import random
 import pandas as pd
 import time
 import os.path
+import sys
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 
@@ -36,9 +37,36 @@ print("\n\n"
 
 start_time = time.time()
 
-model = pu_two_step.s_EM(P, U, spy_ratio=0.1, tolerance=0.1, text=True)
+model = pu_two_step.s_EM(P, U, spy_ratio=0.1, tolerance=0.1, noise_lvl=0.2, text=True)
 
 print("\nS-EM took %s seconds\n" % (time.time() - start_time))
+
+
+def sort_s_em(sentences):
+    return sorted(zip(model.predict_proba(sentences),
+                      sentences),
+                  key=lambda x: x[0][1],
+                  reverse=True)
+def top_bot_12_s_em(predictions, name):
+    print("\nroc-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > 0.5]), "/",
+          num_rows(predictions))
+    print(name, "top-12")
+    [print(x) for x in (predictions[0:12])]
+    print(name, "bot-12")
+    [print(x) for x in (predictions[-12:])]
+
+
+civ_lab_sim = sort_s_em(civic)
+top_bot_12_s_em(civ_lab_sim, "civic")
+
+abs_lab_sim = sort_s_em(abstracts)
+top_bot_12_s_em(abs_lab_sim, "abstracts")
+
+oth_lab_sim = sort_s_em(piboso_other)
+top_bot_12_s_em(oth_lab_sim, "piboso-other")
+
+out_lab_sim = sort_s_em(piboso_outcome)
+top_bot_12_s_em(out_lab_sim, "piboso-outcome")
 
 # ------------------
 # I-EM-Test
@@ -54,10 +82,37 @@ model = pu_two_step.i_EM(P, U, max_pos_ratio=0.5, max_imbalance=1.0, tolerance=0
 print("\nEM took %s seconds\n" % (time.time() - start_time))
 
 
+def sort_i_em(sentences):
+    return sorted(zip(model.predict_proba(sentences),
+                      sentences),
+                  key=lambda x: x[0][1],
+                  reverse=True)
+def top_bot_12_i_em(predictions, name):
+    print("\nroc-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > 0.5]), "/",
+          num_rows(predictions))
+    print(name, "top-12")
+    [print(x) for x in (predictions[0:12])]
+    print(name, "bot-12")
+    [print(x) for x in (predictions[-12:])]
+
+
+civ_lab_sim = sort_i_em(civic)
+top_bot_12_i_em(civ_lab_sim, "civic")
+
+abs_lab_sim = sort_i_em(abstracts)
+top_bot_12_i_em(abs_lab_sim, "abstracts")
+
+oth_lab_sim = sort_i_em(piboso_other)
+top_bot_12_i_em(oth_lab_sim, "piboso-other")
+
+out_lab_sim = sort_i_em(piboso_outcome)
+top_bot_12_i_em(out_lab_sim, "piboso-outcome")
+
+
 # print(dummy_pipeline.show_most_informative_features(model))
 
 # ----------------------------------------------------------------
-# sys.exit(0)
+sys.exit(0)
 # ----------------------------------------------------------------
 
 def predicted_df(sentences):

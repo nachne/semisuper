@@ -36,7 +36,8 @@ def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None,
 
     with Pool(processes=cpu_count()) as p:
         score_weights = p.map(partial(eval_params,
-                                      X_train=X, y_train=y, P_test=P_test, U_test=U_test, kernel=kernel, text=text),
+                                      X_train=X, y_train=y, P_test=P_test, U_test=U_test,
+                                      kernel=kernel, text=text),
                               Cs)
 
     best_score_params = max(score_weights, key=lambda tup: tup[0])

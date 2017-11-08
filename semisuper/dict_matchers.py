@@ -55,7 +55,7 @@ class HypernymMapper(DictReplacer):
         source = pd.read_csv(file_path("./resources/" + hypernym + "2pubtator.csv"),
                              sep='\t', dtype=str)
 
-        with open("common_words.txt", "r") as cw:
+        with open(file_path("./resources/common_words.txt"), "r") as cw:
             common_words = set(cw.read().split("\n") + stopwords.words('english'))
 
         illegal_chars = re.compile("\s|\\\\")

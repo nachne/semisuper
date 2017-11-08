@@ -1,7 +1,7 @@
 from itertools import islice
 from functools import reduce
 from operator import itemgetter, mul
-from numpy import shape, array, nonzero, ones, sum
+from numpy import shape, array, nonzero, ones, sum, round
 from scipy.sparse import issparse
 from sklearn.utils import check_array
 import os.path
@@ -81,11 +81,11 @@ def pu_measure(y_P, y_U):
     i.e. divide
     requires validation set to be partitioned into P and U before classification, labels to be 1 and 0"""
 
-    if sum(y_U) == len(y_U) or sum(y_P) == 0:
+    if sum(round(y_U)) == num_rows(y_U) or sum(round(y_P)) == 0:
         return 0
 
-    r_sq = (sum(y_P) / len(y_P)) ** 2
-    Pr_fx_1 = (sum(y_P) + sum(y_U)) / (len(y_P) + len(y_U))
+    r_sq = (sum(round(y_P)) / num_rows(y_P)) ** 2
+    Pr_fx_1 = (sum(round(y_P)) + sum(round(y_U))) / (num_rows(y_P) + num_rows(y_U))
 
     return r_sq / Pr_fx_1
 

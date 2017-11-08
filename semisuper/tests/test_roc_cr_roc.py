@@ -21,47 +21,6 @@ P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
 U = random.sample(abstracts, 4000) + random.sample(P, 0)
 
 # ------------------
-# standalone Rocchio Test
-
-print("\n\n"
-      "------------------------------\n"
-      "STANDALONE COSINE-ROCCHIO TEST\n"
-      "------------------------------\n")
-
-start_time = time.time()
-roc = pu_two_step.standalone_cos_rocchio(P, U, noise_lvl=0.5, text=True)
-print("\nTraining Standalone Cosine-Rocchio took %s seconds\n" % (time.time() - start_time))
-
-
-def sort_cos_roc(sentences):
-    return sorted(zip(roc.predict_proba(sentences),
-                      sentences),
-                  key=lambda x: x[0],
-                  reverse=True)
-
-
-def top_bot_12_cos_roc(predictions, name):
-    print("\ncos-rocchio", name, "prediction", sum([1 for x in predictions if x[0] > 0.5]), "/",
-          num_rows(predictions))
-    print(name, "top-12")
-    [print(x) for x in (predictions[0:12])]
-    print(name, "bot-12")
-    [print(x) for x in (predictions[-12:])]
-
-
-civ_lab_sim = sort_cos_roc(civic)
-top_bot_12_cos_roc(civ_lab_sim, "civic")
-
-abs_lab_sim = sort_cos_roc(abstracts)
-top_bot_12_cos_roc(abs_lab_sim, "abstracts")
-
-oth_lab_sim = sort_cos_roc(piboso_other)
-top_bot_12_cos_roc(oth_lab_sim, "piboso-other")
-
-out_lab_sim = sort_cos_roc(piboso_outcome)
-top_bot_12_cos_roc(out_lab_sim, "piboso-outcome")
-
-# ------------------
 # ROC-SVM Test
 
 print("\n\n"
@@ -111,7 +70,7 @@ print("\n\n"
       "-----------\n")
 
 start_time = time.time()
-crsvm = pu_two_step.cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.1, text=True)
+crsvm = pu_two_step.cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.5, text=True)
 print("\nTraining CR-SVM took %s seconds\n" % (time.time() - start_time))
 
 
