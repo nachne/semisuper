@@ -28,7 +28,7 @@ def build_and_evaluate(X, y,
         """
 
         if not classifier:
-            classifier = SGD
+            classifier = MNB
 
         if isinstance(classifier, type):
             classifier = classifier()
