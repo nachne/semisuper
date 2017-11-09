@@ -41,7 +41,7 @@ def pos_neg_uci():
 
     # print(len(glob.glob(file_path("../resources/uci_sentence_corpus/labeled_articles/*.txt"))))
 
-    for filename in glob.glob(file_path(file_path("../resources/corpi/uci_sentence_corpus/labeled_articles/" +
+    for filename in glob.glob(file_path(file_path("../resources/corpora/uci_sentence_corpus/labeled_articles/" +
                                                           '*.txt'))):
         with open(filename, 'r') as f:
 
@@ -66,17 +66,17 @@ def pos_neg_uci():
 
 
 def pos_neg_amazon():
-    p_amaz, n_amaz = pos_neg_single_file(path="../resources/corpi/sentiment_labelled_sentences/"
+    p_amaz, n_amaz = pos_neg_single_file(path="../resources/corpora/sentiment_labelled_sentences/"
                                               "amazon_cells_labelled.txt",
                                          label_re_str="\t[01]",
                                          pos_str="\t1")
 
-    p_yelp, n_yelp = pos_neg_single_file(path="../resources/corpi/sentiment_labelled_sentences/"
+    p_yelp, n_yelp = pos_neg_single_file(path="../resources/corpora/sentiment_labelled_sentences/"
                                               "yelp_labelled.txt",
                                          label_re_str="\t[01]",
                                          pos_str="\t1")
 
-    p_imdb, n_imdb = pos_neg_single_file(path="../resources/corpi/sentiment_labelled_sentences/"
+    p_imdb, n_imdb = pos_neg_single_file(path="../resources/corpora/sentiment_labelled_sentences/"
                                               "imdb_labelled.txt",
                                          label_re_str="\t[01]",
                                          pos_str="\t1")
@@ -86,7 +86,7 @@ def pos_neg_amazon():
 
 
 def pos_neg_sms_spam():
-    return pos_neg_single_file(path="../resources/corpi/smsspamcollection/"
+    return pos_neg_single_file(path="../resources/corpora/smsspamcollection/"
                                     "SMSSpamCollection",
                                label_re_str="\w+\t",
                                pos_str="spam\t")

@@ -41,7 +41,7 @@ class HypernymMapper(DictReplacer):
     def build_hypernym_dict(self):
         concepts = ["chemical", "disease", "gene", "mutation"]
 
-        with multi.Pool(len(concepts)) as p:
+        with multi.Pool(min(multi.cpu_count(), len(concepts))) as p:
             dicts = list(p.map(self.make_hypernym_entries, concepts))
 
         dictionary = dicts[0].copy()
@@ -58,12 +58,13 @@ class HypernymMapper(DictReplacer):
         with open(file_path("./resources/common_words.txt"), "r") as cw:
             common_words = set(cw.read().split("\n") + stopwords.words('english'))
 
-        illegal_chars = re.compile("\s|\\\\")
+        # only single words and no URLs etc
+        illegal_substrs = re.compile("\s|\\\\|\.gov|\.org|\.com|http|www|")
 
         for line in source["Mentions"]:
             for word in str(line).split("|"):
                 # only include single words not appearing in normal language
-                if not (illegal_chars.findall(word)
+                if not (illegal_substrs.findall(word)
                         or word in common_words
                         or word in entries
                         or wordnet.synsets(word)):

@@ -33,7 +33,7 @@ pp = BasicPreprocessor()
 pppl = Pipeline([
     ('preprocessor', pp),
     ('vectorizer', FeatureUnion(transformer_list=[("words", TfidfVectorizer(
-            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
                                                    ),
                                                   ("stats", FeatureNamePipeline([
                                                       ("stats", TextStats()),
@@ -79,7 +79,11 @@ print("\n----------------------------------------------------------------",
       "\nSome tests.",
       "\n----------------------------------------------------------------\n")
 
-[print(pp.transform([x])) for x in ['CLINICALTRIALSGOV: NCT00818441.',
+[print(x, pp.transform([x])) for x in ['CLINICALTRIALSGOV: NCT00818441.',
+                                    'clinicaltrials.gov',
+                                    'genetic/mrna',
+                                    'C-->A G-->T',
+                                    'don\'t go wasting your emotions',
                                     'Eight inpatient rehabilitation facilities.',
                                     'There were 67 burst fractures, 48 compression fractures and 21 fracture dislocations, 8 flexion distraction fractures and 6 flexion rotation injuries.',
                                     'MET amplification was seen in 4 of 75 (5%; 95% CI, 1%-13%).',

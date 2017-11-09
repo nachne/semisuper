@@ -3,11 +3,15 @@ import re
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 from nltk import TreebankWordTokenizer, WhitespaceTokenizer, RegexpTokenizer, wordpunct_tokenize
+import os.path
+import pickle
+from nltk.tokenize import PunktSentenceTokenizer
 from nltk import sent_tokenize
 from nltk import pos_tag
 from nltk.corpus import wordnet as wn
 from nltk import WordNetLemmatizer
 from semisuper.dict_matchers import HypernymMapper
+import semisuper.loaders
 
 
 class BasicPreprocessor(BaseEstimator, TransformerMixin):
@@ -17,10 +21,11 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
         self.punct = punct or set(string.punctuation)
         self.lemma = lemmatize
 
-        self.splitters = re.compile("[-/.,|]")
+        self.splitters = re.compile("[-/.,|]|-->|->|>|<")
 
         self.dict_mapper = HypernymMapper()
         self.tokenizer = TreebankWordTokenizer()
+
         self.lemmatizer = WordNetLemmatizer()
 
     def fit(self, X, y=None):
@@ -93,8 +98,12 @@ def map_regex_concepts(token):
     return token
 
 
-# TODO dict ist nicht gut, weil Reihenfolge (z.B. Prozent kommt nie durch)
-regex_concept_dict = [  # number-related concepts
+regex_concept_dict = [
+    # drugs
+    (re.compile("^\w+inib$"), "_chemical_"),
+    (re.compile("^\w+[ui]mab$"), "_chemical_"),
+
+    # number-related concepts
     (re.compile("^[Pp]([=<>≤≥]|</?=|>/?=)\d"), "_p_val_"),
     (re.compile("^((\d+-)?year-old|y\.?o\.?)$"), "_age_"),
     (re.compile("^~?-?\d*[·.]?\d+--?\d*[·.]?\d+$"), "_range_"),
@@ -107,7 +116,8 @@ regex_concept_dict = [  # number-related concepts
                 "(m|cm|mm|um|nm)|"
                 "(l|ml|cl|ul|mol|mmol|nmol|mumol|mo))/?)+$"), "_unit_"),
     # abbreviation starting with letters and containing nums
-    (re.compile("^rs\d+$"), "_mutation_"),
+    (re.compile("^[Rr][Ss]\d+$|"
+                "^[Rr]\d+[Cc]$"), "_mutation_"),
     (re.compile("^([a-zA-Z]+-?\w*\d+)+"), "_abbrev_"),
     # time
     (re.compile("^([jJ]an\.(uary)?|[fF]eb\.(ruary)?|[mM]ar\.(ch)?|"
@@ -134,6 +144,9 @@ regex_concept_dict = [  # number-related concepts
 
 def sentence_tokenize(text):
     """tokenize text into sentences after simple normalization"""
+
+    # return PubMedSentenceTokenizer().tokenize(prenormalize(text))
+
     return sent_tokenize(prenormalize(text))
 
 
@@ -196,3 +209,32 @@ class TextStats(BaseEstimator, TransformerMixin):
 
     def get_feature_names(self):
         return list(self.key_dict.keys())
+
+
+def PubMedSentenceTokenizer():
+    """Punkt sentence tokenizer trained on CIViC and abstracts"""
+
+    def file_path(file_relative):
+        """return the correct file path given the file's path relative to calling script"""
+        return os.path.join(os.path.dirname(__file__), file_relative)
+
+    try:
+        with open(file_path("./pickles/custom_sent_tokenizer.pickle"), "rb") as f:
+            tokenizer = pickle.load(f)
+    except IOError:
+        print("Custom sentence tokenizer:")
+
+        print("Loading training data")
+        civic, abstracts = semisuper.loaders.load_civic_abstracts()
+        text = " ".join(list(abstracts["abstract"]) + list(civic["evidence_statement"]))
+
+        print("Training")
+        tokenizer = PunktSentenceTokenizer()
+        tokenizer.train(text)
+
+        print("Saving tokenizer for future use")
+
+        with open(file_path("./pickles/custom_sent_tokenizer.pickle"), "wb") as f:
+            pickle.dump(tokenizer, f)
+
+    return tokenizer
