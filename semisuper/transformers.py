@@ -18,10 +18,11 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
     def __init__(self, punct=None, lower=True, strip=True, lemmatize=False):
         self.lower = lower
         self.strip = strip
-        self.punct = punct or set(string.punctuation)
+        self.punct = punct or set(string.punctuation).difference(set('%'))
+
         self.lemma = lemmatize
 
-        self.splitters = re.compile("[-/.,|]|-->|->|>|<")
+        self.splitters = re.compile("-->|->|[-/.,|<>]")
 
         self.dict_mapper = HypernymMapper()
         self.tokenizer = TreebankWordTokenizer()
@@ -74,7 +75,7 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
         token = token.lower() if self.lower else token
 
         if self.lemma:
-            token = self.lemmatize(token, tag)
+            token = self.lemmatize(token.lower(), tag)
         return token
 
     def lemmatize(self, token, tag):
@@ -100,8 +101,9 @@ def map_regex_concepts(token):
 
 regex_concept_dict = [
     # drugs
-    (re.compile("^\w+inib$"), "_chemical_"),
-    (re.compile("^\w+[ui]mab$"), "_chemical_"),
+    (re.compile("\w+inib$"), "_chemical_"),
+    (re.compile("\w+[ui]mab$"), "_chemical_"),
+    (re.compile("->|-->"), "_replacement_"),
 
     # number-related concepts
     (re.compile("^[Pp]([=<>≤≥]|</?=|>/?=)\d"), "_p_val_"),
@@ -112,12 +114,12 @@ regex_concept_dict = [
     (re.compile("^~?\d+/\d+$|^\d+:\d+$"), "_ratio_"),
     (re.compile("^~?-?\d*[·.]?\d*%$"), "_percent_"),
     (re.compile("^~?\d*(("
-                "(kg|g|mg|ug|ng)|"
-                "(m|cm|mm|um|nm)|"
-                "(l|ml|cl|ul|mol|mmol|nmol|mumol|mo))/?)+$"), "_unit_"),
+                "(kg|\d+g|mg|ug|ng)|"
+                "(\d+m|cm|mm|um|nm)|"
+                "(\d+l|ml|cl|ul|mol|mmol|nmol|mumol|mo))/?)+$"), "_unit_"),
     # abbreviation starting with letters and containing nums
     (re.compile("^[Rr][Ss]\d+$|"
-                "^[Rr]\d+[Cc]$"), "_mutation_"),
+                "^[Rr]\d+[A-Za-z]$"), "_mutation_"),
     (re.compile("^([a-zA-Z]+-?\w*\d+)+"), "_abbrev_"),
     # time
     (re.compile("^([jJ]an\.(uary)?|[fF]eb\.(ruary)?|[mM]ar\.(ch)?|"

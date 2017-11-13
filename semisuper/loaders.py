@@ -6,6 +6,7 @@ from semisuper import transformers
 from semisuper.helpers import flatten
 import re
 import os.path
+import glob
 
 # TODO delete personal e-mail
 # needed for querying PubMed API
@@ -111,6 +112,42 @@ def authors2we(sentence):
 
 
 # ----------------------------------------------------------------
+# HoC helpers
+# ----------------------------------------------------------------
+
+# TODO decide whether / how to use HoC for training/evaluation
+def sentences_HoC():
+    """Positive (any HoC category) and negative (uncategorized) sentences from Hallmarks of Cancer corpus"""
+
+    positive = []
+    negative = []
+
+    label_re = re.compile("\t\[.*\]")
+
+    for filename in glob.glob(file_path(file_path("./resources/corpora/HoCCorpus/*.txt"))):
+        with open(filename, 'r') as f:
+
+            lines = f.read().split('\n')
+
+            for line in lines[1:]:
+                if not len(line) or line[0] == '#' or not label_re.findall(line):
+                    continue
+
+                label = label_re.findall(line)[0]
+                # print("label:", label)
+
+                sentence = label_re.sub("", line)
+                # print("sentence:", sentence)
+
+                if label == '\t[]':
+                    negative.append(sentence)
+                else:
+                    positive.append(sentence)
+
+    return positive, negative
+
+
+# ----------------------------------------------------------------
 # PIBOSO helpers
 # ----------------------------------------------------------------
 
@@ -132,11 +169,11 @@ def sentences_piboso(include, exclude=None):
 
 def piboso_category_offset(category):
     """maps category names to their line offset in PIBOSO file"""
-    indices = {"background"  : 0,
+    indices = {"background": 0,
                "intervention": 1,
-               "population"  : 2,
-               "outcome"     : 3,
-               "other"       : 4,
+               "population": 2,
+               "outcome": 3,
+               "other": 4,
                "study design": 5,
                "study_design": 5}
     return indices[category]

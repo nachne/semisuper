@@ -5,20 +5,23 @@ import pandas as pd
 import time
 
 civic, abstracts = loaders.sentences_civic_abstracts()
+hocpos, hocneg = loaders.sentences_HoC()
 
 print("CIViC sentences:", len(civic))
 print("Abstract sentences:", len(abstracts))
+print("HoC positive sentences:", len(hocpos))
+print("HoC negative sentences:", len(hocneg))
 
 piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
 print("PIBOSO sentences:", len(piboso_other))
 
-P = civic
-U = abstracts
+P = civic + hocpos
+U = abstracts + hocneg
 
-P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
-U = random.sample(abstracts, 4000) + random.sample(P, 0)
+P = random.sample(P, 400)
+U = random.sample(U, 400)
 
 # ------------------
 # ROC-SVM Test
@@ -55,11 +58,18 @@ top_bot_12_cr_svm(civ_lab_sim, "civic")
 abs_lab_sim = sort_roc_svm(abstracts)
 top_bot_12_cr_svm(abs_lab_sim, "abstracts")
 
+hocpos_lab_sim = sort_roc_svm(hocpos)
+top_bot_12_cr_svm(hocpos_lab_sim, "HoC-pos-outcome")
+
+hocneg_lab_sim = sort_roc_svm(hocpos)
+top_bot_12_cr_svm(hocpos_lab_sim, "HoC-neg-outcome")
+
 oth_lab_sim = sort_roc_svm(piboso_other)
 top_bot_12_cr_svm(oth_lab_sim, "piboso-other")
 
 out_lab_sim = sort_roc_svm(piboso_outcome)
 top_bot_12_cr_svm(out_lab_sim, "piboso-outcome")
+
 
 # ------------------
 # CR-SVM Test
@@ -95,6 +105,12 @@ top_bot_12_cr_svm(civ_lab_sim, "civic")
 
 abs_lab_sim = sort_cr_svm(abstracts)
 top_bot_12_cr_svm(abs_lab_sim, "abstracts")
+
+hocpos_lab_sim = sort_cr_svm(hocpos)
+top_bot_12_cr_svm(hocpos_lab_sim, "HoC-pos")
+
+hocneg_lab_sim = sort_cr_svm(hocneg)
+top_bot_12_cr_svm(hocneg_lab_sim, "HoC-neg")
 
 oth_lab_sim = sort_cr_svm(piboso_other)
 top_bot_12_cr_svm(oth_lab_sim, "piboso-other")

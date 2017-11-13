@@ -1,4 +1,6 @@
 from semisuper import loaders
+import nalaf
+import nala
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 
@@ -20,6 +22,10 @@ civic, abstracts = loaders.sentences_civic_abstracts()
 
 
 # ----------------------------------------------------------------
+# NALA
+
+
+# ----------------------------------------------------------------
 # TAGTOG API
 
 import requests
@@ -31,7 +37,7 @@ def tagtog_req(text):
     # text = 'Antibody-dependent cellular cytotoxicity (ADCC), a key effector function for the clinical effectiveness of monoclonal antibodies'
     payload = {'text': text}
     response = requests.put(url, params=params, auth=auth, data=payload)
-    print("text:", response, [x for x in response], response.text)
+    print("text:", response, response.text)
     return
 
 for c in civic[1000:1010]:
