@@ -1,0 +1,172 @@
+/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/bin/python3.6 /Users/emperor/HU/BA/semisuper/test_biased_svm.py
+Loaded summaries and abstracts from disk.
+No. of PubMed IDs:	 2251
+No. of abstracts:	 1228
+CIViC sentences: 4970
+Abstract sentences: 12496
+PIBOSO sentences: 2712
+
+
+---------------
+BIASED-SVM TEST
+---------------
+
+There are 60 parameter combinations to be evaluated.
+NON-NORMALIZED WEIGHTS
+
+(0, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 0.1})
+(0, {'C_pos': 5.0099999999999998, 'C_neg': 0.01, 'C': 0.1})
+(0, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 0.1})
+(0, {'C_pos': 15.01, 'C_neg': 0.01, 'C': 0.1})
+(0, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 0.1})
+(0, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 0.1})
+(0, {'C_pos': 165.33000000000001, 'C_neg': 0.33000000000000002, 'C': 0.1})
+(0, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 0.1})
+(0, {'C_pos': 495.33000000000004, 'C_neg': 0.33000000000000002, 'C': 0.1})
+(0, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 0.1})
+(0, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 5.0099999999999998, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 15.01, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 1})
+(0.66125, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 1})
+(1.5039873417721521, {'C_pos': 165.33000000000001, 'C_neg': 0.33000000000000002, 'C': 1})
+(1.5039873417721521, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1})
+(1.5039873417721521, {'C_pos': 495.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1})
+(1.5039873417721521, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.020000000000000004, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 10})
+(1.0011123470522802, {'C_pos': 5.0099999999999998, 'C_neg': 0.01, 'C': 10})
+(1.0011123470522802, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 10})
+(1.0011123470522802, {'C_pos': 15.01, 'C_neg': 0.01, 'C': 10})
+(1.0011123470522802, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 10})
+(1.3875084175084174, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 10})
+(1.4051655629139073, {'C_pos': 165.33000000000001, 'C_neg': 0.33000000000000002, 'C': 10})
+(1.4051655629139073, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10})
+(1.4051655629139073, {'C_pos': 495.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10})
+(1.4051655629139073, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10})
+(1.3582129277566541, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 100})
+(1.44453125, {'C_pos': 5.0099999999999998, 'C_neg': 0.01, 'C': 100})
+(1.44453125, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 100})
+(1.44453125, {'C_pos': 15.01, 'C_neg': 0.01, 'C': 100})
+(1.44453125, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 100})
+(1.4055183946488294, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 100})
+(1.4005280528052806, {'C_pos': 165.33000000000001, 'C_neg': 0.33000000000000002, 'C': 100})
+(1.4005280528052806, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 100})
+(1.4005280528052806, {'C_pos': 495.33000000000004, 'C_neg': 0.33000000000000002, 'C': 100})
+(1.4005280528052806, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 100})
+(1.3965100671140942, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 1000})
+(1.4005280528052806, {'C_pos': 5.0099999999999998, 'C_neg': 0.01, 'C': 1000})
+(1.4005280528052806, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 1000})
+(1.4005280528052806, {'C_pos': 15.01, 'C_neg': 0.01, 'C': 1000})
+(1.4005280528052806, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 1000})
+(1.4055183946488294, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 1000})
+(1.4005280528052806, {'C_pos': 165.33000000000001, 'C_neg': 0.33000000000000002, 'C': 1000})
+(1.4005280528052806, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1000})
+(1.4005280528052806, {'C_pos': 495.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1000})
+(1.4005280528052806, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1000})
+(1.4055183946488294, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 10000})
+(1.4005280528052806, {'C_pos': 5.0099999999999998, 'C_neg': 0.01, 'C': 10000})
+(1.4005280528052806, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 10000})
+(1.4005280528052806, {'C_pos': 15.01, 'C_neg': 0.01, 'C': 10000})
+(1.4005280528052806, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 10000})
+(1.4055183946488294, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 10000})
+(1.4005280528052806, {'C_pos': 165.33000000000001, 'C_neg': 0.33000000000000002, 'C': 10000})
+(1.4005280528052806, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10000})
+(1.4005280528052806, {'C_pos': 495.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10000})
+(1.4005280528052806, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10000})
+
+Best model has parameters {'C_pos': 165.33000000000001, 'C_neg': 0.33000000000000002, 'C': 1} and PU-score 1.50398734177
+Building final classifier
+
+Training Biased-SVM took 255.4775459766388 seconds
+
+Nonsense Sentences, expecting [0, ?, 1, 1]
+[ 0.  0.  1.  1.]
+[[ 0.80346473  0.19653527]
+ [ 0.95275599  0.04724401]
+ [ 0.05666429  0.94333571]
+ [ 0.49153945  0.50846055]]
+
+biased-svm civic prediction 4528 / 4970
+civic top-12
+(1.0, array([  2.17660890e-07,   9.99999782e-01]), 'erlotinib).')
+(1.0, array([  1.74642059e-06,   9.99998254e-01]), 'A cell line with AKT E17K mutation was found to be sensitive to AKT inhibition with GSK2141795B  in this study.')
+(1.0, array([  1.25886147e-05,   9.99987411e-01]), 'Ba/F3 cells expressing EML4-ALK variant 3 with ALK I1171T mutation were treated with ceritinib, and survival IC50 of 2.6 nM was observed, which compares favorably with highly ceritinib sensitive EML4-ALK wild type variant 1 survival IC50 of 1.7 nM reported from parallel experiments.')
+(1.0, array([  1.80272693e-05,   9.99981973e-01]), 'In Ba/F3 cells with ectopic EML4-ALK variant 1 G1269A, IC50 of 84 nM was reported with alectinib, which was a 6 fold increase over IC50 for EML4-ALK wild type.')
+(1.0, array([ 0.00321159,  0.99678841]), 'In a retrospective analysis of 74 patients with papillary renal cell carcinoma, treated with foretinib, MET germline mutation was associated with improved response rate.')
+(1.0, array([ 0.00327376,  0.99672624]), 'In a patient expressing a DDR2 S768R mutation, treatment with dasatinib plus erlotinib acheived a partial response.')
+(1.0, array([ 0.00342615,  0.99657385]), 'In a study of 16 patients with metastatic breast cancer (NCT02142868) treated with palbociclib in combination with letrozole, patients with ESR1 mutations (5/16), including ESR1 D538G (n=2), detected at any time or at initial blood draw, were associated with reduced progression free survival (HR=0.31, 95% CI: 0.05-0.95, P=0.047), as compared with patients with wildtype ESR1 (n=11).')
+(1.0, array([ 0.00347578,  0.99652422]), 'In a study of 1,540 patients with Acute Myeloid Leukemia, 18 patients had a mutation in IDH2(R172).')
+(1.0, array([ 0.00371357,  0.99628643]), 'In a phase 3 clinical trial (NCT00829166), metastatic breast cancer patients with PIK3CA mutation (n=40), including patients with PIK3CA H1047R, treated with ado-trastuzumab were associated with improved median progression free survival (10.9 vs. 9.8 months), as compared to patients with wild type PIK3CA (n=93).')
+(1.0, array([ 0.00371357,  0.99628643]), 'In a phase 3 clinical trial (NCT00829166), metastatic breast cancer patients with PIK3CA mutation (n=40), including patients with PIK3CA E545K, treated with ado-trastuzumab were associated with improved median progression free survival (10.9 vs. 9.8 months), as compared to patients with wild type PIK3CA (n=93).')
+(1.0, array([ 0.00381907,  0.99618093]), 'In an in vitro study, HCC1954 and KPL-4 cell lines expressing PIK3CA H1047R mutation was associated with increased sensitivity to ado-trastuzumab emtansine treatment compared to trastuzumab treated HCC1954 and KPL-4 cells.')
+(1.0, array([ 0.00415236,  0.99584764]), 'In MCF10A cell lines, the V777L mutation was shown to be sensitive to neratinib.')
+civic bot-12
+(0.0, array([ 0.98787571,  0.01212429]), 'we show that in the CX-5461 and CX-3543, G-quadruplex stabilizing agents, demonstrate specific toxicity against BRCA deficient breast cancer derived cells and polyclonal patient-derived xenograft models.')
+(0.0, array([ 0.98808584,  0.01191416]), 'we suggested that FGFR1 expression is a better predictive marker than FGFR1 amplification and proposes a connection between KRAS and PIK3CA mutations.')
+(0.0, array([ 0.98820666,  0.01179334]), 'A meta-analysis of EGFR gene copy number as a predictive biomarker for patients receiving tyrosine kinase inhibitor treatment was performed.')
+(0.0, array([ 0.98826514,  0.01173486]), "Since this is a frameshift occurring early in the protein sequence we can assign an ACMG evidence code of 'PVS1'.")
+(0.0, array([ 0.98901453,  0.01098547]), 'we speculated that since this polymorphism, a missense variant in the gene SH2B3, is also associated with haematological and autoimmune disorders, it might influence cancer risk through its role in the immune response.')
+(0.0, array([ 0.98979346,  0.01020654]), 'we also summarize prior functional work that suggests that C609Y has transforming activity that is significant but not as strong as some other variants.')
+(0.0, array([ 0.99159852,  0.00840148]), 'we state that SIFT (an in-silico missense functional prediction program) predicts the variant is tolerated.')
+(0.0, array([ 0.99200231,  0.00799769]), 'The data was obtained from Berlin Frankfurt Münster Clinical Trials.')
+(0.0, array([ 0.99366789,  0.00633211]), 'The fusion has clear diagnostic value, though we caution that it is not perfectly specific to synovial sarcomas, and suggest that demonstration of t(X;18) in a spindle cell neoplasm should be integrated with the morphology, immunoprofile, and clinical setting of the tumour.')
+(0.0, array([ 0.99527835,  0.00472165]), 'we used a transfection based immunoblot assay to assess the impact of TSC1 (and TSC2) variants.')
+(0.0, array([ 0.99532861,  0.00467139]), 'we suggest that the type/structure of ALK fusion may have some impact on patient outcome in targeted therapy.')
+(0.0, array([ 0.99594011,  0.00405989]), 'These findings are not statistically significant, but we suggest that alemtuzumab is an effective therapy for patients with p53 mutations or deletions.')
+
+biased-svm abstracts prediction 3935 / 12496
+abstracts top-12
+(1.0, array([  8.63068839e-07,   9.99999137e-01]), 'CLINICALTRIALSGOV: NCT00818441.')
+(1.0, array([ 0.00903118,  0.99096882]), 'PTEN loss was observed in 46 of 85 samples analyzed and increased stathmin expression was observed in 15 of 65 analyzed samples.')
+(1.0, array([ 0.01078522,  0.98921478]), 'Ectopic expression of IDH2(R172K) in the Jurkat cell line and CD4(+) T cells led to markedly increased levels of 2-hydroxyglutarate, histone-3 lysine methylation, and 5-methylcytosine and a decrease of 5-hydroxymethylcytosine.')
+(1.0, array([ 0.01398348,  0.98601652]), 'In 3 patients homozygous for the mutation, reappearance of 50% of wild type allele was observed during treatment.')
+(1.0, array([ 0.0140162,  0.9859838]), 'Conversely, RNAi-mediated silencing of endogenous RAC1 P29S in a melanoma cell line with a co-occurring BRAF V600 mutation increased sensitivity to vemurafenib and dabrafenib.')
+(1.0, array([ 0.01608515,  0.98391485]), 'Following BYL719 treatment, all PIK3CA wild type cell lines, except for the SNU-1066 cell line, exhibited higher IC50 values compared to the PIK3CA mutant cell lines.')
+(1.0, array([ 0.01825002,  0.98174998]), 'However, the patients with a G12D mutation had a significantly shorter OS (6 months; 95% CI: 6.4-9.7) compared with the other patients (OS: 9 months; 95% CI: 10-13; HR: 1.47; P=0.003; i.e., wild type: 9 months, G12V: 9 months, G12R: 14 months).')
+(1.0, array([ 0.01970196,  0.98029804]), 'Three patients with the KIT-V654A mutation were treated with SU11248.')
+(1.0, array([ 0.02051696,  0.97948304]), 'After 12 months of everolimus, no reduction in volume >/=20 % was observed.')
+(1.0, array([ 0.02412963,  0.97587037]), 'Shorter progression-free survival was observed in tumors with low topo expression (P=0.04).')
+(1.0, array([ 0.02624361,  0.97375639]), 'Mice with a combined Tsc1-Kras(G12D) mutation had dramatically reduced tumor latency (median survival: 11.6-15.6 weeks) in comparison with Kras(G12D) alone mutant mice (median survival: 27.5 weeks).')
+(1.0, array([ 0.026457,  0.973543]), 'In MGH-U3 bladder cancer xenografts, which contain both AKT1(E17K) and FGFR3(Y373C) mutations, AZD5363 monotherapy did not significantly reduce tumor growth, but tumor regression was observed in combination with the FGFR inhibitor AZD4547.')
+abstracts bot-12
+(0.0, array([  9.99105139e-01,   8.94861356e-04]), 'In non-small-cell lung cancer (NSCLC), the presence of mutations in the epidermal growth factor receptor (EGFR) tyrosine kinase correlates with clinical response to small-molecule tyrosine kinase inhibitors.')
+(0.0, array([  9.99135424e-01,   8.64576107e-04]), 'Here we report that we have detected germline mutations in the VHL gene in 100% (93/93) of VHL families tested.')
+(0.0, array([  9.99146467e-01,   8.53532776e-04]), 'However, results have been ambiguous.')
+(0.0, array([  9.99216412e-01,   7.83588486e-04]), 'PURPOSE: To evaluate the usefulness and the pitfalls inherent to the assessment of the epidermal growth factor receptor (EGFR) gene copy number (GCN) by fluorescence in situ hybridization (FISH) for outcome prediction to cetuximab in metastatic colorectal cancer.')
+(0.0, array([  9.99222171e-01,   7.77829421e-04]), 'AIMS: The epidermal growth factor receptor (EGFR) is a tyrosine kinase (TK) involved in the tumour progression of many cancer types and may serve as an important therapeutic target (erlotinib, cetuximab).')
+(0.0, array([  9.99291689e-01,   7.08311388e-04]), 'BACKGROUND: The insulin-like growth factor-1 receptor (IGF-1R) pathway is known to play a role in the acquisition of resistance to epidermal growth factor receptor (EGFR)-specific tyrosine kinase inhibitors (TKIs) in non-small cell lung cancer (NSCLC).')
+(0.0, array([  9.99331331e-01,   6.68668936e-04]), 'INTRODUCTION: We conducted a systematic review and meta-analysis to assess epidermal growth factor receptor (EGFR) gene copy number as a potential biomarker of survival for patients with advanced non-small-cell lung cancer (NSCLC) receiving single-agent treatment with EGFR tyrosine kinase inhibitors (TKIs).')
+(0.0, array([  9.99380998e-01,   6.19001772e-04]), 'METHODS: We systemically searched through October 2015.')
+(0.0, array([  9.99417348e-01,   5.82651559e-04]), 'In addition to examining the clinical relevance of p53 gene mutations in B-CLL, we investigated the possible role of p53 gene regulation in the expression of the multidrug resistance genes MDR1 and MDR3.')
+(0.0, array([  9.99532346e-01,   4.67653666e-04]), 'In conclusion, we support the clinical relevance of novel recurrent mutations in CLL, highlighting the adverse impact of SF3B1 and TP53 mutations, even independent of IGHV mutational status, thus underscoring the need for urgent standardization/harmonization of the detection methods.')
+(0.0, array([  9.99592743e-01,   4.07256942e-04]), 'The clinical efficacy of epidermal growth factor receptor (EGFR) kinase inhibitors is limited by the development of drug resistance.')
+(0.0, array([  9.99764978e-01,   2.35021530e-04]), 'BACKGROUND: Tyrosine kinase inhibitors (TKIs) targeting epidermal growth factor receptor (EGFR) represent novel, effective tools in the management of advanced-stage non-small cell lung cancer (NSCLC).')
+
+biased-svm piboso-other prediction 1030 / 2712
+piboso-other top-12
+(1.0, array([  4.20858503e-06,   9.99995791e-01]), 'PATIENT')
+(1.0, array([  4.20858503e-06,   9.99995791e-01]), 'PATIENT')
+(1.0, array([ 0.01050955,  0.98949045]), 'Eight inpatient rehabilitation facilities.')
+(1.0, array([ 0.01316866,  0.98683134]), 'Foreign papers were translated.')
+(1.0, array([ 0.02601489,  0.97398511]), 'PATIENT/OTHER')
+(1.0, array([ 0.03199376,  0.96800624]), 'A 210-bed suburban skilled nursing facility with a low endemic rate of SA infection.')
+(1.0, array([ 0.03560098,  0.96439902]), 'OBJECTIVE')
+(1.0, array([ 0.03560098,  0.96439902]), 'OBJECTIVE')
+(1.0, array([ 0.03560098,  0.96439902]), 'OBJECTIVE')
+(1.0, array([ 0.03560098,  0.96439902]), 'OBJECTIVE')
+(1.0, array([ 0.03560098,  0.96439902]), 'OBJECTIVE')
+(1.0, array([ 0.03560098,  0.96439902]), 'OBJECTIVE')
+piboso-other bot-12
+(0.0, array([ 0.99770194,  0.00229806]), 'We examined the effect of antiparkinson medications on the modulation of muscle activity (i.e., the ability to activate and inhibit each muscle throughout the course of a sequence).')
+(0.0, array([ 0.99786591,  0.00213409]), 'Thus, we conducted a study to clarify the impact of mild hypothermia on the expression of HSPs in polymorphonuclear leukocytes (PMNLs) in severely head-injured patients.')
+(0.0, array([ 0.99815389,  0.00184611]), 'Eligible trials were identified through searches of The Cochrane Hepato-Biliary Group Controlled Trials Register (August 2005), The Cochrane Central Register of Controlled Trials in The Cochrane Library (Issue 3, 2005), MEDLINE (1950 to August 2005), EMBASE (1980 to August 2005), Science Citation Index EXPANDED (1945 to August 2005), and reference lists of relevant articles.')
+(0.0, array([ 0.99833705,  0.00166295]), 'We searched the Cochrane Back Review Group Specialised register, the Cochrane Central Register of Controlled Trials (The Cochrane Library Issue 3, 2005), MEDLINE (1966 to October 2005), EMBASE (1980 to October 2005) and other relevant databases.')
+(0.0, array([ 0.99849833,  0.00150167]), 'Cochrane MS Group trials register (June 2006), the Cochrane Central Register of Controlled Trials (CENTRAL) (Issue 2, 2006), National Health Service National Research Register (NRR) including the Medical Research Council Clinical Trials Directory (Issue 2, 2006), MEDLINE (January 1996 to June 2006), and EMBASE (Jan 1988 to June 2006).')
+(0.0, array([ 0.99852483,  0.00147517]), 'Motor evoked potentials (MEPs) were recorded from the diaphragm, the scalenes, the parasternal intercostals and the expiratory rectus abdominis during inspiration and expiration.')
+(0.0, array([ 0.9987318,  0.0012682]), 'We searched MEDLINE (1966 to February 2004); the Cochrane Central Register of Controlled Trials (CENTRAL), (The Cochrane Library, Issue 2, 2004); CINAHL (1982 to February 2004); PsycINFO (1972 to February 2004); ERIC (1982 to February 2004); Sociological Abstracts (1963 to February 2004); Social Work Abstracts (1977 to February 2004); and AMI (Australasian Medical Index) (1966 to February 2004).')
+(0.0, array([ 0.99877528,  0.00122472]), 'We searched the Cochrane Central Register of Controlled Trials (CENTRAL) (The Cochrane Library Issue 2, 2006); MEDLINE (1966 to August, 2006); CINAHL (1982 to 2006); EMBASE (1988 to 2006) and Web of Science (1900 to 2006) and screened the bibliographies, reference lists and cited web sites of papers.')
+(0.0, array([ 0.99884825,  0.00115175]), 'We searched the reference databases MEDLINE, BIOSIS, EMBASE, SciSearch, and Current Contents to identify all articles related to TMLR published between January 1985 and March 1997.')
+(0.0, array([ 0.99887275,  0.00112725]), 'DATA SYNTHESIS AND CONCLUSION')
+(0.0, array([  9.99210835e-01,   7.89164773e-04]), 'We also studied clinical data during the follow-up with the occurrence of new symptoms and the evolution of the disease by the index of progression (EDSS unit per year).')
+(0.0, array([  9.99293855e-01,   7.06145063e-04]), 'We searched the Cochrane Pregnancy and Childbirth Trials Register (June 2005) and MEDLINE (from 1966 to August 2003).')

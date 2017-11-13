@@ -1,4 +1,4 @@
-from semisuper import transformers, dummy_pipeline, loaders
+from semisuper import transformers, basic_pipeline, loaders
 from semisuper.pu_one_class_svm import one_class_svm
 from semisuper.pu_ranking import ranking_cos_sim
 import random

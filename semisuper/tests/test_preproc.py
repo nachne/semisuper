@@ -1,4 +1,5 @@
 from semisuper import loaders
+import semisuper.transformers as transformers
 from semisuper.transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
 from semisuper.helpers import identity
 
@@ -21,8 +22,8 @@ civic, abstracts = loaders.sentences_civic_abstracts()
 piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
-civic_ = random.sample(civic, 100)
-abstracts_ = random.sample(abstracts, 100)
+civic_ = random.sample(civic, 20)
+abstracts_ = random.sample(abstracts, 20)
 
 # ----------------------------------------------------------------
 # Pipeline
@@ -33,7 +34,7 @@ pp = BasicPreprocessor()
 pppl = Pipeline([
     ('preprocessor', pp),
     ('vectorizer', FeatureUnion(transformer_list=[("words", TfidfVectorizer(
-        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
                                                    ),
                                                   ("stats", FeatureNamePipeline([
                                                       ("stats", TextStats()),
@@ -79,18 +80,26 @@ print("\n----------------------------------------------------------------",
       "\nSome tests.",
       "\n----------------------------------------------------------------\n")
 
-[print(x, pp.transform([x])) for x in ['CLINICALTRIALSGOV: NCT00818441.',
-                                    'clinicaltrials.gov',
-                                    'genetic/mrna',
-                                    'C-->A G-->T',
-                                    'don\'t go wasting your emotions',
-                                    'Eight inpatient rehabilitation facilities.',
-                                    'There were 67 burst fractures, 48 compression fractures and 21 fracture dislocations, 8 flexion distraction fractures and 6 flexion rotation injuries.',
-                                    'MET amplification was seen in 4 of 75 (5%; 95% CI, 1%-13%).',
-                                    ''
-                                    ]]
+print(transformers.sentence_tokenize(
+        "He is going to be there, i.e. Dougie is going to be there.I can not "
+        "wait to see how he's RS.123 doing. Conf. fig. 13 for additional "
+        "information. E.g."
+        "if you want to know the time, you should take b. "
+        "Beispieltext ist schön. first. 10. we are going to cowabunga. let there be rainbows."))
 
-print("Shortest sentences")
+[print(x, pp.transform([x])) for x in ['Janus kinase 2 JAK2 tyrosine kinase',
+                                       'CLINICALTRIALSGOV: NCT00818441.',
+                                       'clinicaltrials.gov',
+                                       'genetic/mrna',
+                                       'C-->A G-->T',
+                                       'don\'t go wasting your emotions',
+                                       'Eight inpatient rehabilitation facilities.',
+                                       'There were 67 burst fractures, 48 compression fractures and 21 fracture dislocations, 8 flexion distraction fractures and 6 flexion rotation injuries.',
+                                       'MET amplification was seen in 4 of 75 (5%; 95% CI, 1%-13%).',
+                                       ''
+                                       ]]
+
+print("\nShortest sentences")
 print("\nCIViC:\n")
 [print(x, "\t", pp.transform([x]))
  for x in sorted(civic, key=len)[:20]]
@@ -101,6 +110,18 @@ print("\nPIBOSO other:\n")
  for x in sorted(piboso_other, key=len)[:20]]
 print("\nPIBOSO outcome:\n")
 [print(x, "\t", pp.transform([x])) for x in sorted(piboso_outcome, key=len)[:20]]
+
+print("\nLongest sentences")
+print("\nCIViC:\n")
+[print(x, "\t", pp.transform([x]))
+ for x in sorted(civic, key=len)[-20:]]
+print("\nAbstracts:\n")
+[print(x, "\t", pp.transform([x])) for x in sorted(abstracts, key=len)[-20:]]
+print("\nPIBOSO other:\n")
+[print(x, "\t", pp.transform([x]))
+ for x in sorted(piboso_other, key=len)[-20:]]
+print("\nPIBOSO outcome:\n")
+[print(x, "\t", pp.transform([x])) for x in sorted(piboso_outcome, key=len)[-20:]]
 
 print("\n----------------------------------------------------------------",
       "\nWord vectors for subsets of CIViC and Abstracts",

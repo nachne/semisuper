@@ -20,7 +20,7 @@ P = civic
 U = abstracts
 
 P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
-U = random.sample(abstracts, 4000) + random.sample(P, 0)
+U = random.sample(abstracts, 8000) + random.sample(P, 0)
 
 
 def file_path(file_relative):
@@ -37,18 +37,17 @@ print("\n\n"
 
 start_time = time.time()
 
-model = pu_two_step.s_EM(P, U, spy_ratio=0.1, tolerance=0.1, noise_lvl=0.2, text=True)
+model = pu_two_step.s_EM(P, U, spy_ratio=0.15, tolerance=0.15, noise_lvl=0.2, text=True)
 
 print("\nS-EM took %s seconds\n" % (time.time() - start_time))
-
 
 def sort_s_em(sentences):
     return sorted(zip(model.predict_proba(sentences),
                       sentences),
-                  key=lambda x: x[0][1],
+                  key=lambda x: x[0],
                   reverse=True)
 def top_bot_12_s_em(predictions, name):
-    print("\nroc-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > 0.5]), "/",
+    print("\nS-EM", name, "prediction", sum([1 for x in predictions if x[0] > 0.5]), "/",
           num_rows(predictions))
     print(name, "top-12")
     [print(x) for x in (predictions[0:12])]
@@ -85,10 +84,10 @@ print("\nEM took %s seconds\n" % (time.time() - start_time))
 def sort_i_em(sentences):
     return sorted(zip(model.predict_proba(sentences),
                       sentences),
-                  key=lambda x: x[0][1],
+                  key=lambda x: x[0],
                   reverse=True)
 def top_bot_12_i_em(predictions, name):
-    print("\nroc-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > 0.5]), "/",
+    print("\nI-EM", name, "prediction", sum([1 for x in predictions if x[0] > 0.5]), "/",
           num_rows(predictions))
     print(name, "top-12")
     [print(x) for x in (predictions[0:12])]

@@ -108,7 +108,11 @@ def get_abstracts(idlist):
 
 def authors2we(sentence):
     """replaces \"(the) authors\" by \"we\" in a text to mitigate 3rd person perspective of summaries"""
-    return re.sub("([Tt]he\s+)*[Aa]uthors", "we", sentence)
+    temp = re.sub("The\s+[Aa]uthors'", "Our", sentence)
+    temp = re.sub("the\s+[Aa]uthors'", "our", temp)
+    temp = re.sub("by\s+the\s[Aa]uthors", "by us", temp)
+    temp = re.sub("The\s+[Aa]uthors", "We", temp)
+    return re.sub("(the\s+)?[Aa]uthors", "we", temp)
 
 
 # ----------------------------------------------------------------

@@ -1,4 +1,4 @@
-from semisuper import transformers, dummy_pipeline, loaders
+from semisuper import transformers, basic_pipeline, loaders
 import random
 import pandas as pd
 
@@ -12,8 +12,11 @@ piboso_outcome = loaders.sentences_piboso_outcome()
 
 print("PIBOSO sentences:", len(piboso_other))
 
-pos = random.sample(civic, 2000) + random.sample(piboso_outcome, 0)
-neg = random.sample(abstracts, 2000) + random.sample(piboso_other, 0)
+pos = civic
+neg = abstracts
+
+# pos = random.sample(civic, 2000) + random.sample(piboso_outcome, 0)
+# neg = random.sample(abstracts, 2000) + random.sample(piboso_other, 0)
 
 X = pos + neg
 y = ["pos"] * len(pos) + ["neg"] * len(neg)
@@ -27,10 +30,10 @@ print("\n\n"
       "----------------------------------\n")
 
 # comment out for quick testing of existing model
-model = dummy_pipeline.build_and_evaluate(X, y)  # , outpath="./dummy_clf.pickle")
+model = basic_pipeline.build_classifier(X, y)  # , outpath="./dummy_clf.pickle")
 
 print("Most informative features per class:")
-print(dummy_pipeline.show_most_informative_features(model))
+print(basic_pipeline.show_most_informative_features(model))
 
 # ----------------------------------------------------------------
 

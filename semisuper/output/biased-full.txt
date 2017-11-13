@@ -1,0 +1,193 @@
+BIASED-SVM TRAINED ON ALL OF CIVIC AND ABSTRACTS
+NO LEMMATISATION
+
+/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/bin/python3.6 /Users/emperor/HU/BA/semisuper/semisuper/tests/test_biased_svm.py
+Loaded summaries and abstracts from disk.
+No. of PubMed IDs:	 2344
+No. of abstracts:	 1236
+CIViC sentences: 5172
+Abstract sentences: 12605
+PIBOSO sentences: 2712
+
+
+---------------
+BIASED-SVM TEST
+---------------
+
+There are 24 parameter combinations to be evaluated.
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+NORMALIZED WEIGHTS
+
+(1.6865791086383257, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 1})
+(0, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 1})
+(0, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 1})
+(0, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 1})
+(0, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 1})
+(0, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 1})
+(1.8500221443978215, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 10})
+(1.0136830102622578, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 10})
+(0, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 10})
+(0, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 10})
+(0, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 10})
+(0, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 10})
+(1.8398053180652034, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 100})
+(1.8364674910446841, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 100})
+(1.6897616532232904, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 100})
+(1.5695527436811445, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 100})
+(1.4454757569206973, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 100})
+(1.305125225953645, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 100})
+(1.8409801618187569, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 1000})
+(1.8519457721617891, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 1000})
+(1.8310700171891379, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 1000})
+(1.8361348381343681, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 1000})
+(1.8331502217975559, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 1000})
+(1.8508582833707403, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 1000})
+
+Best model has parameters {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 1000} and PU-score 1.85194577216
+Building final classifier
+NORMALIZED WEIGHTS
+
+Training Biased-SVM took 2891.7500360012054 seconds
+
+Nonsense Sentences, expecting [0, ?, 1, 1]
+[ 0.  0.  1.  1.]
+[[ 0.95605201  0.04394799]
+ [ 0.99802146  0.00197854]
+ [ 0.03243059  0.96756941]
+ [ 0.54288222  0.45711778]]
+
+biased-svm civic prediction 5172 / 5172
+civic top-12
+(1.0, array([  5.78365368e-08,   9.99999942e-01]), 'A cell line with AKT E17K mutation was found to be sensitive to AKT inhibition with GSK2141795B  in this study.')
+(1.0, array([  3.50138163e-06,   9.99996499e-01]), 'In a study of 908 patients with colorectal cancer, 45 patients had BRAF V600E mutations and 589 patients were BRAF wild type.')
+(1.0, array([  3.98841493e-06,   9.99996012e-01]), 'In MCF10A cell lines, the R896C mutation was shown to be sensitive to neratinib.')
+(1.0, array([  8.02495645e-06,   9.99991975e-01]), 'In a retrospective study of 439 patients with multiple myeloma enrolled in a clinical trial, 28 had mutations in KRAS (22/28 in G12/G13).')
+(1.0, array([  9.63286205e-06,   9.99990367e-01]), 'In an in vitro study, MCF7 cell lines expressing PIK3CA E545K mutation was associated with increased sensitivity to ado-trastuzumab emtansine treatment compared to trastuzumab treated MCF7 cells.')
+(1.0, array([  1.03957028e-05,   9.99989604e-01]), 'In MCF10A cell lines, the G309A mutation was shown to be sensitive to neratinib.')
+(1.0, array([  1.03957028e-05,   9.99989604e-01]), 'In MCF10A cell lines, the D769H mutation was shown to be sensitive to neratinib.')
+(1.0, array([  1.03957028e-05,   9.99989604e-01]), 'In MCF10A cell lines, the D769Y mutation was shown to be sensitive to neratinib.')
+(1.0, array([  1.03957028e-05,   9.99989604e-01]), 'In MCF10A cell lines, the V777L mutation was shown to be sensitive to neratinib.')
+(1.0, array([  1.03957028e-05,   9.99989604e-01]), 'In MCF10A cell lines, the V842I mutation was shown to be sensitive to neratinib.')
+(1.0, array([  1.05507755e-05,   9.99989449e-01]), 'In a retrospective study of 15 acute myeloid leukemia patients, the patients with FLT3 D835 mutation (n=2) were associated with improved response to sunitinib treatment (2/2 vs. 2/7) compared to FLT3 wild type patients.')
+(1.0, array([  1.20858177e-05,   9.99987914e-01]), 'In a retrospective study of 23 patients with BRAF V600 mutation (a known vemurafenib sensitizing mutation) that developed cutaneous squamous-cell carcinoma upon treatment with vemurafenib monotherapy, a patient harboring HRAS G13D co-mutation (n=1) was reported to be resistant to vemurafenib treatment.')
+civic bot-12
+(1.0, array([ 0.09197345,  0.90802655]), 'Cytoplasmic localization of NPM in AML patients was associated with good response to induction therapy.')
+(1.0, array([ 0.09197352,  0.90802648]), 'Improvement in quality of life was also reported.')
+(1.0, array([ 0.09197374,  0.90802626]), 'Cyclin D1 had higher expression levels in sensitive cell lines.')
+(1.0, array([ 0.09197384,  0.90802616]), '(family VHL 57).')
+(1.0, array([ 0.09197389,  0.90802611]), 'This in turn suggests that variant 3a may not rely on Hsp90 for stability in cancer cells to the extent of other variants.')
+(1.0, array([ 0.0919739,  0.9080261]), 'Median PFS for all patients was 105 days, median OS was 267 days.')
+(1.0, array([ 0.09197418,  0.90802582]), 'Patients with colorectal cancer who harbor KRAS mutation have low response rate to cetuximab.')
+(1.0, array([ 0.09197433,  0.90802567]), 'The other NF1 mutations were silent events (patient 15, c.135T>C, patient 45 c.4023G>A, and patient 50 c3018C>T) located within candidate splicing motifs.')
+(1.0, array([ 0.09197488,  0.90802512]), 'Finally, 17-DMAG and crizotinib showed a synergistic effect in killing EML4-ALK variant 2 cells.')
+(1.0, array([ 0.09197519,  0.90802481]), 'The prevalence of the variant in affected individuals is significantly increased compared with the prevalence in controls (PS4).')
+(1.0, array([ 0.09197576,  0.90802424]), 'This retrospective study of patients from the PROFILE 1001 and 1005 studies of crizotinib in advanced ALK-rearranged NSCLC assessed the potential benefit of crizotinib beyond progressive disease (CBPD), defined as continuation of crizotinib for 3 or more weeks after disease progression on crizotinib.')
+(1.0, array([ 0.09197625,  0.90802375]), 'Also, the tumors grew to a larger size at earlier time points.')
+
+biased-svm abstracts prediction 153 / 12605
+abstracts top-12
+(1.0, array([ 0.06184069,  0.93815931]), 'Low MGMT mRNA expression was strongly predictive for prolonged time to progression, treatment response, and length of survival in univariate and multivariate models (p<0.0001); the degree of MGMT mRNA expression was highly correlated with the MGMT promoter methylation status (p<0.0001); however, discordant findings were seen in 12 glioblastoma patients: Patients with methylated tumors with high MGMT mRNA expression (N = 6) did significantly worse than those with low transcriptional activity (p<0.01).')
+(1.0, array([ 0.09178306,  0.90821694]), 'In multivariate Cox proportional analysis the T393C polymorphism was an independent prognostic factor for survival.')
+(1.0, array([ 0.0917908,  0.9082092]), 'All HDACi were able to regulate proliferation and apoptosis in vitro.')
+(1.0, array([ 0.09179298,  0.90820702]), 'The primary end points were progression-free survival (PFS) for the KRAS wild type cohort and objective response rate (ORR) for the KRAS mutant cohort.')
+(1.0, array([ 0.09179868,  0.90820132]), 'Overexpression of HEF1 protein was observed in HCC tissue when compared with their adjacent non-malignant liver tissue.')
+(1.0, array([ 0.09179909,  0.90820091]), 'Eight patients (33%) had tumors with KIT mutations, 11 (46%) with KIT amplifications, and five (21%) with both.')
+(1.0, array([ 0.09181283,  0.90818717]), 'MERTK inhibition via shRNA reduced MERTK-mediated downstream signaling, reduced colony formation by up to 59%, and diminished tumor volume by 60% in a human melanoma murine xenograft model.')
+(1.0, array([ 0.09181477,  0.90818523]), 'Median PFS by Choi was 6 [interquartile (IQ) range 3-8] months.')
+(1.0, array([ 0.09181527,  0.90818473]), 'Functional studies show that MET activation confers resistance to anti-EGFR therapy both in vitro and in vivo.')
+(1.0, array([ 0.09181587,  0.90818413]), 'Multivariate analysis of factors, including smoking history, performance status score, histology, GNAS1 T393C polymorphism demonstrated that GNAS1 T393C polymorphism was correlated independently with PFS (P=0.007).')
+(1.0, array([ 0.09181635,  0.90818365]), 'Of these genes, upregulation of proteasome subunit beta type 8 PSMB8 and PDZ binding kinase PBK was confirmed by real-time reverse transcription-PCR analysis.')
+(1.0, array([ 0.09181916,  0.90818084]), 'The presence of minimal residual disease was the only independent prognostic factor for death in multivariate analysis (hazard ratio, 4.84; 95% CI, 2.57 to 9.15; P<0.001).')
+abstracts bot-12
+(0.0, array([  9.99046872e-01,   9.53127609e-04]), 'RESULTS: FBXW7 mutations were detected in 17 of 418 patients (4.0%).')
+(0.0, array([  9.99060638e-01,   9.39362338e-04]), 'CONCLUSIONS: Our results suggest extracellular missense mutations as a novel mechanism for oncogenic EGFR activation and may help identify patients who can benefit from EGFR kinase inhibitors for treatment of glioblastoma.')
+(0.0, array([  9.99074098e-01,   9.25901839e-04]), 'The primary objective (to determine the maximum tolerated dose) has been reported previously.')
+(0.0, array([  9.99169032e-01,   8.30967728e-04]), 'RESULTS: The median follow-up period was 4.8 years.')
+(0.0, array([  9.99198121e-01,   8.01878873e-04]), 'The clinical efficacy of epidermal growth factor receptor (EGFR) kinase inhibitors is limited by the development of drug resistance.')
+(0.0, array([  9.99227028e-01,   7.72972301e-04]), 'According to our results, the identification of newly acquired KIT mutations in addition to the primary mutation is dependent on the number of tissue samples analyzed and has high implications for further therapeutic strategies.')
+(0.0, array([  9.99349822e-01,   6.50177918e-04]), 'RESULTS: Forty-three patients were eligible for evaluation, and the median follow-up time was 12.0 months.')
+(0.0, array([  9.99385102e-01,   6.14898114e-04]), 'RESULTS: We found TP53 mutations in 8.5% of patients (28 of 328 patients).')
+(0.0, array([  9.99392174e-01,   6.07826073e-04]), 'RESULTS: 813 patients were included in the study.')
+(0.0, array([  9.99507354e-01,   4.92645564e-04]), 'RESULTS: The median age was 66.8 years.')
+(0.0, array([  9.99649043e-01,   3.50956625e-04]), 'PATIENTS AND METHODS: Four-hundred twenty-seven patients with CN-AML were analyzed for TET2 mutations by polymerase chain reaction and direct sequencing and for established prognostic gene mutations.')
+(0.0, array([  9.99656078e-01,   3.43922366e-04]), 'PATIENTS AND METHODS: In part A, patients received escalating doses to determine the maximum-tolerated dose (MTD).')
+
+biased-svm piboso-other prediction 504 / 2712
+piboso-other top-12
+(1.0, array([  4.04484435e-06,   9.99995955e-01]), 'PATIENT')
+(1.0, array([  4.04484435e-06,   9.99995955e-01]), 'PATIENT')
+(1.0, array([  1.25291921e-05,   9.99987471e-01]), 'Eight inpatient rehabilitation facilities.')
+(1.0, array([ 0.01023282,  0.98976718]), 'Meta-analysis of RCTs.')
+(1.0, array([ 0.01348497,  0.98651503]), 'STUDY OBJECTIVE')
+(1.0, array([ 0.01588193,  0.98411807]), 'CASE REPORT')
+(1.0, array([ 0.01848742,  0.98151258]), 'The patient was hospitalized for treatment and observation.')
+(1.0, array([ 0.02595558,  0.97404442]), 'PATIENT/OTHER')
+(1.0, array([ 0.04024414,  0.95975586]), 'The patient was operated with a posterior approach.')
+(1.0, array([ 0.05026869,  0.94973131]), 'CONTEXT')
+(1.0, array([ 0.05026869,  0.94973131]), 'CONTEXT')
+(1.0, array([ 0.06277203,  0.93722797]), 'SAMPLE')
+piboso-other bot-12
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS.')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS.')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+(0.0, array([  9.99998221e-01,   1.77866086e-06]), 'CONCLUSIONS')
+
+biased-svm piboso-outcome prediction 428 / 3563
+piboso-outcome top-12
+(1.0, array([ 0.00998631,  0.99001369]), 'Seven patients demonstrated a moderate incontinence 4 months after radical prostatectomy and 1/7 was still incontinent after 1 year.')
+(1.0, array([ 0.0148299,  0.9851701]), 'We conclude that this large progressive syrinx did not merely dissect neural elements apart but caused extensive neuronal damage.')
+(1.0, array([ 0.01572196,  0.98427804]), 'Fewer patients had hydrocephalus after 60 days of treatment with dexamethasone than after placebo treatment (p=0.217).')
+(1.0, array([ 0.0306405,  0.9693595]), 'Ten patients had acute burst fractures, four had metastatic tumors, and two had old, healed fractures with deformity.')
+(1.0, array([ 0.0354385,  0.9645615]), 'Endplate deformations are not statistically different when compared to intact conditions.')
+(1.0, array([ 0.04481915,  0.95518085]), 'Early painful recurrent vertebral fractures led to iterative vertebroplasties.')
+(1.0, array([ 0.04483087,  0.95516913]), 'Only seven pregnancies were achieved in the study group, leading to pregnancy and implantation rates of 10.7 and 5.7%, respectively.')
+(1.0, array([ 0.04558246,  0.95441754]), 'A higher percentage of older patients had cervical injuries, and this group did not show the typical male predominance seen in young patients (4:1 vs. 1:1).')
+(1.0, array([ 0.04641185,  0.95358815]), 'Mean total cholesterol and triglycerides concentrations were higher in obese persons in comparison to normal weight subjects and HDL cholesterol concentration was lower in obese subjects as compared to normal and overweight individuals.')
+(1.0, array([ 0.05006745,  0.94993255]), 'A meta-analysis of six controlled trials, including 444 patients, showed 11% (95% confidence interval: -0.02 to -0.20) lower amputation rate after 12 months compared to those treated with optimum medical treatment.')
+(1.0, array([ 0.06036348,  0.93963652]), 'Although those visiting clinics had significantly more stressful events, no differences were seen in ways they were dealt with.')
+(1.0, array([ 0.06548655,  0.93451345]), 'All iTPF and aTPF patients were found to be neurologically intact.')
+piboso-outcome bot-12
+(0.0, array([ 0.99875672,  0.00124328]), 'In addition, our results indicate that the described alternative method of gait training may decrease the exertion needed by therapists to carry out the training.')
+(0.0, array([ 0.99893778,  0.00106222]), 'The changes are most prominent in the thigh muscles and less marked when the soleus reflex is conditioned by activation of quadriceps and biceps femoris myotatic reflex arcs.')
+(0.0, array([  9.99067270e-01,   9.32730036e-04]), 'We cannot give any results since we have only identified two ongoing trials and there are no preliminary results or interim analyses available for them.')
+(0.0, array([  9.99114746e-01,   8.85254151e-04]), 'In the surgical intraventricular drainage group the rate of favorable outcome was 71.05% (27 of 38 patients) and the mortality was 13.16% (5 of 38 patients; P&lt;0.05).')
+(0.0, array([  9.99217589e-01,   7.82410801e-04]), 'In researching into the cause of HIV-associated neuropathy further studies are needed to determine the relative roles played by the viral infection and the activation of the immunological factors that contribute to the pathogenesis of the damage done in a')
+(0.0, array([  9.99269563e-01,   7.30436836e-04]), 'The decisions made by the various treating physicians underscore the many areas of disagreement regarding the treatment of BPI, including the diagnostic approach to defining the injury, timing of and indications for surgical intervention in birth-related ')
+(0.0, array([  9.99314353e-01,   6.85646723e-04]), 'In the nonoperative treatment group the rate of favor able outcome (good recovery or mild disability) was 89.74% (35 of 39 patients) and the mortality was 2.56% (1 of 39 patients).')
+(0.0, array([  9.99324822e-01,   6.75177747e-04]), 'CONCLUSIONS Vertebroplasty and kyphoplasty can, under strict adherence to the operative protocol, be an effective approach to the treatment of osteoporotic vertebral body fracture.')
+(0.0, array([  9.99421434e-01,   5.78566064e-04]), 'The rigidity of the cage meets biomechanical imperatives.')
+(0.0, array([  9.99459444e-01,   5.40555908e-04]), 'The primary outcome measure failed to fall by the two points defined in our hypothesis.')
+(0.0, array([  9.99712800e-01,   2.87200230e-04]), 'Our secondary outcome measure was a correlation between the results of our demographic questionnaires, completed by participating radiologists, and the overall interinterpreter reliability concordance.')
+(0.0, array([  9.99830084e-01,   1.69915921e-04]), 'We also examined the effect of perianal sensation on the treatment outcome.')
+
+Process finished with exit code 0

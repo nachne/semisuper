@@ -14,10 +14,10 @@ piboso_outcome = loaders.sentences_piboso_outcome()
 print("PIBOSO sentences:", len(piboso_other))
 
 P = civic
-U = abstracts
+U = abstracts # + piboso_other
 
-P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
-U = random.sample(abstracts, 4000) + random.sample(P, 0)
+# P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
+# U = random.sample(abstracts, 4000) + random.sample(P, 0)
 
 # ------------------
 
@@ -28,9 +28,9 @@ print("\n\n"
 
 start_time = time.time()
 biased_svm = pu_biased_svm.biased_SVM_weight_selection(P, U,
-                                                       # Cs=[10 ** x for x in range(-4, 5, 4)],
-                                                       Cs_neg=arange(0.01, 0.63, 0.32),
-                                                       Cs_pos_factors=range(1, 2200, 200),
+                                                       Cs=[10 ** x for x in range(1, 5, 1)],
+                                                       Cs_neg=[1], # arange(0.01, 0.63, 0.32),
+                                                       Cs_pos_factors=range(1, 1100, 200),
                                                        text=True)
 print("\nTraining Biased-SVM took %s seconds\n" % (time.time() - start_time))
 

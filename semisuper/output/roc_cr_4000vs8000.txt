@@ -1,0 +1,229 @@
+/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/bin/python3.6 /Users/emperor/HU/BA/semisuper/semisuper/tests/test_roc_cr_svm.py
+Loaded summaries and abstracts from disk.
+No. of PubMed IDs:	 2344
+No. of abstracts:	 1236
+CIViC sentences: 5172
+Abstract sentences: 12605
+HoC positive sentences: 4430
+HoC negative sentences: 8909
+PIBOSO sentences: 2712
+
+
+------------
+ROC-SVM TEST
+------------
+
+Determining RN using Rocchio method
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 6879 ( 85.9875 %)
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 7114
+Iteration # 2
+Reliable negative examples: 7170
+Iteration # 3
+Reliable negative examples: 7186
+Iteration # 4
+Reliable negative examples: 7191
+Iteration # 5
+Reliable negative examples: 7193
+Iteration # 6
+Reliable negative examples: 7195
+Iterative SVM converged. Reliable negative examples: 7195
+Ratio of positive examples misclassified as negative by initial SVM: 0.02025
+Ratio of positive examples misclassified as negative by final SVM: 0.01925
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 0 0 0 0 0 0 0 0]
+             precision    recall  f1-score   support
+
+        0.0       0.99      0.89      0.94      8000
+        1.0       0.82      0.98      0.89      4000
+
+avg / total       0.93      0.92      0.92     12000
+
+
+Training ROC-SVM took 1966.4330320358276 seconds
+
+
+roc-svm civic prediction 4878 / 5172
+civic top-12
+(array([  3.98732981e-13,   1.00000000e+00]), 'A cell line with AKT E17K mutation was found to be sensitive to AKT inhibition with GSK2141795B  in this study.')
+(array([  1.28629649e-11,   1.00000000e+00]), 'In a study of 908 patients with colorectal cancer, 45 patients had BRAF V600E mutations and 589 patients were BRAF wild type.')
+(array([  2.53378085e-11,   1.00000000e+00]), 'In MCF10A cell lines, the V777L mutation was shown to be sensitive to neratinib.')
+(array([  2.53378085e-11,   1.00000000e+00]), 'In MCF10A cell lines, the D769Y mutation was shown to be sensitive to neratinib.')
+(array([  2.53378085e-11,   1.00000000e+00]), 'In MCF10A cell lines, the V842I mutation was shown to be sensitive to neratinib.')
+(array([  2.53378085e-11,   1.00000000e+00]), 'In MCF10A cell lines, the G309A mutation was shown to be sensitive to neratinib.')
+(array([  2.53378085e-11,   1.00000000e+00]), 'In MCF10A cell lines, the D769H mutation was shown to be sensitive to neratinib.')
+(array([  2.87187372e-11,   1.00000000e+00]), 'The L1196M mutation in the EML4-ALK fusion was found to confer resistance to crizotinib in Ba/F3 cells.')
+(array([  2.87187372e-11,   1.00000000e+00]), 'The G1202R mutation in the EML4-ALK fusion was found to confer resistance to crizotinib in Ba/F3 cells.')
+(array([  2.87187372e-11,   1.00000000e+00]), 'The S1206Y mutation in the EML4-ALK fusion was found to confer resistance to crizotinib in Ba/F3 cells.')
+(array([  1.18756633e-10,   1.00000000e+00]), 'The crizotinib-resistant MGH045 cell line with EML4-ALK L1196M was treated with crizotinib or ceritinib.')
+(array([  1.40182232e-10,   1.00000000e+00]), 'In an in vitro study, Colo-320, SW48, and CaCO2 cell lines expressing HRAS G13D mutation were associated with resistance to cetuximab treatment, as compared to Colo-320, SW48, and CaCO2 cells expressing wild type HRAS.')
+civic bot-12
+(array([ 0.98006267,  0.01993733]), 'We explored the viability of PAX8 expression as a biomarker for differentiating mullerian from non-mullerian tumors.')
+(array([ 0.98327535,  0.01672465]), 'The fusion has clear diagnostic value, though we caution that it is not perfectly specific to synovial sarcomas, and suggest that demonstration of t(X;18) in a spindle cell neoplasm should be integrated with the morphology, immunoprofile, and clinical setting of the tumour.')
+(array([ 0.98378614,  0.01621386]), 'Moreover, PFS and OS strongly correlated with the ALDH1A2 protein expression level (OS, P < 0.001; PFS, P = 0.001; log-rank/Mantel-Cox test.')
+(array([ 0.98625247,  0.01374753]), 'ROC analysis showed that a cut-off of 1% for any mutated allele offered the best predictive value.')
+(array([ 0.9874528,  0.0125472]), 'Results were less clear for response rate (interaction P\u2009=\u2009.17) and OS (interaction P\u2009=\u2009.11).')
+(array([ 0.98963635,  0.01036365]), '3 of whom still received study treatment at the cutoff date used for the final data analysis.')
+(array([ 0.99065573,  0.00934427]), 'The truncation of the FOS gene would result in the loss of the transactivation domain (TAD) in all three cases.')
+(array([ 0.99145098,  0.00854902]), 'Median overall survival was 8·8 months (95% CI 7·7-10·2) in the rilotumumab group compared with 10·7 months (9·6-12·4) in the placebo group (stratified hazard ratio 1·34, 95% CI 1·10-1·63; p=0·003).')
+(array([ 0.9938474,  0.0061526]), 'We discovered that 2HG overproduction impairs homologous recombination used in DNA repair and sensitizes cancer cells to treatment with PARP inhibitors, another class of cancer drugs that are already in clinical use.')
+(array([ 0.99487916,  0.00512084]), '(PFS: P = 0.0015, OS: P = 0.0384).')
+(array([ 0.99656869,  0.00343131]), 'Relative hazard of mortality for cancers lacking SMAD4 after adjusting for other prognostic factors was 1.36 (95% confidence interval, 1.01-1.83; P = 0.04).')
+(array([ 0.9989006,  0.0010994]), 'We used a transfection based immunoblot assay to assess the impact of TSC1 (and TSC2) variants.')
+
+roc-svm abstracts prediction 1718 / 12605
+abstracts top-12
+(array([  3.02484108e-11,   1.00000000e+00]), 'Three patients with the KIT-V654A mutation were treated with SU11248.')
+(array([  1.25627366e-08,   9.99999987e-01]), 'Following BYL719 treatment, all PIK3CA wild type cell lines, except for the SNU-1066 cell line, exhibited higher IC50 values compared to the PIK3CA mutant cell lines.')
+(array([  3.66787806e-08,   9.99999963e-01]), 'Thyroid cancer cell lines harboring RET/PTC1 (TPC-1), RET M918T (MZ-CRC1) and RET C634W (TT) alterations, as well as TPC-1 xenografts, were treated with JAK inhibitor, AZD1480.')
+(array([  3.11996600e-07,   9.99999688e-01]), 'BGJ398 showed some activity in MKN-45 cells (intermediate FGFR1, high FGFR2IIIb, low FGFR2IIIc expression), while TMK-1 cells (low FGFR1, no FGFR2IIIb and FGFR2IIIc expression) did not respond.')
+(array([  3.52145248e-07,   9.99999648e-01]), 'MATERIALS AND METHODS: Six head and neck cancer cell lines consisting of two PIK3CA mutant cell lines, SNU-1076 and Detroit562, and four PIK3CA wild type cell lines, SNU-1066, SNU-1041, FaDu and SCC25, were analyzed.')
+(array([  3.56625559e-07,   9.99999643e-01]), 'Patients with exon 19 deletion or L858R mutations were identified.')
+(array([  4.48713616e-07,   9.99999551e-01]), 'A patient with stage IV lung adenocrcinoma with an SQSTM1-NTRK1 fusion transcript expression was treated with entrectinib.')
+(array([  7.42864690e-07,   9.99999257e-01]), 'The patient treated with crizotinib showed tumor shrinkage, with a near complete response.')
+(array([  7.84148572e-07,   9.99999216e-01]), 'J.')
+(array([  7.84148572e-07,   9.99999216e-01]), 'Cell.')
+(array([  1.14666273e-06,   9.99998853e-01]), 'One such mutation, MEK1(P124L), was identified in a resistant metastatic focus that emerged in a melanoma patient treated with AZD6244.')
+(array([  1.69758185e-06,   9.99998302e-01]), 'The SLCO1B1 rs4149056 variant was significantly associated with MTX kinetics.')
+abstracts bot-12
+(array([  9.99906664e-01,   9.33364039e-05]), 'PATIENTS AND METHODS: Therefore, we systematically studied 265 first-relapse patients enrolled in the German Acute Lymphoblastic Leukemia Relapse Berlin-Frankfurt-Mu nster 2002 (ALL-REZ BFM 2002) trial for sequence and copy number alterations of the TP53 gene by using direct sequencing and multiplex ligation-dependent probe amplification.')
+(array([  9.99912790e-01,   8.72103198e-05]), 'PURPOSE: The clinical relevance of targeting the RAS/RAF/MEK/ERK pathway, activated in 70% to 80% of patients with acute myelogenous leukemia (AML), is unknown.')
+(array([  9.99929178e-01,   7.08217515e-05]), 'We aimed to evaluate whether mutant forms of epidermal growth factor receptor (EGFR) and Kirsten rat sarcoma viral oncogene homolog (KRAS) (mEGFR and mKRAS) are useful biomarkers in resected non-small cell lung cancer (NSCLC).')
+(array([  9.99937849e-01,   6.21514518e-05]), 'The aim of the present study was to describe the clinical characteristics and to clarify the efficacy of EGFR-tyrosine kinase inhibitors (TKIs) in patients with NSCLC harboring minor mutations of the EGFR gene.')
+(array([  9.99939715e-01,   6.02854639e-05]), 'RESULTS: Here we report the identification of MEN1 loss-of-function mutations in 4% of patients diagnosed with oncocytic thyroid carcinoma.')
+(array([  9.99942596e-01,   5.74036305e-05]), 'We checked mutation status of the U2AF1 by direct sequencing in 478 de novo MDS patients and correlated with the clinical characteristics and outcomes.')
+(array([  9.99943219e-01,   5.67813797e-05]), 'BACKGROUND: To investigate the role of the phosphoinositide 3-kinase (PI3K) pathway activation in human epidermal growth factor receptor 2 (HER2)-targeted therapy.')
+(array([  9.99947486e-01,   5.25136341e-05]), 'The clinical efficacy of epidermal growth factor receptor (EGFR) kinase inhibitors is limited by the development of drug resistance.')
+(array([  9.99959739e-01,   4.02613267e-05]), 'Our results should help to define the best therapeutic strategy for these patients and to orient future clinical trials.')
+(array([  9.99968383e-01,   3.16170406e-05]), 'KRAS activation and PTEN inactivation are frequent events in endometrial tumorigenesis, occurring in 10% to 30% and 26% to 80% of endometrial cancers, respectively.')
+(array([  9.99974624e-01,   2.53761510e-05]), 'In addition to examining the clinical relevance of p53 gene mutations in B-CLL, we investigated the possible role of p53 gene regulation in the expression of the multidrug resistance genes MDR1 and MDR3.')
+(array([  9.99975563e-01,   2.44367973e-05]), 'DESIGN AND METHODS: Our aim was to investigate the role of ATM gene alterations, their biological consequences and their value in predicting disease progression.')
+
+roc-svm HoC-pos prediction 617 / 4430
+HoC-pos top-12
+(array([  4.15659943e-06,   9.99995843e-01]), 'AEA treatment induced necrosis in HepG2 cells but not in L02 cells .')
+(array([  7.15434128e-06,   9.99992846e-01]), 'This radioresistant phenotype persisted in post-crisis , immortalized cell lines .')
+(array([  7.99601785e-06,   9.99992004e-01]), 'CXCL17 expression did not impart NIH3T3 cells with oncogenic potential in vitro , but CXCL17-expressing NIH3T3 cells could form vasculature-rich tumors in immunodeficient mice .')
+(array([  1.66901616e-05,   9.99983310e-01]), 'Experiments in three additional immortal HUF cell lines ( AAI49 , U56 , and E2-143 ) confirmed strong differences in DNA adduct levels compared with primary HUFs .')
+(array([ 0.0026079,  0.9973921]), 'P2Y2 was found to be expressed on Treg cells , and we found a partial reduction of GvHD prevention when P2Y2(-/-) rather than P2Y2(+/+) Treg cells were given .')
+(array([ 0.00478237,  0.99521763]), 'The HPV6 genes , alone or together ( HPV6 E6 plus HPV6 E7 ) , were not able to immortalize cells .')
+(array([ 0.00680023,  0.99319977]), 'When overexpressed in 3T3 mouse fibroblast cells , PRC17 induced growth in low serum , loss of contact inhibition , and tumor formation in nude mice .')
+(array([ 0.00682496,  0.99317504]), 'Mice sensitive to tumor promotion by V2O5 were also found to be more susceptible to V2O5-induced pulmonary inflammation and hyperpermeability ( A/J&gt;BALB&gt;B6 ) .')
+(array([ 0.00689795,  0.99310205]), 'The A163-S1 sub-line piles up in culture , indicating a loss of contact inhibition .')
+(array([ 0.00703902,  0.99296098]), 'Reconstitution of RASSF1A in MCF7 cells led to decreased ERÎ± levels and reduced sensitivity to estrogen ( E2 ) .')
+(array([ 0.00711041,  0.99288959]), 'In function assays , stable DKK4 transfected into J7 or HepG2 cells decreased cell invasion in vitro .')
+(array([ 0.00880086,  0.99119914]), 'Studies with cultured prostate carcinoma cell lines showed that the FGFR4-R388 variant , which has previously been associated with poor cancer prognosis , increased MT1-MMP-dependent collagen invasion .')
+HoC-pos bot-12
+(array([  9.99916986e-01,   8.30140656e-05]), 'We show that the activity of oxidative phosphorylation defines the rate of glucose utilization by aerobic glycolysis .')
+(array([  9.99917657e-01,   8.23434300e-05]), 'Combined blockade of AKT/mTOR pathway might suppress cell proliferation via down-regulation of PCNA expression , and induce apoptosis and cycle arrest in proliferative phase HDEC , suggesting that AKT/mTOR pathway might represent the important therapeutic targets for human HA .')
+(array([  9.99919824e-01,   8.01757146e-05]), 'Our results suggest that p53 and p21 play a central role in the onset of senescence , whereas p16(INK4a) function may be involved in maintaining senescence .')
+(array([  9.99921051e-01,   7.89491630e-05]), 'Here , we report the anti-angiogenic action of betaine .')
+(array([  9.99921324e-01,   7.86764707e-05]), 'METHODOLOGY/PRINCIPAL FINDINGS Here , we demonstrate an interaction between FGFR4 and IKKÎ² ( Inhibitor of NFÎºB Kinase Î² subunit ) , an essential component in the NFÎºB pathway .')
+(array([  9.99926504e-01,   7.34962847e-05]), 'Here , we show that the p400 ATPase is required for DNA repair by homologous recombination ( HR ) .')
+(array([  9.99935473e-01,   6.45273400e-05]), 'In conclusion , our data suggested that overexpression of the ZEB1 gene is possibly associated with the occurrence , development , invasion of LSCC .')
+(array([  9.99937619e-01,   6.23808171e-05]), 'CONCLUSION Collectively , the data indicate that HCV induction of ROS and perturbation of NEIL1 expression may be mechanistically involved in progression of liver disease and suggest that antioxidant and antiviral therapies can reverse these deleterious effects of HCV in part by restoring function of the DNA repair enzyme/s .')
+(array([  9.99946873e-01,   5.31266599e-05]), 'Moreover we observed that the receptors of the IGF network mutually influence their expression and exert redundant functions , thus underscoring the functional molecular network formed by IGF , INS , IGF1R , and INSR .')
+(array([  9.99949510e-01,   5.04898697e-05]), 'Here , we show that RASSF1A inhibits breast cancer growth in vivo , and suppresses estrogen receptor ( ERÎ± ) expression and function .')
+(array([  9.99961105e-01,   3.88948412e-05]), 'Our results point to a new therapeutic strategy for metastatic breast cancers targeted to the mitochondrial retrograde signaling pathway for abrogating EMT and attenuating cancer stem cells , which evade conventional therapies .')
+(array([  9.99969737e-01,   3.02628071e-05]), 'Here we show that the DNA-repair scaffolding proteins Slx4 and Rtt107 prevent the aberrant hyperactivation of DDC signalling by lesions that are generated during DNA replication in Saccharomyces cerevisiae .')
+
+roc-svm HoC-neg prediction 617 / 4430
+HoC-neg top-12
+(array([  4.15659943e-06,   9.99995843e-01]), 'AEA treatment induced necrosis in HepG2 cells but not in L02 cells .')
+(array([  7.15434128e-06,   9.99992846e-01]), 'This radioresistant phenotype persisted in post-crisis , immortalized cell lines .')
+(array([  7.99601785e-06,   9.99992004e-01]), 'CXCL17 expression did not impart NIH3T3 cells with oncogenic potential in vitro , but CXCL17-expressing NIH3T3 cells could form vasculature-rich tumors in immunodeficient mice .')
+(array([  1.66901616e-05,   9.99983310e-01]), 'Experiments in three additional immortal HUF cell lines ( AAI49 , U56 , and E2-143 ) confirmed strong differences in DNA adduct levels compared with primary HUFs .')
+(array([ 0.0026079,  0.9973921]), 'P2Y2 was found to be expressed on Treg cells , and we found a partial reduction of GvHD prevention when P2Y2(-/-) rather than P2Y2(+/+) Treg cells were given .')
+(array([ 0.00478237,  0.99521763]), 'The HPV6 genes , alone or together ( HPV6 E6 plus HPV6 E7 ) , were not able to immortalize cells .')
+(array([ 0.00680023,  0.99319977]), 'When overexpressed in 3T3 mouse fibroblast cells , PRC17 induced growth in low serum , loss of contact inhibition , and tumor formation in nude mice .')
+(array([ 0.00682496,  0.99317504]), 'Mice sensitive to tumor promotion by V2O5 were also found to be more susceptible to V2O5-induced pulmonary inflammation and hyperpermeability ( A/J&gt;BALB&gt;B6 ) .')
+(array([ 0.00689795,  0.99310205]), 'The A163-S1 sub-line piles up in culture , indicating a loss of contact inhibition .')
+(array([ 0.00703902,  0.99296098]), 'Reconstitution of RASSF1A in MCF7 cells led to decreased ERÎ± levels and reduced sensitivity to estrogen ( E2 ) .')
+(array([ 0.00711041,  0.99288959]), 'In function assays , stable DKK4 transfected into J7 or HepG2 cells decreased cell invasion in vitro .')
+(array([ 0.00880086,  0.99119914]), 'Studies with cultured prostate carcinoma cell lines showed that the FGFR4-R388 variant , which has previously been associated with poor cancer prognosis , increased MT1-MMP-dependent collagen invasion .')
+HoC-neg bot-12
+(array([  9.99916986e-01,   8.30140656e-05]), 'We show that the activity of oxidative phosphorylation defines the rate of glucose utilization by aerobic glycolysis .')
+(array([  9.99917657e-01,   8.23434300e-05]), 'Combined blockade of AKT/mTOR pathway might suppress cell proliferation via down-regulation of PCNA expression , and induce apoptosis and cycle arrest in proliferative phase HDEC , suggesting that AKT/mTOR pathway might represent the important therapeutic targets for human HA .')
+(array([  9.99919824e-01,   8.01757146e-05]), 'Our results suggest that p53 and p21 play a central role in the onset of senescence , whereas p16(INK4a) function may be involved in maintaining senescence .')
+(array([  9.99921051e-01,   7.89491630e-05]), 'Here , we report the anti-angiogenic action of betaine .')
+(array([  9.99921324e-01,   7.86764707e-05]), 'METHODOLOGY/PRINCIPAL FINDINGS Here , we demonstrate an interaction between FGFR4 and IKKÎ² ( Inhibitor of NFÎºB Kinase Î² subunit ) , an essential component in the NFÎºB pathway .')
+(array([  9.99926504e-01,   7.34962847e-05]), 'Here , we show that the p400 ATPase is required for DNA repair by homologous recombination ( HR ) .')
+(array([  9.99935473e-01,   6.45273400e-05]), 'In conclusion , our data suggested that overexpression of the ZEB1 gene is possibly associated with the occurrence , development , invasion of LSCC .')
+(array([  9.99937619e-01,   6.23808171e-05]), 'CONCLUSION Collectively , the data indicate that HCV induction of ROS and perturbation of NEIL1 expression may be mechanistically involved in progression of liver disease and suggest that antioxidant and antiviral therapies can reverse these deleterious effects of HCV in part by restoring function of the DNA repair enzyme/s .')
+(array([  9.99946873e-01,   5.31266599e-05]), 'Moreover we observed that the receptors of the IGF network mutually influence their expression and exert redundant functions , thus underscoring the functional molecular network formed by IGF , INS , IGF1R , and INSR .')
+(array([  9.99949510e-01,   5.04898697e-05]), 'Here , we show that RASSF1A inhibits breast cancer growth in vivo , and suppresses estrogen receptor ( ERÎ± ) expression and function .')
+(array([  9.99961105e-01,   3.88948412e-05]), 'Our results point to a new therapeutic strategy for metastatic breast cancers targeted to the mitochondrial retrograde signaling pathway for abrogating EMT and attenuating cancer stem cells , which evade conventional therapies .')
+(array([  9.99969737e-01,   3.02628071e-05]), 'Here we show that the DNA-repair scaffolding proteins Slx4 and Rtt107 prevent the aberrant hyperactivation of DDC signalling by lesions that are generated during DNA replication in Saccharomyces cerevisiae .')
+
+roc-svm piboso-other prediction 696 / 2712
+piboso-other top-12
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENT')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS.')
+(array([  2.07046932e-10,   1.00000000e+00]), 'PATIENTS')
+piboso-other bot-12
+(array([  9.99769977e-01,   2.30022680e-04]), 'We sought to evaluate the strengths and limits of evidence about the effectiveness of screening and interventions for speech and language delay in preschool-aged children to determine the balance of benefits and adverse effects of routine screening in primary care for the development of guidelines by the US Preventive Services Task Force.')
+(array([  9.99788927e-01,   2.11072624e-04]), 'We searched the Cochrane Central Register of Controlled Trials (CENTRAL) (The Cochrane Library Issue 2, 2006); MEDLINE (1966 to August, 2006); CINAHL (1982 to 2006); EMBASE (1988 to 2006) and Web of Science (1900 to 2006) and screened the bibliographies, reference lists and cited web sites of papers.')
+(array([  9.99802719e-01,   1.97280961e-04]), 'Cochrane MS Group trials register (June 2006), the Cochrane Central Register of Controlled Trials (CENTRAL) (Issue 2, 2006), National Health Service National Research Register (NRR) including the Medical Research Council Clinical Trials Directory (Issue 2, 2006), MEDLINE (January 1996 to June 2006), and EMBASE (Jan 1988 to June 2006).')
+(array([  9.99808324e-01,   1.91675820e-04]), 'We used the 95th percentile of the gender-specific distribution of QTrr and JTrr to define abnormally prolonged repolarization.')
+(array([  9.99868499e-01,   1.31500932e-04]), 'We searched MEDLINE up to June 1997, the Research and Development Resource Base in Continuing Medical Education, and reference lists of related systematic reviews and articles.')
+(array([  9.99872548e-01,   1.27452344e-04]), 'We also studied clinical data during the follow-up with the occurrence of new symptoms and the evolution of the disease by the index of progression (EDSS unit per year).')
+(array([  9.99884287e-01,   1.15713487e-04]), 'We searched the Cochrane Pregnancy and Childbirth Trials Register (June 2005) and MEDLINE (from 1966 to August 2003).')
+(array([  9.99885654e-01,   1.14345785e-04]), 'Our aim was to learn whether EPA and DHA could limit development of obesity and reduce cellularity of adipose tissue and whether other dietary FA could influence the effect of EPA/DHA.')
+(array([  9.99922087e-01,   7.79131018e-05]), 'Motor evoked potentials (MEPs) were recorded from the diaphragm, the scalenes, the parasternal intercostals and the expiratory rectus abdominis during inspiration and expiration.')
+(array([  9.99933045e-01,   6.69554543e-05]), 'We examined the effect of antiparkinson medications on the modulation of muscle activity (i.e., the ability to activate and inhibit each muscle throughout the course of a sequence).')
+(array([  9.99995906e-01,   4.09380852e-06]), 'PATIENTS AND METHODS')
+(array([  9.99995906e-01,   4.09380852e-06]), 'PATIENTS AND METHODS')
+
+roc-svm piboso-outcome prediction 536 / 3563
+piboso-outcome top-12
+(array([  4.38227458e-06,   9.99995618e-01]), 'Fewer patients had hydrocephalus after 60 days of treatment with dexamethasone than after placebo treatment (p=0.217).')
+(array([  1.09861681e-05,   9.99989014e-01]), 'Of the 648 patients with SCI, 12 patients with a prostate cancer diagnosis that preceded their injury were excluded.')
+(array([ 0.00423145,  0.99576855]), 'A decrease of RC (ANOVA P=0.05) was also observed after 30 days intake of paroxetine in comparison with placebo and was associated with changes of fMRI activation intensity (left S1M1 hypoactivation, ), without changes of S1M1 activation volume.')
+(array([ 0.00490208,  0.99509792]), 'No difference was seen between alendronate and clodronate.')
+(array([ 0.0052966,  0.9947034]), 'However, no differences in plasma levels of 6-keto-PgF1alpha or TxB2 were found.')
+(array([ 0.00611018,  0.99388982]), 'Endplate deformations are not statistically different when compared to intact conditions.')
+(array([ 0.00674571,  0.99325429]), 'This treatment was discontinued after 4 weeks.')
+(array([ 0.00753294,  0.99246706]), 'Only seven pregnancies were achieved in the study group, leading to pregnancy and implantation rates of 10.7 and 5.7%, respectively.')
+(array([ 0.00760461,  0.99239539]), 'We conclude that this large progressive syrinx did not merely dissect neural elements apart but caused extensive neuronal damage.')
+(array([ 0.00789922,  0.99210078]), 'None of the patients with onset after 60 years old had relapsing remittent MS.')
+(array([ 0.0086941,  0.9913059]), 'After analgesia and 1 month of home relative bed rest, the patient recovered her functional capacities.')
+(array([ 0.00916463,  0.99083537]), 'All iTPF and aTPF patients were found to be neurologically intact.')
+piboso-outcome bot-12
+(array([  9.99663486e-01,   3.36514411e-04]), 'The purpose of combining the perineal and laparoscopic approaches is to minimize the skin incision, while retaining a rate of cure and safety equivalent to those of conventional rectal amputation, by using the advantages of laparoscopic procedures, and to')
+(array([  9.99680995e-01,   3.19004721e-04]), 'Our results suggested that up-regulation of the mRNA for CCK in primary afferents after nerve injury may be related to the clinical phenomenon of opioid insensitivity.')
+(array([  9.99704721e-01,   2.95279316e-04]), 'The decisions made by the various treating physicians underscore the many areas of disagreement regarding the treatment of BPI, including the diagnostic approach to defining the injury, timing of and indications for surgical intervention in birth-related ')
+(array([  9.99752018e-01,   2.47982092e-04]), 'We describe the imaging features allowing precise diagnosis and discuss the management of a rare entity: bilateral occipital condyle fractures and epidural hematoma of the clivus.')
+(array([  9.99771237e-01,   2.28763499e-04]), 'These data indicate that thermal hyperalgesia, static and dynamic allodynia are respectively signalled by C-, Adelta- and Abeta/capsaicin insensitive Adelta- primary sensory neurones.')
+(array([  9.99782439e-01,   2.17561350e-04]), 'The findings of the review suggest that currently there is limited quality data on the effectiveness of obesity prevention programs and as such no generalisable conclusions can be drawn.')
+(array([  9.99824499e-01,   1.75500893e-04]), 'Our results document augmentation of the antiadipogenic effect of EPA/DHA during development of obesity and suggest that EPA/DHA could reduce accumulation of body fat by limiting both hypertrophy and hyperplasia of fat cells.')
+(array([  9.99839462e-01,   1.60537781e-04]), 'Our secondary outcome measure was a correlation between the results of our demographic questionnaires, completed by participating radiologists, and the overall interinterpreter reliability concordance.')
+(array([  9.99861185e-01,   1.38815414e-04]), 'The primary outcome measure failed to fall by the two points defined in our hypothesis.')
+(array([  9.99874682e-01,   1.25318320e-04]), 'We also examined the effect of perianal sensation on the treatment outcome.')
+(array([  9.99878240e-01,   1.21760216e-04]), 'In researching into the cause of HIV-associated neuropathy further studies are needed to determine the relative roles played by the viral infection and the activation of the immunological factors that contribute to the pathogenesis of the damage done in a')
+(array([  9.99908539e-01,   9.14611909e-05]), 'In addition, our results indicate that the described alternative method of gait training may decrease the exertion needed by therapists to carry out the training.')
+
+
+-----------
+CR-SVM TEST
+-----------
+
+Determining RN using Cosine Similarity threshold and Rocchio
+
+Computing ranking (cosine similarity to mean positive example)

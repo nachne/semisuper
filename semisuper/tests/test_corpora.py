@@ -1,5 +1,5 @@
 import semisuper.tests.load_test_corpora as test_corpus
-from semisuper import pu_two_step, pu_biased_svm, pu_ranking, pu_one_class_svm, dummy_pipeline
+from semisuper import pu_two_step, pu_biased_svm, pu_ranking, pu_one_class_svm, basic_pipeline
 from numpy import concatenate, arange
 from sklearn.metrics import classification_report as clsr
 
@@ -44,7 +44,7 @@ def train_test_all_clfs(data_tuple):
     print("\n\n---------------------------")
     print("Training dummy classifier")
     print("---------------------------\n")
-    dummy = dummy_pipeline.build_and_evaluate(X, y)
+    dummy = basic_pipeline.build_classifier(X, y)
 
     print("\n\n---------------------------")
     print("Training one-class SVM")

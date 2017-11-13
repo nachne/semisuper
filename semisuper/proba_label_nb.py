@@ -18,12 +18,12 @@ def build_proba_MNB(X, y, verbose=True, text=True):
     """build multinomial Naive Bayes classifier that accepts probabilistic labels
 
     if text is true, preprocess Text with binary encoding"""
-    clf = ProbaLabelMNB(alpha=1)
+    clf = ProbaLabelMNB(alpha=0.1)
 
     if text:
         model = Pipeline([
             ('preprocessor', BasicPreprocessor()),
-            ('vectorizer', CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 3))),
+            ('vectorizer', CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 2))),
             ('classifier', clf)
         ])
     else:

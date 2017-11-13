@@ -59,7 +59,7 @@ class HypernymMapper(DictReplacer):
             common_words = set(cw.read().split("\n") + stopwords.words('english'))
 
         # only single words and no URLs etc
-        illegal_substrs = re.compile("\s|\\\\|\.gov|\.org|\.com|http|www|")
+        illegal_substrs = re.compile("\s|\\\\|\.gov|\.org|\.com|http|www|^n=")
 
         for line in source["Mentions"]:
             for word in str(line).split("|"):

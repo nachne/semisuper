@@ -1,0 +1,149 @@
+/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/bin/python3.6 /Users/emperor/HU/BA/semisuper/test_2step.py
+Loaded summaries and abstracts from disk.
+No. of PubMed IDs:	 2251
+No. of abstracts:	 1228
+CIViC sentences: 4970
+Abstract sentences: 12496
+PIBOSO sentences: 2712
+
+
+------------------------------
+STANDALONE COSINE-ROCCHIO TEST
+------------------------------
+
+Computing ranking (cosine similarity to mean positive example)
+Choosing Potential Negative examples with ranking threshold
+Threshold given noise level: 0.11018906961
+Unlabelled docs below threshold: 5322 of 12496 
+
+Building Rocchio model (cos noise level 0.4)
+
+
+[ 1.  1.  1. ...,  1.  0.  1.]
+[ 0.  0.  0. ...,  1.  0.  1.]
+Classification Report:
+
+[ 1.  1.  1.  1.  0.  1.  1.  1.  0.  0.] [ 1.  0.  0.  1.  1.  1.  1.  1.  0.  1.]
+             precision    recall  f1-score   support
+
+        0.0       0.90      0.63      0.75     12496
+        1.0       0.47      0.83      0.60      4970
+
+avg / total       0.78      0.69      0.70     17466
+
+
+Training Standalone Cosine-Rocchio took 150.49525094032288 seconds
+
+
+cos-rocchio civic prediction 4115 / 4970
+civic top-12
+(0.62355917062012578, 'This missense mutation was found in six VHL type 2 families (lineages 100, 42, 44, 88, 105, 135).')
+(0.62216746046031879, 'This missense mutation was found in five VHL type 2 families of 18 individuals altogether (family IDs 4421, 3718, 3767, 3493, 3731).')
+(0.6197340859537831, 'This missense mutation was found in four VHL type 2 families of 51 individuals altogether (family IDs 2338, 3490, 4477, 4405).')
+(0.61950274211128276, 'This missense mutation was found in two VHL type 1 families and six VHL type 2 families (lineages 202, 47, 102, 106, 153, 109).')
+(0.61861511106414802, 'In a retrospective study of 148 treatment naive metastatic colorectal cancer patients, patients with BRAF V600E (n=14) mutation treated with FOLFOX4 plus cetuximab were associated with a decreased progression free survival (7.2mo vs. 9.7mo, HR:0.39, 95% CI:0.21-0.72, P=0.0017), and decreased overall survival (11.7mo vs. 28.5mo, HR:0.23, 95% CI:0.12-0.41, P<0.0001), as compared to patients with wildtype BRAF.')
+(0.61847890806801287, 'This missense mutation was found in a VHL type 2 family (lineage 73).')
+(0.61847890806801287, 'This missense mutation was found in a VHL type 1 family (lineage 69).')
+(0.61847890806801287, 'This missense mutation was found in a VHL type 1 family (lineage 86).')
+(0.61847890806801287, 'This missense mutation was found in a VHL type 1 family (lineage 53).')
+(0.61847890806801287, 'This missense mutation was found in a VHL type 1 family (lineage 103).')
+(0.61847890806801287, 'This missense mutation was found in a VHL type 2 family (lineage 3).')
+(0.61847890806801287, 'This missense mutation was found in a VHL type 1 family (lineage 7).')
+civic bot-12
+(0.46968817693411286, 'LOXO-101 is an orally administered inhibitor of the TRK kinase and is highly selective only for the TRK family of receptors.')
+(0.46860479386008952, 'we conclude that in the set of activating HER2 mutations, benefits of an individual agent may be specific to certain mutations, and that "HER2-positive lung cancers" is not an adequate term to describe this group of distinguishable illnesses.')
+(0.4685183839594399, 'In conclusion, CTNNB1 mutations are highly common in desmoid tumors.')
+(0.46846247236706762, 'Epidermal growth factor receptor (EGFR) expression and activation were evaluated by immunohistochemistry and/or phospho-arrays, real-time polimerase chain reaction, fluorescence immunostaining.')
+(0.46791137285665674, 'we note that the break apart FISH assay used to determine ALK-rearrangement status does not determine the identity of the ALK fusion partner and the promising results shown here may be dependent on the nature of the ALK fusion partner.')
+(0.4672500421173344, 'we conclude that DUX4 fusions may be a target driver resulting in AYA-ALL, and that AYA-ALL may be a distinct clinical entity.')
+(0.46724402043401775, 'A tumor with a functional nerve growth factor receptor may be dependent on the neurotrophin nerve growth factor for survival and may regress in its absence.')
+(0.46694447653134474, 'we conclude that MAPK targeting in CRC is a valid approach that can produce meaningful responses but additional work is required to more effectively inhibit the pathway.')
+(0.46595321720319544, 'we cite findings that HER2 activity in cancer may be highly dependent on its Akt/mTOR signaling arm as a possible explanation for this effect, and conclude that their results give rationale for testing of afatinib/rapamycin treatment in lung cancer.')
+(0.4651275763303826, 'we conclude that the effect of these alleles on prognosis in lung cancer is inconclusive at best.')
+(0.46352372660558067, 'These results suggest that KRAS mutation status may be a potential biomarker for survival benefits to ICIs.')
+(0.46262578798777942, 'The primary end point was objective response rate.')
+
+cos-rocchio abstracts prediction 4567 / 12496
+abstracts top-12
+(0.6229087465514126, 'Tumor recurrence rates were 25.8% (50 of 194;77.60 recurrences per 1,000 person-years; 95% CI, 58.81 to 102.38) versus 9.6% (30 of 313; 22.88 recurrences per 1,000 person-years; 95% CI, 16.00 to 32.72) in BRAF mutation-positive versus -negative patients (hazard ratio [HR], 3.22; 95% CI, 2.05 to 5.07) and 47.5% (29 of 61; 108.55 recurrences per 1,000 person-years; 95% CI, 75.43 to 156.20) versus 11.4% (51 of 446; 30.21 recurrences per 1,000 person-years; 95% CI, 22.96 to 39.74) in TERT mutation-positive versus -negative patients (HR, 3.46; 95% CI, 2.19 to 5.45).')
+(0.61942392695232595, 'With a median follow up of 67 months, the three-year probabilities of overall survival (OS) and event-free survival for patients with TP53 wild type were 33% [95% confidence interval (CI), 21% to 45%] and 24% (95% CI, 13% to 35%) compared to 10% (95% CI, 0% to 19%) and 8% (95% CI, 0% to 16%) (P = 0.002 and P = 0.007) for those with mutated TP53, respectively.')
+(0.61935906137166163, 'With first-line sunitinib, KDM5C mutations were associated with longer PFS1L (median [95% CI] of 20.6 [12.4, 27.3] vs 8.3 [7.8, 11.0] mo).')
+(0.61925067708316628, 'Patients with WT1 mutations had an inferior response to induction chemotherapy compared with wild type cases (complete remission rate, 79% v 90%, odds ratio [OR] = 3.02; 95% CI, 1.17 to 7.82; P = .02), a higher rate of resistant disease (15% v 4%; OR = 9.33; 95% CI, 2.38 to 36.6; P = .001), an increased cumulative incidence of relapse (67% v 43%, hazard ratio [HR] = 3.02; 95% CI, 1.69 to 5.38; P = .0008), with a reduction in both relapse-free survival (22% v 44%; HR = 2.16; 95% CI, 1.32 to 3.55; P = .005) and overall survival (26% v 47%; HR = 1.91; 95% CI, 1.23 to 2.95; P = .007) at 5 years.')
+(0.61884685806926532, 'Recurrence rates were 68.6% (24 of 35; 211.76 recurrences per 1,000 person-years; 95% CI, 141.94 to 315.94) versus 8.7% (25 of 287; 21.60 recurrences per 1,000 person-years; 95% CI, 14.59 to 31.97) in patients harboring both mutations versus patients harboring neither mutation (HR, 8.51; 95% CI, 4.84 to 14.97), which remained significant after clinicopathologic cofactor adjustments.')
+(0.61836992956120884, 'The C250T mutation was uncommon, but mutually exclusive with the C228T mutation, and the two mutations were collectively found in 11 of 79 (13.9%) FTC, 25 of 54 (46.3%) ATC, and 11 of 12 (91.7%) thyroid cancer cell lines.')
+(0.61834859964780353, 'For the 57 (9%) patients with BRAF(V600K) disease, median overall survival in the vemurafenib group was 14.5 months (95% CI 11.2-not estimable) compared with 7.6 months (6.1-16.6) in the dacarbazine group (HR 0.43 [95% CI 0.21-0.90]; p=0.024); median progression-free survival was 5.9 months (95% CI 4.4-9.0) and 1.7 months (1.4-2.9), respectively (HR 0.30 [95% CI 0.16-0.56]; p<0.0001).')
+(0.61571748857375397, 'Patients with the D842V mutation had poorer OS than those with non-D842V PDGFRA mutations: median 25.2 months (95% CI, 12.7 to 37.8) versus 59.8 months (95% CI, 43.0 to 76.5) (p=0.02).')
+(0.61516287836949546, 'Three of 26 patients with tumors harboring HER2 exon 20 mutations [12%; 95% confidence interval (CI) 2% to 30%] had partial responses lasting 3+, 11, and 14 months.')
+(0.61454666395525137, 'With first-line everolimus, PBRM1 and BAP1 mutations were associated with longer (median [95% confidence interval {CI}] 12.8 [8.1, 18.4] vs 5.5 [3.1, 8.4] mo) and shorter (median [95% CI] 4.9 [2.9, 8.1] vs 10.5 [7.3, 12.9] mo) PFS1L, respectively.')
+(0.61259273246128476, 'Among PTC variants, the C228T mutation was found in 4 of 13 (30.8%) tall-cell PTC (TCPTC), 23 of 187 (12.3%) conventional PTC, and 2 of 56 (3.6%) follicular variant PTC samples.')
+(0.61162050832986359, 'Seventy-nine (82.1%) patients had the JAK2(V617F) mutation, 9 (9.5%) had CALR mutations (7 type 1, 2 type 2), 3 (3.1%) had MPL mutations, and 4 (4.2%) were negative for all 3.')
+abstracts bot-12
+(0.44144042785951287, 'Although therapeutic exploitation of the role of cyclin D1 as a molecular driver of breast cancer carries great promise, it is also suggested that direct targeting of the cyclin D1 gene or gene products may prove more successful than approaches that rely on arguably incomplete knowledge of the oncogenic mechanisms of cyclin D1.')
+(0.43883466670541788, 'Collectively, our data show that STK11 is a key factor involved in the early phases of prostate carcinogenesis, and suggest that it might be used as a predictive marker of therapeutic response to MAPK/p38 inhibitors in PCa patients.')
+(0.43860546606590228, 'In conclusion, we support the clinical relevance of novel recurrent mutations in CLL, highlighting the adverse impact of SF3B1 and TP53 mutations, even independent of IGHV mutational status, thus underscoring the need for urgent standardization/harmonization of the detection methods.')
+(0.43814571731744989, 'AIMS: The epidermal growth factor receptor (EGFR) is a tyrosine kinase (TK) involved in the tumour progression of many cancer types and may serve as an important therapeutic target (erlotinib, cetuximab).')
+(0.43800691813324194, 'Lung cancers caused by activating mutations in the epidermal growth factor receptor (EGFR) are initially responsive to small molecule tyrosine kinase inhibitors (TKIs), but the efficacy of these agents is often limited because of the emergence of drug resistance conferred by a second mutation, T790M.')
+(0.43720161962740289, 'In non-small-cell lung cancer (NSCLC), the presence of mutations in the epidermal growth factor receptor (EGFR) tyrosine kinase correlates with clinical response to small-molecule tyrosine kinase inhibitors.')
+(0.4371033291154991, 'By studying the residual tumor cells that remain after chemotherapy in several in vivo non-small cell lung cancer models, we found that these cells have increased levels of human epidermal growth factor receptor (HER) signaling due, in part, to the enrichment of a preexisting NRG1(HI) subpopulation.')
+(0.43670063946772242, 'PURPOSE: Although activating mutations in the epidermal growth factor receptor (EGFR) gene are predictive markers for response to EGFR inhibitors, 30-40% of EGFR-mutant non-small cell lung cancer (NSCLC) patients are de novo non-responders.')
+(0.43473227430497496, 'The role of KRAS mutations in molecular targeted therapy by epidermal growth factor receptor tyrosine kinase inhibitors (EGFR-TKIs) in non-small cell lung cancer (NSCLC) has not been fully understood.')
+(0.43334287164577556, 'Osimertinib (Tagrisso(), AZD9291) is an oral, third-generation epidermal growth factor receptor tyrosine kinase inhibitor (EGFR TKI) that is being developed by AstraZeneca for the treatment of advanced non-small cell lung cancer (NSCLC).')
+(0.42992937036062367, 'BACKGROUND: The insulin-like growth factor-1 receptor (IGF-1R) pathway is known to play a role in the acquisition of resistance to epidermal growth factor receptor (EGFR)-specific tyrosine kinase inhibitors (TKIs) in non-small cell lung cancer (NSCLC).')
+(0.42753576651561986, 'The clinical efficacy of epidermal growth factor receptor (EGFR) kinase inhibitors is limited by the development of drug resistance.')
+
+cos-rocchio piboso-other prediction 385 / 2712
+piboso other top-12
+(0.69021491308267913, 'Eight inpatient rehabilitation facilities.')
+(0.60752338972627595, 'Two of eight shoulders were revisions.')
+(0.59929269426915155, 'Of 1608 patients, 1257 (78%) were injured in automobile accidents, 123 (7.6%) in motorcycle accidents, and 228 (14.2%) in ATV accidents.')
+(0.59659711044882235, 'There were 67 burst fractures, 48 compression fractures and 21 fracture dislocations, 8 flexion distraction fractures and 6 flexion rotation injuries.')
+(0.59507031223066664, 'Of 740 consecutive patients with sCAD, 11 (1.5%) had three, and one had four (0.1%) sCAD.')
+(0.58928790408709453, 'Situated between levels C3 and C6, the cage was inserted after one corporectomy in ten patients, two corporectomies in five patients, and three corporectomies in two patients.')
+(0.58525101746646591, 'Distribution by country of corresponding author Jordan (9 RCTs, 2 CCTs), Bahrain (3 RCTs), Egypt (one RCT), Kuwait (one RCT), and Saudi Arabia (one RCT); and by specialty Anesthesia (7), General Surgery (3), Obstetrics/Gynecology (1), Radiotherapy (1), Pediatrics (1), Orthopaedic Surgery (1), Education (1) Ear Nose and Throat (1) Ophthalmology (1).')
+(0.58130545721149507, 'Distribution by country of corresponding author Jordan (4 RCTs, one CCT), Bahrain (one RCT, one CCT), India (3 RCTs, one CCT), Kuwait (one CCT), Saudi Arabia (2 RCTs), USA/Bahrain (one RCT), and Oman (one RCT); and by specialty Anesthesia (8), Surgery (1) Pediatrics (1), Radiotherapy (1), Community Medicine (1), Sports Medicine (1), Obstetrics/Gynecology (3).')
+(0.57862174194388261, 'One hundred and eight women (30.1%) were osteoporotic and 46.7% had vertebral fractures.')
+(0.57564223019484306, 'Of the patients 63% (34) were male and 37% (23) were female, with 74% (46) African-American and 26% (16) Caucasian.')
+(0.57356649805930393, 'Groups 1 and 2 consisted of 10 individuals with laryngectomy less than one year and 10 individuals greater than one year, respectively.')
+(0.57335523085995832, 'Eighty-four patients with one or more TPF were identified-47 with iTPF and 37 with aTPF.')
+piboso other bot-12
+(0.45347011081077887, 'Motor evoked potentials (MEPs) were recorded from the diaphragm, the scalenes, the parasternal intercostals and the expiratory rectus abdominis during inspiration and expiration.')
+(0.45339469836510177, 'In order to numerically evaluate the degree of destruction of the mandibular rami, we quoted a method from the literature (Redlund-Johnell I, Scand J Rheumatol 16355, 1987) and measured the vertical distance (= ramal height) from the mandibular angle to the palato-occipital line on the lateral view film of the cervical spine in each patient.')
+(0.45230101796112659, 'All issues of the Bahrain Medical Bulletin (BMB) (1979-2004) and the Journal of the Bahrain Medical Society (JBMS) (1989-2004) were handsearched in February 2005 for reports of RCTs or Controlled Clinical Trials (CCTs), according to Cochrane eligibility criteria.')
+(0.45213853604336673, 'We also studied clinical data during the follow-up with the occurrence of new symptoms and the evolution of the disease by the index of progression (EDSS unit per year).')
+(0.45156452894818278, 'We handsearched proceedings of annual meetings of the American Society for Reproductive Medicine (ASRM) and the European Society for Human Reproduction and Embryology (ESHRE).')
+(0.45089565654390146, 'No suture of the fascia.')
+(0.45042457755101861, 'Chronic pain over the lateral side (lower quarter) of the leg and the dorsum of the ankle exaggerated by activities of daily living and sports; sometimes sensory abnormality or decreased sensibility in the distribution of the nerve over the dorsum of the foot.')
+(0.45028962933869821, 'London Borough of Islington.')
+(0.44978688323922, 'We examined the effect of antiparkinson medications on the modulation of muscle activity (i.e., the ability to activate and inhibit each muscle throughout the course of a sequence).')
+(0.44778209817786407, 'RESULTS AND CONCLUSIONS')
+(0.44545848229775814, 'The secondary outcomes were each of those included in the primary endpoint, as well as admission to the neonatal ICU, small for gestational age (SGA) birthweight and preterm birth.')
+(0.44021456995696806, 'We sought to evaluate the strengths and limits of evidence about the effectiveness of screening and interventions for speech and language delay in preschool-aged children to determine the balance of benefits and adverse effects of routine screening in primary care for the development of guidelines by the US Preventive Services Task Force.')
+
+cos-rocchio piboso-outcome prediction 1285 / 3563
+piboso outcome top-12
+(0.62043001216513938, 'Five of seven patients (71%; 95% CI 29-96%) with objective sensory deficits and one of seven (14%; 95% CI 0-58%) catheter-dependent patients recovered.')
+(0.6184884631273655, 'Twenty-five patients had associated abdominal injuries (16 of 46 iTPF, 9 of 37 aTPF, p = 0.3335).')
+(0.60984857094828526, 'Cerebral ptiO2 remained unaffected (21 +/- 5 mm Hg [2.8 +/- 0.7 kPa] to 23 +/- 6 mm Hg [3.1 +/- 0.8 kPa], n.s).')
+(0.60586182548620204, 'In patients with COPD, mean forced expiratory volume in one second (FEV(1)) was 62% +/- 13% predicted, reversibility was 4% +/- 4% with bronchodilators, and FEV(1)/FVC was 62% +/- 8%.')
+(0.60476877265143281, 'Mean (SD) general conceptual ability (GCA) scores were: Portage 99.2 (15.7); parent adviser 100.3 (14.8); preterm control 101.1 (15.0); term reference 107.2 (13.4).')
+(0.6041287566867104, 'Corresponding values for JTrr were 1.0, 0.73 (95% CI 0.52 to 1.03), and 0.59 (95% CI 0.40 to 0.87), respectively (p for trend 0.009).')
+(0.59990149677140403, 'RESULTS Radiographic cement leakage was found in eight patients (21.6%), with clinical manifestation in two (5.4%).')
+(0.5981698152642394, 'The outcome was defined by the Glasgow Outcome Scale: 28% rated 5, 24% rated 4, 5% rated 3, 28% rated 2 and 14% rated 1.')
+(0.59618954350387088, 'Co-administration of morphine with potent Mn porphyrin-based peroxynitrite scavengers, Mn(III) 5,10,15,20-tetrakis(N-ethylpyridinium-2-yl)porphyrin (MnTE-2-PyP(5+)) and Mn(III) 5,10,15,20-tetrakis(N-n-hexylpyridinium-2-yl)porphyrin (MnTnHex-2-PyP(5+)) (1)')
+(0.59615217256821806, 'The comparison of overall in-hospital mortality (odds ratio, 0.49; 95% CI, 0.17 to 1.40; P = 0.18), morbidity (odds ratio 0.89; 95% CI, 0.48 to 1.62; P = 0.69), and survival (hazard ratio, 0.74; 95% CI, 0.52 to 1.07; P = 0.11) showed no significant differ')
+(0.59549930084173974, 'In patients with asthma, mean FEV(1) was 80% +/- 17% predicted, reversibility was 13% +/- 7%, and FEV(1)/FVC was 74% +/- 11%.')
+(0.59204407254789881, 'This effect was maximal 40 minutes after start of infusion (25 +/- 6 mm Hg [3.3 +/- 0.8 kPa] to 17 +/- 3 mm Hg [2.3 +/- 0.4 kPa], p &lt; 0.05) and lasted up to 100 minutes.')
+piboso outcome bot-12
+(0.44517493043995593, 'Our studies suggest that AOAb may be a cause of infertility and presence of these antibodies could have adverse effects on the outcome of assisted reproductive techniques.')
+(0.44478323099449735, 'These data suggest that either intrathecal or intracerebroventricular injection of orexin-A is a new therapeutic approach to treating mechanical allodynia caused by nerve injury.')
+(0.44409117557518685, 'Current data suggest that the learning curve is mild, its use is safe and it provides distinct advantages when used for transurethral resection of bladder tumors and the prostate.')
+(0.44386769652220248, 'In researching into the cause of HIV-associated neuropathy further studies are needed to determine the relative roles played by the viral infection and the activation of the immunological factors that contribute to the pathogenesis of the damage done in a')
+(0.44333974163710449, 'Our study confirms that asbestos fibers may reach the ovaries and demonstrates that the applied method is appropriate for identification of the fibers.')
+(0.44227139621683453, 'The effect is mediated in part by the activation of the nAChR and possibly by the enhanced release of ACh.')
+(0.44004242227935153, 'The most rewarding result is the freedom from the cyclic return of pain characterized by oral and intramuscular analgesic therapy.')
+(0.43997219077652455, 'The changes are most prominent in the thigh muscles and less marked when the soleus reflex is conditioned by activation of quadriceps and biceps femoris myotatic reflex arcs.')
+(0.43920953050555023, 'Our results document augmentation of the antiadipogenic effect of EPA/DHA during development of obesity and suggest that EPA/DHA could reduce accumulation of body fat by limiting both hypertrophy and hyperplasia of fat cells.')
+(0.4375957234725798, 'These results suggest that, depending on the stimulus, NMDA receptors may have variable significance for central sensitization-mediated hyperalgesia, and that NMDA receptor antagonists may have therapeutic potential for some, but not all components in the')
+(0.43059321067027756, 'The findings of the review suggest that currently there is limited quality data on the effectiveness of obesity prevention programs and as such no generalisable conclusions can be drawn.')
+(0.4234063368399763, 'The rigidity of the cage meets biomechanical imperatives.')
+

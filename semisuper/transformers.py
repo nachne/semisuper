@@ -18,7 +18,7 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
     def __init__(self, punct=None, lower=True, strip=True, lemmatize=False):
         self.lower = lower
         self.strip = strip
-        self.punct = punct or set(string.punctuation).difference(set('%'))
+        self.punct = punct or set(string.punctuation).difference(set('%='))
 
         self.lemma = lemmatize
 
@@ -40,6 +40,8 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
 
     def representation(self, sentence):
         tokens_tags = list(self.tokenize(sentence))
+        if not tokens_tags:
+            return ["_empty_sentence_"]
         return [t for (t, p) in tokens_tags]
 
     def tokenize(self, sentence):
@@ -69,10 +71,10 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
         token = token.strip('*') if self.strip else token
         token = token.strip('.') if self.strip else token
 
+        token = token.lower() if self.lower else token
+
         token = self.dict_mapper.replace(token)
         token = map_regex_concepts(token)
-
-        token = token.lower() if self.lower else token
 
         if self.lemma:
             token = self.lemmatize(token.lower(), tag)
@@ -100,16 +102,17 @@ def map_regex_concepts(token):
 
 
 regex_concept_dict = [
-    # drugs
+    # biomedical
     (re.compile("\w+inib$"), "_chemical_"),
     (re.compile("\w+[ui]mab$"), "_chemical_"),
     (re.compile("->|-->"), "_replacement_"),
+    (re.compile("^(PFS|pfs)$"), "progression-free survival"),
 
     # number-related concepts
     (re.compile("^[Pp]([=<>≤≥]|</?=|>/?=)\d"), "_p_val_"),
     (re.compile("^((\d+-)?year-old|y\.?o\.?)$"), "_age_"),
     (re.compile("^~?-?\d*[·.]?\d+--?\d*[·.]?\d+$"), "_range_"),
-    (re.compile("[a-zA-Z]?(~?[=<>≤≥]|</?=|>/?=)\d|^(lt|gt|geq|leq)$"), "_ineq_"),
+    (re.compile("[a-zA-Z]?(~?[=<>≤≥]|</?=|>/?=)\d?|^(lt|gt|geq|leq)$"), "_ineq_"),
     (re.compile("^~?\d+-fold$"), "_n_fold_"),
     (re.compile("^~?\d+/\d+$|^\d+:\d+$"), "_ratio_"),
     (re.compile("^~?-?\d*[·.]?\d*%$"), "_percent_"),
@@ -120,7 +123,7 @@ regex_concept_dict = [
     # abbreviation starting with letters and containing nums
     (re.compile("^[Rr][Ss]\d+$|"
                 "^[Rr]\d+[A-Za-z]$"), "_mutation_"),
-    (re.compile("^([a-zA-Z]+-?\w*\d+)+"), "_abbrev_"),
+    (re.compile("^[a-zA-Z]\w*-?\w*\d+\w*$"), "_abbrev_"),
     # time
     (re.compile("^([jJ]an\.(uary)?|[fF]eb\.(ruary)?|[mM]ar\.(ch)?|"
                 "[Aa]pr\.(il)?|[Mm]ay\.|[jJ]un\.(e)?|"
@@ -128,11 +131,14 @@ regex_concept_dict = [
                 "[oO]ct\.(ober)?|[nN]ov\.(ember)?|[dD]ec\.(ember)?)$"), "_month_"),
     (re.compile("^(19|20)\d\d$"), "_year_"),
     # numbers
-    (re.compile("^([Zz]ero(th)?|[Oo]ne|[Tt]wo|[Tt]hree|[Ff]our(th)?|"
+    (re.compile("^(([Zz]ero(th)?|[Oo]ne|[Tt]wo|[Tt]hree|[Ff]our(th)?|"
                 "[Ff]i(ve|fth)|[Ss]ix(th)?|[Ss]even(th)?|[Ee]ight(th)?|"
                 "[Nn]in(e|th)|[Tt]en(th)?|[Ee]leven(th)?|"
+                "[Tt]went(y|ieth)?|[Tt]hirt(y|ieth)?|[Ff]ort(y|ieth)?|[Ff]ift(y|ieth)?|"
+                "[Ss]ixt(y|ieth)?|[Ss]event(y|ieth)?|[Ee]ight(y|ieth)?|[Nn]inet(y|ieth)?|"
+                "[Mm]illion(th)?|[Bb]illion(th)?|"
                 "[Tt]welv(e|th)|[Hh]undred(th)?|[Tt]housand(th)?|"
-                "[Ff]irst|[Ss]econd|[Tt]hird|\d*1st|\d*2nd|\d*3rd|\d+-?th)$"), "_num_"),
+                "[Ff]irst|[Ss]econd|[Tt]hird|\d*1st|\d*2nd|\d*3rd|\d+-?th)-?)+$"), "_num_"),
     (re.compile("^~?-?\d+(,\d+)?$"), "_num_"),  # int (+ or -)
     (re.compile("^~?-?((-?\d*[·.]\d+$|^-?\d+[·.]\d*)(\+/-)?)+$"), "_num_"),  # float (+ or -)
     # misc. abbrevs
@@ -163,11 +169,18 @@ def prenormalize(text):
 
 
 prenormalize_dict = [
+    # replace ":" or whitespace after section headlines with dots so they will become separate sentences
+    #  TODO check if this is better or worse
+    (re.compile("(AIMS?|BACKGROUNDS?|METHODS?|RESULTS?|CONCLUSIONS?|PATIENTS?|FINDINGS?|FUNDINGS?)"
+                "(:)"), r"\1. "),
+
     # usual abbreviations
+    # TODO consider lookahead: (?=[a-z0-9]) (was not useful until now)
     (re.compile("\W[Ee]\.[Gg]\.\s"), " eg "),
-    (re.compile("\W[Ii]\.[Ee]\.\s"), " ie "),
+    (re.compile("\W[Ii]\.?[Ee]\.\s"), " ie "),
     (re.compile("\W[Aa]pprox\.\s"), " approx "),
     (re.compile("\W[Nn]o\.\s"), " no "),
+    (re.compile("\W[Cc]onf\.\s"), " conf "),
     # scientific writing
     (re.compile("\Wet al\.\s"), " et al "),
     (re.compile("\W[Rr]ef\.\s"), " ref "),

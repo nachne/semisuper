@@ -17,3 +17,12 @@ the authors' -> our
 by the authors -> by us
 
 falsches mapping: wild-type -> _disease_
+
+HoC als zusätzliche Beispiele (pos/neg)
+
+
+
+LIBS/TOOLS
+
+GeniaSS ist schlechter als eigenes sentence splitting
+HoC-Skripte fürs Preprocessing?

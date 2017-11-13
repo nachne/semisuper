@@ -1,0 +1,448 @@
+/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/bin/python3.6 /Users/emperor/HU/BA/semisuper/semisuper/tests/test_uci_data.py
+
+
+---------------------------
+Training dummy classifier
+---------------------------
+
+
+
+---------------------------
+Training one-class SVM
+---------------------------
+
+Building for evaluation
+*
+optimization finished, #iter = 1
+obj = 4048.987402, rho = 89.977315
+nSV = 90, nBSV = 90
+[LibSVM]
+
+---------------------------
+Training cos-roc classifier
+---------------------------
+
+Computing ranking (cosine similarity to mean positive example)
+Choosing Potential Negative examples with ranking threshold
+Threshold given noise level: 0.128585843708
+Unlabelled docs below threshold: 185 of 1026 
+
+Building Rocchio model
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 0.  1.  1.  1.  0.  0.  1.  1.  1.  1.]
+             precision    recall  f1-score   support
+
+        0.0       0.96      0.21      0.35      1026
+        1.0       0.17      0.94      0.29       180
+
+avg / total       0.84      0.32      0.34      1206
+
+
+
+---------------------------
+Training roc-SVM classifier
+---------------------------
+
+Determining RN using Cosine Similarity threshold and Rocchio
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 939 ( 91.52046783625731 %)
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+new negative docs: 2
+Iteration # 1
+new negative docs: 1
+Iteration # 2
+Iterative SVM converged. Positive examples remaining in U: 84 ( 96.55172413793103 %)
+Ratio of positive samples classified as negative by initial SVM: 0.0
+Ratio of positive samples classified as negative by final SVM: 0.0
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 0 0 0 0 0 0 0 0]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.91      0.95      1026
+        1.0       0.67      1.00      0.80       180
+
+avg / total       0.95      0.93      0.93      1206
+
+
+
+---------------------------
+Training CR_SVM classifier
+---------------------------
+
+Determining RN using Cosine Similarity threshold and Rocchio
+
+Computing ranking (cosine similarity to mean positive example)
+Choosing Potential Negative examples with ranking threshold
+Threshold given noise level: 0.102349981867
+Unlabelled docs below threshold: 60 of 1026 
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 73 ( 7.115009746588694 %)
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+new negative docs: 1
+Iteration # 1
+new negative docs: 1
+Iteration # 2
+new negative docs: 2
+Iteration # 3
+Iterative SVM converged. Positive examples remaining in U: 949 ( 99.58027282266526 %)
+Ratio of positive samples classified as negative by initial SVM: 0.0388888888889
+Ratio of positive samples classified as negative by final SVM: 0.0388888888889
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 1 1 1 1 1 1 1 1 1]
+             precision    recall  f1-score   support
+
+        0.0       0.92      0.08      0.14      1026
+        1.0       0.15      0.96      0.27       180
+
+avg / total       0.80      0.21      0.16      1206
+
+
+
+---------------------------
+Training I-EM classifier
+---------------------------
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.4  0.6]
+Computing attribute probabilities for 17438 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 12.0 / 270 ( 4.44444444444 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.42714675  0.57285325]
+Computing attribute probabilities for 17438 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 15.0 / 270 ( 5.55555555556 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.43183189  0.56816811]
+Computing attribute probabilities for 17438 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 15.0 / 270 ( 5.55555555556 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.433666  0.566334]
+Computing attribute probabilities for 17438 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 15.0 / 270 ( 5.55555555556 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.43394016  0.56605984]
+Computing attribute probabilities for 17438 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 16.0 / 270 ( 5.92592592593 %)
+
+Iteration # 6
+Building new model using probabilistic labels
+Class distribution: [ 0.43491074  0.56508926]
+Computing attribute probabilities for 17438 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 16.0 / 270 ( 5.92592592593 %)
+
+Iteration # 7
+Building new model using probabilistic labels
+Class distribution: [ 0.43556936  0.56443064]
+Computing attribute probabilities for 17438 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 16.0 / 270 ( 5.92592592593 %)
+
+Returning final model after 7 iterations
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.94      0.97       270
+        1.0       0.92      1.00      0.96       180
+
+avg / total       0.97      0.96      0.96       450
+
+
+
+---------------------------
+Training S-EM classifier
+---------------------------
+
+Determining confidence threshold using Spy Documents and rough I-EM
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.13432836  0.86567164]
+Computing attribute probabilities for 34073 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 60.0 / 1044 ( 5.74712643678 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.18511894  0.81488106]
+Computing attribute probabilities for 34073 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 70.0 / 1044 ( 6.70498084291 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.1928011  0.8071989]
+Computing attribute probabilities for 34073 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 77.0 / 1044 ( 7.3754789272 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.19860913  0.80139087]
+Computing attribute probabilities for 34073 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 79.0 / 1044 ( 7.56704980843 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.20018816  0.79981184]
+Computing attribute probabilities for 34073 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 80.0 / 1044 ( 7.66283524904 %)
+
+Iteration # 6
+Building new model using probabilistic labels
+Class distribution: [ 0.20124037  0.79875963]
+Computing attribute probabilities for 34073 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 82.0 / 1044 ( 7.85440613027 %)
+
+Iteration # 7
+Building new model using probabilistic labels
+Class distribution: [ 0.20241992  0.79758008]
+Computing attribute probabilities for 34073 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 83.0 / 1044 ( 7.95019157088 %)
+
+Returning final model after 7 iterations
+Threshold given noise level: 3.30515638441e-37
+Unlabelled docs below threshold: 10 of 1026 
+
+
+Iterating I-EM with P, U-RN, and RN
+
+Building classifier from Positive and Reliable Negative set
+Class distribution: [ 0.6  0.4]
+Computing attribute probabilities for 1479 attributes
+
+Calculating initial probabilistic labels for Reliable Negative and Unlabelled set
+
+Iterating EM algorithm on P, RN and U
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.71840878  0.28159122]
+Computing attribute probabilities for 34073 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 672.0 / 1026 ( 65.4970760234 %)
+
+Acceptable ratio of positively labelled sentences in U is reached.
+Returning final model after 1 iterations
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  0.  1.  1.  1.] [ 1.  1.  1.  1.  1.  0.  1.  1.  0.  1.]
+             precision    recall  f1-score   support
+
+        0.0       0.97      0.35      0.51      1026
+        1.0       0.20      0.94      0.33       180
+
+avg / total       0.86      0.43      0.48      1206
+
+
+
+---------------------------
+Training Biased-SVM
+---------------------------
+
+There are 88 parameter combinations to be evaluated.
+NON-NORMALIZED WEIGHTS
+
+(0, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 2.0100000000000002, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 4.0099999999999998, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 6.0099999999999998, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 8.0099999999999998, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 12.01, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 14.01, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 16.010000000000002, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 18.010000000000002, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 1})
+(0, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 66.329999999999998, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 132.33000000000001, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 198.33000000000001, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 264.32999999999998, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 396.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 462.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 528.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 594.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1})
+(0.079578628961345002, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1})
+(0, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 2.0100000000000002, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 4.0099999999999998, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 6.0099999999999998, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 8.0099999999999998, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 12.01, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 14.01, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 16.010000000000002, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 18.010000000000002, 'C_neg': 0.01, 'C': 10})
+(0, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 10})
+(0.079451303155006842, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 66.329999999999998, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 132.33000000000001, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 198.33000000000001, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 264.32999999999998, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 396.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 462.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 528.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 594.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.094047470590680443, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 10})
+(0.065722585330428462, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 2.0100000000000002, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 4.0099999999999998, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 6.0099999999999998, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 8.0099999999999998, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 12.01, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 14.01, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 16.010000000000002, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 18.010000000000002, 'C_neg': 0.01, 'C': 100})
+(0.094047470590680443, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 100})
+(0.079451303155006842, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 66.329999999999998, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 132.33000000000001, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 198.33000000000001, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 264.32999999999998, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 396.33000000000004, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 462.33000000000004, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 528.33000000000004, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 594.33000000000004, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.066209419295839053, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 100})
+(0.079451303155006842, {'C_pos': 0.01, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 2.0100000000000002, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 4.0099999999999998, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 6.0099999999999998, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 8.0099999999999998, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 10.01, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 12.01, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 14.01, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 16.010000000000002, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 18.010000000000002, 'C_neg': 0.01, 'C': 1000})
+(0.066209419295839053, {'C_pos': 20.010000000000002, 'C_neg': 0.01, 'C': 1000})
+(0.079451303155006842, {'C_pos': 0.33000000000000002, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 66.329999999999998, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 132.33000000000001, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 198.33000000000001, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 264.32999999999998, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 330.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 396.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 462.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 528.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 594.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1000})
+(0.066209419295839053, {'C_pos': 660.33000000000004, 'C_neg': 0.33000000000000002, 'C': 1000})
+
+Best model has parameters {'C_pos': 66.329999999999998, 'C_neg': 0.33000000000000002, 'C': 10} and PU-score 0.0940474705907
+Building final classifier
+
+
+-----------------------------------------------------------------------------
+EVALUATION ON VALIDATION SET
+-----------------------------------------------------------------------------
+
+---------------------------
+Dummy:
+             precision    recall  f1-score   support
+
+          0       0.77      0.92      0.84       217
+          1       0.59      0.28      0.38        85
+
+avg / total       0.72      0.74      0.71       302
+
+---------------------------
+One-Class SVM:
+             precision    recall  f1-score   support
+
+         -1       0.62      0.15      0.24       217
+          1       0.26      0.76      0.39        85
+
+avg / total       0.52      0.32      0.28       302
+
+---------------------------
+Cos-Roc:
+             precision    recall  f1-score   support
+
+          0       0.67      0.16      0.25       217
+          1       0.27      0.80      0.40        85
+
+avg / total       0.56      0.34      0.30       302
+
+---------------------------
+Roc-SVM:
+             precision    recall  f1-score   support
+
+          0       0.76      0.94      0.85       217
+          1       0.65      0.26      0.37        85
+
+avg / total       0.73      0.75      0.71       302
+
+---------------------------
+CR-SVM:
+             precision    recall  f1-score   support
+
+          0       0.65      0.06      0.11       217
+          1       0.28      0.92      0.43        85
+
+avg / total       0.54      0.30      0.20       302
+
+---------------------------
+I-EM:
+             precision    recall  f1-score   support
+
+          0       0.80      0.82      0.81       217
+          1       0.50      0.47      0.48        85
+
+avg / total       0.71      0.72      0.72       302
+
+---------------------------
+S-EM:
+             precision    recall  f1-score   support
+
+          0       0.90      0.24      0.38       217
+          1       0.33      0.93      0.48        85
+
+avg / total       0.74      0.44      0.41       302
+
+---------------------------
+Biased-SVM:
+             precision    recall  f1-score   support
+
+          0       0.75      0.94      0.84       217
+          1       0.60      0.21      0.31        85
+
+avg / total       0.71      0.74      0.69       302
+
+
+Process finished with exit code 0
