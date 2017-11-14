@@ -1,0 +1,444 @@
+/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/bin/python3.6 /Users/emperor/HU/BA/semisuper/semisuper/tests/test_2step_alternatives.py
+Loaded summaries and abstracts from disk.
+No. of PubMed IDs:	 2344
+No. of abstracts:	 1236
+CIViC sentences: 5172
+Abstract sentences: 12605
+HoC positive sentences: 4430
+HoC negative sentences: 8909
+PIBOSO sentences: 2712
+
+
+------------
+SPY-SVM TEST
+------------
+
+Determining confidence threshold using Spy Documents and I-EM
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.425  0.575]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 407.0 / 4600 ( 8.84782608696 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.47769392  0.52230608]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 593.0 / 4600 ( 12.8913043478 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.49917218  0.50082782]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 692.0 / 4600 ( 15.0434782609 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.51226089  0.48773911]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 775.0 / 4600 ( 16.847826087 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.52262866  0.47737134]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 841.0 / 4600 ( 18.2826086957 %)
+
+Iteration # 6
+Building new model using probabilistic labels
+Class distribution: [ 0.53124155  0.46875845]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 901.0 / 4600 ( 19.5869565217 %)
+
+Iteration # 7
+Building new model using probabilistic labels
+Class distribution: [ 0.53787577  0.46212423]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 939.0 / 4600 ( 20.4130434783 %)
+
+Iteration # 8
+Building new model using probabilistic labels
+Class distribution: [ 0.54253737  0.45746263]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 962.0 / 4600 ( 20.9130434783 %)
+
+Iteration # 9
+Building new model using probabilistic labels
+Class distribution: [ 0.5456259  0.4543741]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 992.0 / 4600 ( 21.5652173913 %)
+
+Iteration # 10
+Building new model using probabilistic labels
+Class distribution: [ 0.54877638  0.45122362]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1008.0 / 4600 ( 21.9130434783 %)
+
+Iteration # 11
+Building new model using probabilistic labels
+Class distribution: [ 0.55107062  0.44892938]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1022.0 / 4600 ( 22.2173913043 %)
+
+Iteration # 12
+Building new model using probabilistic labels
+Class distribution: [ 0.55279959  0.44720041]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1032.0 / 4600 ( 22.4347826087 %)
+
+Iteration # 13
+Building new model using probabilistic labels
+Class distribution: [ 0.55423906  0.44576094]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1044.0 / 4600 ( 22.6956521739 %)
+
+Iteration # 14
+Building new model using probabilistic labels
+Class distribution: [ 0.55551972  0.44448028]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1050.0 / 4600 ( 22.8260869565 %)
+
+Iteration # 15
+Building new model using probabilistic labels
+Class distribution: [ 0.55626088  0.44373912]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1057.0 / 4600 ( 22.9782608696 %)
+
+Iteration # 16
+Building new model using probabilistic labels
+Class distribution: [ 0.55710047  0.44289953]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1060.0 / 4600 ( 23.0434782609 %)
+
+Iteration # 17
+Building new model using probabilistic labels
+Class distribution: [ 0.55756431  0.44243569]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1061.0 / 4600 ( 23.0652173913 %)
+
+Iteration # 18
+Building new model using probabilistic labels
+Class distribution: [ 0.55775001  0.44224999]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1063.0 / 4600 ( 23.1086956522 %)
+
+Iteration # 19
+Building new model using probabilistic labels
+Class distribution: [ 0.5579796  0.4420204]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1065.0 / 4600 ( 23.152173913 %)
+
+Iteration # 20
+Building new model using probabilistic labels
+Class distribution: [ 0.55823927  0.44176073]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1066.0 / 4600 ( 23.1739130435 %)
+
+Iteration # 21
+Building new model using probabilistic labels
+Class distribution: [ 0.55840153  0.44159847]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1068.0 / 4600 ( 23.2173913043 %)
+
+Iteration # 22
+Building new model using probabilistic labels
+Class distribution: [ 0.55863725  0.44136275]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1072.0 / 4600 ( 23.3043478261 %)
+
+Iteration # 23
+Building new model using probabilistic labels
+Class distribution: [ 0.55892811  0.44107189]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1073.0 / 4600 ( 23.3260869565 %)
+
+Iteration # 24
+Building new model using probabilistic labels
+Class distribution: [ 0.55912137  0.44087863]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 1073.0 / 4600 ( 23.3260869565 %)
+
+Returning final model after 24 iterations
+Threshold given noise level: 3.07462467636e-07
+Unlabelled docs below threshold: 2868 of 4000 
+
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 2991
+Iteration # 2
+Reliable negative examples: 3031
+Iteration # 3
+Reliable negative examples: 3057
+Iteration # 4
+Reliable negative examples: 3069
+Iteration # 5
+Reliable negative examples: 3080
+Iteration # 6
+Reliable negative examples: 3092
+Iteration # 7
+Reliable negative examples: 3094
+Iteration # 8
+Reliable negative examples: 3095
+Iterative SVM converged. Reliable negative examples: 3095
+Ratio of positive examples misclassified as negative by initial SVM: 0.01175
+Ratio of positive examples misclassified as negative by final SVM: 0.0125
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 0 0 0 1 0 0 0 0]
+             precision    recall  f1-score   support
+
+        0.0       0.98      0.77      0.87      4000
+        1.0       0.81      0.99      0.89      4000
+
+avg / total       0.90      0.88      0.88      8000
+
+
+Training SPY-SVM took 2330.2213048934937 seconds
+
+
+spy-svm civic prediction 5032 / 5172
+civic top-12
+(array([  9.06080313e-13,   1.00000000e+00]), 'A cell line with AKT E17K mutation was found to be sensitive to AKT inhibition with GSK2141795B  in this study.')
+(array([  9.76362665e-13,   1.00000000e+00]), 'In an in vitro study, MCF7 cell lines expressing PIK3CA E545K mutation was associated with increased sensitivity to ado-trastuzumab emtansine treatment compared to trastuzumab treated MCF7 cells.')
+(array([  1.03626835e-12,   1.00000000e+00]), 'In MCF10A cell lines, the V777L mutation was shown to be sensitive to neratinib.')
+(array([  1.03626835e-12,   1.00000000e+00]), 'In MCF10A cell lines, the D769Y mutation was shown to be sensitive to neratinib.')
+(array([  1.03626835e-12,   1.00000000e+00]), 'In MCF10A cell lines, the V842I mutation was shown to be sensitive to neratinib.')
+(array([  1.03626835e-12,   1.00000000e+00]), 'In MCF10A cell lines, the G309A mutation was shown to be sensitive to neratinib.')
+(array([  1.03626835e-12,   1.00000000e+00]), 'In MCF10A cell lines, the D769H mutation was shown to be sensitive to neratinib.')
+(array([  2.60932422e-12,   1.00000000e+00]), 'In an in vitro study, Colo-320, SW48, and CaCO2 cell lines expressing HRAS G13D mutation were associated with resistance to cetuximab treatment, as compared to Colo-320, SW48, and CaCO2 cells expressing wild type HRAS.')
+(array([  2.87400605e-12,   1.00000000e+00]), 'In an in vitro study, HCC1954 and KPL-4 cell lines expressing PIK3CA H1047R mutation was associated with increased sensitivity to ado-trastuzumab emtansine treatment compared to trastuzumab treated HCC1954 and KPL-4 cells.')
+(array([  3.48013864e-12,   1.00000000e+00]), 'In a retrospective study of 46 Caucasian, advanced lung adenocarcinoma patients, a patient harboring EGFR L858R mutation was associated with resistance to erlotinib treatment; the patient survived 3.9 months, as compared to the overall 24 months median overall survival of the other patients who were not resistant to erlotinib treatment.')
+(array([  1.46186322e-11,   1.00000000e+00]), 'In an in vitro study, a M229 cell line endogenously expressing BRAF V600E mutation (a known vemurafenib sensitizing mutation) and overexpressing AKT1 Q79K mutation was associated with resistance to vemurafenib treatment, as compared to cells expressing BRAF V600E mutation and wildtype AKT1.')
+(array([  1.46186322e-11,   1.00000000e+00]), 'In an in vitro study, a M229 cell line endogenously expressing BRAF V600E mutation (a known vemurafenib sensitizing mutation) and overexpressing AKT1 E17K mutation was associated with resistance to vemurafenib treatment, as compared to cells expressing BRAF V600E mutation and wildtype AKT1.')
+civic bot-12
+(array([ 0.98004992,  0.01995008]), 'We found that PTPRT promoter methylation and sensitivity to Stattic (a STAT3 SH2 domain inhibitor) or JSI-124 (a JAK/STAT3 pathway inhibitor) are significantly correlated (P<0.05).')
+(array([ 0.98056361,  0.01943639]), 'We suggest that the type/structure of ALK fusion may have some impact on patient outcome in targeted therapy.')
+(array([ 0.98445379,  0.01554621]), 'Treatment of melanoma cells with UNC1062, a novel MERTK-selective small-molecule tyrosine kinase inhibitor, reduced activation of MERTK-mediated downstream signaling, induced apoptosis in culture, reduced colony formation in soft agar, and inhibited invasion of melanoma cells.')
+(array([ 0.98446574,  0.01553426]), 'Neither of these two tumors harbored known mutations in other genes encoding components of the EGFR signaling pathway (i.e., EGFR, HER2, KRAS, PIK3CA, and BRAF).')
+(array([ 0.98447013,  0.01552987]), 'LOXO-101 is an orally administered inhibitor of the TRK kinase and is highly selective only for the TRK family of receptors.')
+(array([ 0.9844734,  0.0155266]), 'One such example is BRAF mutations that occur outside of codon 600 (non-V600 BRAF mutations).')
+(array([ 0.98447976,  0.01552024]), 'Furthermore, cabozantinib could overcome all the resistance by all newly identified secondary mutations.')
+(array([ 0.98448009,  0.01551991]), 'In conclusion, CTNNB1 mutations are highly common in desmoid tumors.')
+(array([ 0.98625975,  0.01374025]), 'These results suggest that KRAS mutation status may be a potential biomarker for survival benefits to ICIs.')
+(array([ 0.99037273,  0.00962727]), 'However, most of the Prognostic value of TERT mutations is thought to be derived from their inverse coorelation with IDH1 mutations.')
+(array([ 0.99138257,  0.00861743]), 'We conclude that in the set of activating HER2 mutations, benefits of an individual agent may be specific to certain mutations, and that "HER2-positive lung cancers" is not an adequate term to describe this group of distinguishable illnesses.')
+(array([ 0.99711026,  0.00288974]), 'We cite findings that HER2 activity in cancer may be highly dependent on its Akt/mTOR signaling arm as a possible explanation for this effect, and conclude that their results give rationale for testing of afatinib/rapamycin treatment in lung cancer.')
+
+spy-svm abstracts prediction 3845 / 12605
+abstracts top-12
+(array([  3.00000090e-14,   1.00000000e+00]), 'J.')
+(array([  3.00000090e-14,   1.00000000e+00]), 'Cell.')
+(array([  3.00000090e-14,   1.00000000e+00]), 'Biochem.')
+(array([  3.00000090e-14,   1.00000000e+00]), 'Introduction.')
+(array([  3.00000090e-14,   1.00000000e+00]), 'CLINICALTRIALSGOV: NCT00818441.')
+(array([  2.22922373e-13,   1.00000000e+00]), 'In one case, V600K mutation was found.')
+(array([  6.67859049e-11,   1.00000000e+00]), 'Three patients with the KIT-V654A mutation were treated with SU11248.')
+(array([  1.64442833e-10,   1.00000000e+00]), 'Patients with low DHFR expression (</=120) also had a longer median PFS than patients with high DHFR expression (>120), which was not statistically significant (5.8 vs. 3.6 months; p=0.33).')
+(array([  3.31185718e-10,   1.00000000e+00]), 'Median progression-free survival was 7.7 months.')
+(array([  3.31185718e-10,   1.00000000e+00]), 'Median progression-free survival was 2.1 months.')
+(array([  3.31185718e-10,   1.00000000e+00]), 'Median progression-free survival was 17.9 months.')
+(array([  3.60716381e-10,   1.00000000e+00]), 'Pedigrees were analyzed.')
+abstracts bot-12
+(array([  9.99975113e-01,   2.48873567e-05]), 'PURPOSE: The LUX-Lung 3 study investigated the efficacy of chemotherapy compared with afatinib, a selective, orally bioavailable ErbB family blocker that irreversibly blocks signaling from epidermal growth factor receptor (EGFR/ErbB1), human epidermal growth factor receptor 2 (HER2/ErbB2), and ErbB4 and has wide-spectrum preclinical activity against EGFR mutations.')
+(array([  9.99975414e-01,   2.45859193e-05]), 'PATIENTS AND METHODS: We interrogated next-generation sequencing results from 6,376 cancers to identify those harboring MET exon 14 mutations.')
+(array([  9.99975847e-01,   2.41528421e-05]), 'RESULTS: We found stratification in prognostic subgroups.')
+(array([  9.99978155e-01,   2.18453512e-05]), 'The role of KRAS mutations in molecular targeted therapy by epidermal growth factor receptor tyrosine kinase inhibitors (EGFR-TKIs) in non-small cell lung cancer (NSCLC) has not been fully understood.')
+(array([  9.99979665e-01,   2.03348977e-05]), 'BACKGROUND: To investigate the role of the phosphoinositide 3-kinase (PI3K) pathway activation in human epidermal growth factor receptor 2 (HER2)-targeted therapy.')
+(array([  9.99979947e-01,   2.00526506e-05]), 'We studied whether afatinib (an oral, irreversible inhibitor of the ErbB family) has activity in UC and if specific ERBB molecular alterations are associated with clinical response.')
+(array([  9.99980467e-01,   1.95333193e-05]), 'The clinical efficacy of epidermal growth factor receptor (EGFR) kinase inhibitors is limited by the development of drug resistance.')
+(array([  9.99983235e-01,   1.67652820e-05]), 'In the present study, we analyzed the molecular genetics characteristics of 373 adult cn-AML patients and explored the relationship between TET2 gene mutations or different genetic mutation patterns and prognosis.')
+(array([  9.99986151e-01,   1.38492871e-05]), 'PATIENTS AND METHODS: In part A, patients received escalating doses to determine the maximum-tolerated dose (MTD).')
+(array([  9.99987520e-01,   1.24798302e-05]), 'DESIGN AND METHODS: Our aim was to investigate the role of ATM gene alterations, their biological consequences and their value in predicting disease progression.')
+(array([  9.99990045e-01,   9.95534128e-06]), 'We aimed to evaluate whether mutant forms of epidermal growth factor receptor (EGFR) and Kirsten rat sarcoma viral oncogene homolog (KRAS) (mEGFR and mKRAS) are useful biomarkers in resected non-small cell lung cancer (NSCLC).')
+(array([  9.99999547e-01,   4.52597392e-07]), 'In conclusion, we support the clinical relevance of novel recurrent mutations in CLL, highlighting the adverse impact of SF3B1 and TP53 mutations, even independent of IGHV mutational status, thus underscoring the need for urgent standardization/harmonization of the detection methods.')
+
+spy-svm HoC-pos prediction 1170 / 4430
+HoC-pos top-12
+(array([  3.34364437e-08,   9.99999967e-01]), 'Low γ-H2AX expression was associated with a significantly better survival as compared with those having high γ-H2AX expression ( 35.3 months for low γ-H2AX expression versus 23.2 months for high γ-H2AX expression , P = 0.009 ; hazard ratio [ HR ] 1.95 , 95% CI : 1.15-3.30 ) .')
+(array([  4.29652273e-08,   9.99999957e-01]), 'In gallbladder adenocarcinomas , p16 expression was found in 27.6% ( 16/58 ) .')
+(array([  7.93519591e-08,   9.99999921e-01]), 'In contrast , pre-treatment urinary neopterin excretion above 275 Î¼mol/mol creatinine , which indicates an unspecific activation of the innate immune system , was associated with a very poor overall survival with a median of only 11 months when compared with a median overall survival of 40 months in patients with lower urinary neopterin excretion ( p = 0.021 ) .')
+(array([  1.05540261e-07,   9.99999894e-01]), 'Overexpression of MTA1 was observed in 87.5%(6/7) of LNS with metastasis but in only 23%(3/13) of LNS without metastasis ( P = 0.0118 ) .')
+(array([  1.74422674e-07,   9.99999826e-01]), 'Progressive disease was observed in two patients with less than 25% receptor positive cells .')
+(array([  1.79120997e-07,   9.99999821e-01]), 'Increased EGFR expression was associated with gefitinib response ; increased PDGFR-Î± expression was associated with imatinib response .')
+(array([  1.93432097e-07,   9.99999807e-01]), 'CD4(+) mRNA was diminished in immunosuppression .')
+(array([  5.17490999e-07,   9.99999483e-01]), 'In patients with wild-type IDH , median TTP was 8.2 months and median OS was 24 months , compared with 18 months and 44 months , respectively , observed in patients with mutated IDH .')
+(array([  5.92810041e-07,   9.99999407e-01]), 'HER2 overexpression was observed in 25 of those patients ( 12.4% ) .')
+(array([  7.03918436e-07,   9.99999296e-01]), 'Overexpression of PDGFR-Î± and Î² in tumor cells and overexpression of PDGFR-Î± in tumor endothelium had prognostic significance and this was maintained in multivariate analysis for overexpression of PDGFR-Î± in tumor cells ( 2 year progression free survival was 16.7 Â± 15.2 for cases with overexpression of PDGFR-Î± in the tumor vs. 74.5 Â± 15.2 for those with low/no expression , hazard ratio = 5.78 , p = 0.04 ) .')
+(array([  1.02343529e-06,   9.99998977e-01]), 'In contrast with MTA1 , low expression of nm23H1 mRNA was seen in 7 of 7 OC with metastasis but only in 4 of 13(30%) of those without metastasis ( P = 0.0043 ) .')
+(array([  1.14959085e-06,   9.99998850e-01]), 'Cholangiocarcinomas with distant metastasis had a strongly-positive expression rate ( 75% , 9/12 ) , which was much higher than those without distant metastasis ( 29% , 8/28 ) ( X2=7.410 , P&lt;0.01 ) .')
+HoC-pos bot-12
+(array([  9.99963302e-01,   3.66975877e-05]), 'Therefore , the induction of DNA DSBs by 5FU , detected using CFGE , and the induction of apoptosis are candidate predictive markers that may distinguish cancer cells which are likely to benefit from 5FU treatment and the measurement of DSBs using CFGE may aid the prediction of clinical outcome .')
+(array([  9.99965156e-01,   3.48437688e-05]), 'Our results demonstrate that the rate limiting step is Michael addition between BPAQ and dA , the main product being the unstable N7-modified adduct that rapidly undergoes depurination .')
+(array([  9.99967170e-01,   3.28299162e-05]), 'We found that curcumin regulated the expression of genes that are involved in the regulation of apoptosis , tumor suppressor , cell-cycle arrest , transcription factor , and angiogenesis .')
+(array([  9.99970938e-01,   2.90620114e-05]), 'The results clearly show that the comet tail is formed by extended DNA loops : the loop extension , being reversible when the DNA torsional constraint remains in the loops , is favored when the constraint is relaxed .')
+(array([  9.99971092e-01,   2.89077174e-05]), 'Here , we report that secreted Frizzled-related protein 1 ( SFRP1 ) , a secreted antagonist of Wnt signaling , is oversecreted upon cellular senescence caused by DNA damage or oxidative stress .')
+(array([  9.99974700e-01,   2.53002337e-05]), 'CONCLUSIONS The results are suggestive of important roles that MMP-2 , MMP-10 , TIMP-2 , and podoplanin play in pathologic processes of OSCC , including invasion .')
+(array([  9.99977615e-01,   2.23852227e-05]), 'Here we demonstrate that stable expression of an activated form of MKK6 ( MKK6EE ) , a direct activator of the stress-induced p38(HOG) mitogen-activated protein kinase pathway , is sufficient for inducing features of senescence including a flattened , vacuolated , and irregular morphology , staining for acidic beta-galactosidase , and accumulation of age-associated pigments .')
+(array([  9.99978100e-01,   2.19001825e-05]), 'Here we demonstrate that the xenophagy-associated kinase TBK1 drives basal autophagy , consistent with its known requirement in K-Ras-dependent NSCLC proliferation .')
+(array([  9.99982411e-01,   1.75887738e-05]), 'RESULTS We found that in response to treatment with TGFbeta1 , C3A cells produced mRNA encoding the pro-alphaI chain of procollagen I , secreted procollagen I peptide , up-regulated production of the proinflammatory cytokine interleukin-8 ( IL-8 ) and the mesenchymal marker vimentin , and down-regulated albumin production .')
+(array([  9.99989613e-01,   1.03867562e-05]), 'Our results imply that the alkaline treatment induces detachment of the loops from the nuclear matrix , and the comet tail is formed by ssDNA fragments , the ends of which are pulled out from the comet head by electric force .')
+(array([  9.99993061e-01,   6.93899564e-06]), 'CONCLUSION TKTL1 is a novel candidate oncogene that is epigenetically activated by aberrant hypomethlation and contributes to a malignant phenotype through altered glycolytic metabolism and HIF1alpha accumulation .')
+(array([  9.99995361e-01,   4.63858115e-06]), 'CONCLUSIONS Immunochemical staining illustrated VEGF , Ang-1 , Ang-2 expression in PTC tissues related to clinical staging ; however , we need more information concerning these factors with long-term follow-up results .')
+
+spy-svm HoC-neg prediction 1170 / 4430
+HoC-neg top-12
+(array([  3.34364437e-08,   9.99999967e-01]), 'Low γ-H2AX expression was associated with a significantly better survival as compared with those having high γ-H2AX expression ( 35.3 months for low γ-H2AX expression versus 23.2 months for high γ-H2AX expression , P = 0.009 ; hazard ratio [ HR ] 1.95 , 95% CI : 1.15-3.30 ) .')
+(array([  4.29652273e-08,   9.99999957e-01]), 'In gallbladder adenocarcinomas , p16 expression was found in 27.6% ( 16/58 ) .')
+(array([  7.93519591e-08,   9.99999921e-01]), 'In contrast , pre-treatment urinary neopterin excretion above 275 Î¼mol/mol creatinine , which indicates an unspecific activation of the innate immune system , was associated with a very poor overall survival with a median of only 11 months when compared with a median overall survival of 40 months in patients with lower urinary neopterin excretion ( p = 0.021 ) .')
+(array([  1.05540261e-07,   9.99999894e-01]), 'Overexpression of MTA1 was observed in 87.5%(6/7) of LNS with metastasis but in only 23%(3/13) of LNS without metastasis ( P = 0.0118 ) .')
+(array([  1.74422674e-07,   9.99999826e-01]), 'Progressive disease was observed in two patients with less than 25% receptor positive cells .')
+(array([  1.79120997e-07,   9.99999821e-01]), 'Increased EGFR expression was associated with gefitinib response ; increased PDGFR-Î± expression was associated with imatinib response .')
+(array([  1.93432097e-07,   9.99999807e-01]), 'CD4(+) mRNA was diminished in immunosuppression .')
+(array([  5.17490999e-07,   9.99999483e-01]), 'In patients with wild-type IDH , median TTP was 8.2 months and median OS was 24 months , compared with 18 months and 44 months , respectively , observed in patients with mutated IDH .')
+(array([  5.92810041e-07,   9.99999407e-01]), 'HER2 overexpression was observed in 25 of those patients ( 12.4% ) .')
+(array([  7.03918436e-07,   9.99999296e-01]), 'Overexpression of PDGFR-Î± and Î² in tumor cells and overexpression of PDGFR-Î± in tumor endothelium had prognostic significance and this was maintained in multivariate analysis for overexpression of PDGFR-Î± in tumor cells ( 2 year progression free survival was 16.7 Â± 15.2 for cases with overexpression of PDGFR-Î± in the tumor vs. 74.5 Â± 15.2 for those with low/no expression , hazard ratio = 5.78 , p = 0.04 ) .')
+(array([  1.02343529e-06,   9.99998977e-01]), 'In contrast with MTA1 , low expression of nm23H1 mRNA was seen in 7 of 7 OC with metastasis but only in 4 of 13(30%) of those without metastasis ( P = 0.0043 ) .')
+(array([  1.14959085e-06,   9.99998850e-01]), 'Cholangiocarcinomas with distant metastasis had a strongly-positive expression rate ( 75% , 9/12 ) , which was much higher than those without distant metastasis ( 29% , 8/28 ) ( X2=7.410 , P&lt;0.01 ) .')
+HoC-neg bot-12
+(array([  9.99963302e-01,   3.66975877e-05]), 'Therefore , the induction of DNA DSBs by 5FU , detected using CFGE , and the induction of apoptosis are candidate predictive markers that may distinguish cancer cells which are likely to benefit from 5FU treatment and the measurement of DSBs using CFGE may aid the prediction of clinical outcome .')
+(array([  9.99965156e-01,   3.48437688e-05]), 'Our results demonstrate that the rate limiting step is Michael addition between BPAQ and dA , the main product being the unstable N7-modified adduct that rapidly undergoes depurination .')
+(array([  9.99967170e-01,   3.28299162e-05]), 'We found that curcumin regulated the expression of genes that are involved in the regulation of apoptosis , tumor suppressor , cell-cycle arrest , transcription factor , and angiogenesis .')
+(array([  9.99970938e-01,   2.90620114e-05]), 'The results clearly show that the comet tail is formed by extended DNA loops : the loop extension , being reversible when the DNA torsional constraint remains in the loops , is favored when the constraint is relaxed .')
+(array([  9.99971092e-01,   2.89077174e-05]), 'Here , we report that secreted Frizzled-related protein 1 ( SFRP1 ) , a secreted antagonist of Wnt signaling , is oversecreted upon cellular senescence caused by DNA damage or oxidative stress .')
+(array([  9.99974700e-01,   2.53002337e-05]), 'CONCLUSIONS The results are suggestive of important roles that MMP-2 , MMP-10 , TIMP-2 , and podoplanin play in pathologic processes of OSCC , including invasion .')
+(array([  9.99977615e-01,   2.23852227e-05]), 'Here we demonstrate that stable expression of an activated form of MKK6 ( MKK6EE ) , a direct activator of the stress-induced p38(HOG) mitogen-activated protein kinase pathway , is sufficient for inducing features of senescence including a flattened , vacuolated , and irregular morphology , staining for acidic beta-galactosidase , and accumulation of age-associated pigments .')
+(array([  9.99978100e-01,   2.19001825e-05]), 'Here we demonstrate that the xenophagy-associated kinase TBK1 drives basal autophagy , consistent with its known requirement in K-Ras-dependent NSCLC proliferation .')
+(array([  9.99982411e-01,   1.75887738e-05]), 'RESULTS We found that in response to treatment with TGFbeta1 , C3A cells produced mRNA encoding the pro-alphaI chain of procollagen I , secreted procollagen I peptide , up-regulated production of the proinflammatory cytokine interleukin-8 ( IL-8 ) and the mesenchymal marker vimentin , and down-regulated albumin production .')
+(array([  9.99989613e-01,   1.03867562e-05]), 'Our results imply that the alkaline treatment induces detachment of the loops from the nuclear matrix , and the comet tail is formed by ssDNA fragments , the ends of which are pulled out from the comet head by electric force .')
+(array([  9.99993061e-01,   6.93899564e-06]), 'CONCLUSION TKTL1 is a novel candidate oncogene that is epigenetically activated by aberrant hypomethlation and contributes to a malignant phenotype through altered glycolytic metabolism and HIF1alpha accumulation .')
+(array([  9.99995361e-01,   4.63858115e-06]), 'CONCLUSIONS Immunochemical staining illustrated VEGF , Ang-1 , Ang-2 expression in PTC tissues related to clinical staging ; however , we need more information concerning these factors with long-term follow-up results .')
+
+spy-svm piboso-other prediction 1799 / 2712
+piboso-other top-12
+(array([  3.00000090e-14,   1.00000000e+00]), 'OBJECTIVES')
+(array([  3.00000090e-14,   1.00000000e+00]), 'OBJECTIVE')
+(array([  3.00000090e-14,   1.00000000e+00]), 'METHOD')
+(array([  3.00000090e-14,   1.00000000e+00]), 'OBJECTIVE')
+(array([  3.00000090e-14,   1.00000000e+00]), 'OBJECTIVE')
+(array([  3.00000090e-14,   1.00000000e+00]), 'OBJECTIVE')
+(array([  3.00000090e-14,   1.00000000e+00]), 'AIM')
+(array([  3.00000090e-14,   1.00000000e+00]), 'OBJECTIVE')
+(array([  3.00000090e-14,   1.00000000e+00]), 'SETTING')
+(array([  3.00000090e-14,   1.00000000e+00]), 'SUBJECTS')
+(array([  3.00000090e-14,   1.00000000e+00]), 'OBJECTIVE')
+(array([  3.00000090e-14,   1.00000000e+00]), 'OBJECTIVE')
+piboso-other bot-12
+(array([  9.99870919e-01,   1.29081029e-04]), 'We searched the Cochrane Pregnancy and Childbirth Trials Register (June 2005) and MEDLINE (from 1966 to August 2003).')
+(array([  9.99872532e-01,   1.27467842e-04]), 'We sought to evaluate the strengths and limits of evidence about the effectiveness of screening and interventions for speech and language delay in preschool-aged children to determine the balance of benefits and adverse effects of routine screening in primary care for the development of guidelines by the US Preventive Services Task Force.')
+(array([  9.99890829e-01,   1.09170906e-04]), 'We searched the Cochrane Central Register of Controlled Trials (CENTRAL) (The Cochrane Library Issue 2, 2006); MEDLINE (1966 to August, 2006); CINAHL (1982 to 2006); EMBASE (1988 to 2006) and Web of Science (1900 to 2006) and screened the bibliographies, reference lists and cited web sites of papers.')
+(array([  9.99922008e-01,   7.79920433e-05]), 'RESULTS AND CONCLUSIONS')
+(array([  9.99925558e-01,   7.44416908e-05]), 'We searched MEDLINE up to June 1997, the Research and Development Resource Base in Continuing Medical Education, and reference lists of related systematic reviews and articles.')
+(array([  9.99942531e-01,   5.74689681e-05]), 'We present the clinical, radiological and specific management of this rare condition.')
+(array([  9.99946892e-01,   5.31082884e-05]), 'PATIENTS AND METHODS')
+(array([  9.99946892e-01,   5.31082884e-05]), 'PATIENTS AND METHODS')
+(array([  9.99950129e-01,   4.98707354e-05]), 'We examined the effect of antiparkinson medications on the modulation of muscle activity (i.e., the ability to activate and inhibit each muscle throughout the course of a sequence).')
+(array([  9.99953029e-01,   4.69713402e-05]), 'Information regarding study design, patient characteristics, wrist guard characteristics, data source (for cohort and case-control studies), and results (type and severity of injury, compliance, and adverse events) were extracted.')
+(array([  9.99957367e-01,   4.26330299e-05]), 'We used the 95th percentile of the gender-specific distribution of QTrr and JTrr to define abnormally prolonged repolarization.')
+(array([  9.99985027e-01,   1.49732336e-05]), "We also compared the results of participants' responses to demographic questions with the results of their interpretations of the VF studies.")
+
+spy-svm piboso-outcome prediction 1424 / 3563
+piboso-outcome top-12
+(array([  3.82957892e-09,   9.99999996e-01]), 'Device interrogation was normal.')
+(array([  2.51083358e-08,   9.99999975e-01]), 'No complications were observed.')
+(array([  4.14453199e-08,   9.99999959e-01]), 'Overall mortality was 4%.')
+(array([  4.14453199e-08,   9.99999959e-01]), 'Overall mortality was 4%.')
+(array([  4.59978571e-08,   9.99999954e-01]), 'Median response duration was 5 months.')
+(array([  5.10962129e-08,   9.99999949e-01]), 'A decrease of RC (ANOVA P=0.05) was also observed after 30 days intake of paroxetine in comparison with placebo and was associated with changes of fMRI activation intensity (left S1M1 hypoactivation, ), without changes of S1M1 activation volume.')
+(array([  5.25119662e-08,   9.99999947e-01]), 'Fewer patients had hydrocephalus after 60 days of treatment with dexamethasone than after placebo treatment (p=0.217).')
+(array([  8.89067152e-08,   9.99999911e-01]), 'The median progression-free survival (PFS) in groups 1 and 2 was 10 and 41 months (P = 0.04), while the median overall survival (OS) was 38 months and not reached (P = 0.02), respectively.')
+(array([  2.64097615e-07,   9.99999736e-01]), 'There were three failures.')
+(array([  3.97773377e-07,   9.99999602e-01]), 'Seven patients demonstrated a moderate incontinence 4 months after radical prostatectomy and 1/7 was still incontinent after 1 year.')
+(array([  7.17710113e-07,   9.99999282e-01]), 'Similar differences were not observed in nonpalpable nodes.')
+(array([  9.00187675e-07,   9.99999100e-01]), 'The 2-year limb survival was 52% (SCS) versus 46% (standard treatment; p = 0.47).')
+piboso-outcome bot-12
+(array([  9.99865086e-01,   1.34914148e-04]), 'However, given the cross-sectional design of our study, we cannot claim any causal relationship between the presence of alterations in fatty acid status and canine aggressiveness.')
+(array([  9.99865915e-01,   1.34084748e-04]), 'These data indicate that thermal hyperalgesia, static and dynamic allodynia are respectively signalled by C-, Adelta- and Abeta/capsaicin insensitive Adelta- primary sensory neurones.')
+(array([  9.99883164e-01,   1.16836294e-04]), 'In conclusion, our results indicate that a yearly mammography is mandatory in long-term HRT subjects and US may be also needed in particularly dense breasts.')
+(array([  9.99896439e-01,   1.03561075e-04]), 'Conclusions are tempered by important study limitations but the results suggest the need for programs that improve delivery of palliative care in rural Indiana.')
+(array([  9.99916390e-01,   8.36100980e-05]), 'The effect is mediated in part by the activation of the nAChR and possibly by the enhanced release of ACh.')
+(array([  9.99923284e-01,   7.67160032e-05]), 'The changes are most prominent in the thigh muscles and less marked when the soleus reflex is conditioned by activation of quadriceps and biceps femoris myotatic reflex arcs.')
+(array([  9.99936171e-01,   6.38293461e-05]), 'Our results document augmentation of the antiadipogenic effect of EPA/DHA during development of obesity and suggest that EPA/DHA could reduce accumulation of body fat by limiting both hypertrophy and hyperplasia of fat cells.')
+(array([  9.99945870e-01,   5.41304279e-05]), 'The most rewarding result is the freedom from the cyclic return of pain characterized by oral and intramuscular analgesic therapy.')
+(array([  9.99954817e-01,   4.51827183e-05]), 'The primary outcome measure failed to fall by the two points defined in our hypothesis.')
+(array([  9.99958073e-01,   4.19270989e-05]), 'Several aspects of screening have been inadequately studied to determine optimal methods, including which instrument to use, the age at which to screen, and which interval is most useful.')
+(array([  9.99966143e-01,   3.38571784e-05]), 'Our secondary outcome measure was a correlation between the results of our demographic questionnaires, completed by participating radiologists, and the overall interinterpreter reliability concordance.')
+(array([  9.99971305e-01,   2.86948590e-05]), 'The evidence for a variety of definite features of motor control elicited by volitional effort for the performance of a present or even clinically absent motor task suggests that we can benefit from animal experimental neurobiologic studies while we are p')
+
+
+------------
+ROC-EM TEST
+------------
+
+Determining RN using Rocchio method
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 3506 ( 87.65 %)
+
+Iterating I-EM with P, U-RN, and RN
+
+Building classifier from Positive and Reliable Negative set
+Class distribution: [ 0.53290701  0.46709299]
+Computing attribute probabilities for 52673 attributes
+
+Calculating initial probabilistic labels for Reliable Negative and Unlabelled set
+
+Iterating EM algorithm on P, RN and U
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.55645771  0.44354229]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 530.0 / 4000 ( 13.25 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.56689227  0.43310773]
+Computing attribute probabilities for 54742 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 599.0 / 4000 ( 14.975 %)
+
+Delta_i: 69
+Approximated error has grown since last iteration.
+Aborting and returning classifier # 1
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 0.  0.  0.  0.  0.  1.  0.  0.  1.  0.]
+             precision    recall  f1-score   support
+
+        0.0       0.98      0.87      0.92      4000
+        1.0       0.88      0.98      0.93      4000
+
+avg / total       0.93      0.93      0.92      8000
+
+
+Training ROC-EM took 265.11498403549194 seconds

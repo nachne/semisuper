@@ -1,0 +1,1834 @@
+/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/bin/python3.6 /Users/emperor/HU/BA/semisuper/semisuper/tests/test_corpora.py
+---------------------------
+---------------------------
+AMAZON-IMDB-YELP CORPUS
+---------------------------
+---------------------------
+
+Parameters for training data:
+ 50.0 % of positive documents are hidden in unlabelled set U.
+ 2.0 % of P is actually negative, to simulate noise.
+
+P: 623 , U: 1773
+
+
+---------------------------
+Training dummy classifier
+---------------------------
+
+
+
+---------------------------
+Training one-class SVM
+---------------------------
+
+Building for evaluation
+*
+optimization finished, #iter = 20
+obj = 48508.314803, rho = 311.449992
+nSV = 312, nBSV = 311
+[LibSVM]
+
+---------------------------
+Training roc-SVM classifier
+---------------------------
+
+Determining RN using Rocchio method
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 1603 ( 90.4117315284828 %)
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 1607
+Iterative SVM converged. Reliable negative examples: 1607
+Ratio of positive examples misclassified as negative by initial SVM: 0.0
+Ratio of positive examples misclassified as negative by final SVM: 0.0
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 0 0 0 0 0 0 0 0]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.91      0.95      1773
+        1.0       0.79      1.00      0.88       623
+
+avg / total       0.95      0.93      0.93      2396
+
+
+
+---------------------------
+Training CR_SVM classifier
+---------------------------
+
+Determining RN using Cosine Similarity threshold and Rocchio
+
+Computing ranking (cosine similarity to mean positive example)
+Choosing Potential Negative examples with ranking threshold
+Threshold given noise level: 0.0885124950397
+Unlabelled docs below threshold: 349 of 1773 
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 454 ( 25.606316976875352 %)
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 550
+Iteration # 2
+Reliable negative examples: 604
+Iteration # 3
+Reliable negative examples: 650
+Iteration # 4
+Reliable negative examples: 694
+Iteration # 5
+Reliable negative examples: 752
+Iteration # 6
+Reliable negative examples: 816
+Iteration # 7
+Reliable negative examples: 876
+Iteration # 8
+Reliable negative examples: 944
+Iteration # 9
+Reliable negative examples: 1002
+Iteration # 10
+Reliable negative examples: 1046
+Iteration # 11
+Reliable negative examples: 1083
+Iteration # 12
+Reliable negative examples: 1112
+Iteration # 13
+Reliable negative examples: 1136
+Iteration # 14
+Reliable negative examples: 1146
+Iteration # 15
+Reliable negative examples: 1151
+Iteration # 16
+Reliable negative examples: 1155
+Iteration # 17
+Reliable negative examples: 1161
+Iteration # 18
+Reliable negative examples: 1168
+Iteration # 19
+Reliable negative examples: 1176
+Iteration # 20
+Reliable negative examples: 1182
+Iteration # 21
+Reliable negative examples: 1188
+Iteration # 22
+Reliable negative examples: 1192
+Iteration # 23
+Reliable negative examples: 1194
+Iteration # 24
+Reliable negative examples: 1195
+Iteration # 25
+Reliable negative examples: 1196
+Iterative SVM converged. Reliable negative examples: 1196
+Ratio of positive examples misclassified as negative by initial SVM: 0.0192616372392
+Ratio of positive examples misclassified as negative by final SVM: 0.00321027287319
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [1 1 0 0 0 0 0 0 0 0]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.67      0.80      1773
+        1.0       0.52      1.00      0.68       623
+
+avg / total       0.87      0.76      0.77      2396
+
+
+
+---------------------------
+Training I-EM classifier
+---------------------------
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.40012845  0.59987155]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 25.0 / 934 ( 2.67665952891 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.41637473  0.58362527]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 38.0 / 934 ( 4.06852248394 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.42610535  0.57389465]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 48.0 / 934 ( 5.1391862955 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.43095209  0.56904791]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 50.0 / 934 ( 5.35331905782 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.433231  0.566769]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 52.0 / 934 ( 5.56745182013 %)
+
+Iteration # 6
+Building new model using probabilistic labels
+Class distribution: [ 0.43476765  0.56523235]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 55.0 / 934 ( 5.8886509636 %)
+
+Iteration # 7
+Building new model using probabilistic labels
+Class distribution: [ 0.43615857  0.56384143]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 56.0 / 934 ( 5.99571734475 %)
+
+Iteration # 8
+Building new model using probabilistic labels
+Class distribution: [ 0.43727812  0.56272188]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 57.0 / 934 ( 6.10278372591 %)
+
+Iteration # 9
+Building new model using probabilistic labels
+Class distribution: [ 0.43787394  0.56212606]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 59.0 / 934 ( 6.31691648822 %)
+
+Iteration # 10
+Building new model using probabilistic labels
+Class distribution: [ 0.43866769  0.56133231]
+Computing attribute probabilities for 14551 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 59.0 / 934 ( 6.31691648822 %)
+
+Returning final model after 10 iterations
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 0.  0.  0.  0.  0.  0.  1.  0.  0.  0.]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.94      0.97       934
+        1.0       0.91      1.00      0.95       623
+
+avg / total       0.96      0.96      0.96      1557
+
+
+
+---------------------------
+Training S-EM classifier
+---------------------------
+
+Determining confidence threshold using Spy Documents and I-EM
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.23414023  0.76585977]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 31.0 / 1835 ( 1.689373297 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.2516731  0.7483269]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 79.0 / 1835 ( 4.30517711172 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.26906696  0.73093304]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 109.0 / 1835 ( 5.94005449591 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.28104866  0.71895134]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 126.0 / 1835 ( 6.86648501362 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.28957594  0.71042406]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 138.0 / 1835 ( 7.5204359673 %)
+
+Iteration # 6
+Building new model using probabilistic labels
+Class distribution: [ 0.29474912  0.70525088]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 155.0 / 1835 ( 8.44686648501 %)
+
+Iteration # 7
+Building new model using probabilistic labels
+Class distribution: [ 0.29957708  0.70042292]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 164.0 / 1835 ( 8.93732970027 %)
+
+Iteration # 8
+Building new model using probabilistic labels
+Class distribution: [ 0.30382203  0.69617797]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 174.0 / 1835 ( 9.48228882834 %)
+
+Iteration # 9
+Building new model using probabilistic labels
+Class distribution: [ 0.30681639  0.69318361]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 177.0 / 1835 ( 9.64577656676 %)
+
+Iteration # 10
+Building new model using probabilistic labels
+Class distribution: [ 0.30954199  0.69045801]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 183.0 / 1835 ( 9.9727520436 %)
+
+Iteration # 11
+Building new model using probabilistic labels
+Class distribution: [ 0.31114691  0.68885309]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 185.0 / 1835 ( 10.0817438692 %)
+
+Iteration # 12
+Building new model using probabilistic labels
+Class distribution: [ 0.31296647  0.68703353]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 190.0 / 1835 ( 10.3542234332 %)
+
+Iteration # 13
+Building new model using probabilistic labels
+Class distribution: [ 0.31535293  0.68464707]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 194.0 / 1835 ( 10.5722070845 %)
+
+Iteration # 14
+Building new model using probabilistic labels
+Class distribution: [ 0.31687665  0.68312335]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 198.0 / 1835 ( 10.7901907357 %)
+
+Iteration # 15
+Building new model using probabilistic labels
+Class distribution: [ 0.31839633  0.68160367]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 201.0 / 1835 ( 10.9536784741 %)
+
+Iteration # 16
+Building new model using probabilistic labels
+Class distribution: [ 0.31990238  0.68009762]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 204.0 / 1835 ( 11.1171662125 %)
+
+Iteration # 17
+Building new model using probabilistic labels
+Class distribution: [ 0.32131643  0.67868357]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 208.0 / 1835 ( 11.3351498638 %)
+
+Iteration # 18
+Building new model using probabilistic labels
+Class distribution: [ 0.32258709  0.67741291]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 210.0 / 1835 ( 11.4441416894 %)
+
+Iteration # 19
+Building new model using probabilistic labels
+Class distribution: [ 0.32408489  0.67591511]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 216.0 / 1835 ( 11.7711171662 %)
+
+Iteration # 20
+Building new model using probabilistic labels
+Class distribution: [ 0.3252922  0.6747078]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 220.0 / 1835 ( 11.9891008174 %)
+
+Iteration # 21
+Building new model using probabilistic labels
+Class distribution: [ 0.32646411  0.67353589]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 220.0 / 1835 ( 11.9891008174 %)
+
+Returning final model after 21 iterations
+Threshold given noise level: 1.27721905857e-19
+Unlabelled docs below threshold: 133 of 1773 
+
+
+Iterating I-EM with P, U-RN, and RN
+
+Building classifier from Positive and Reliable Negative set
+Class distribution: [ 0.59939759  0.40060241]
+Computing attribute probabilities for 6778 attributes
+
+Calculating initial probabilistic labels for Reliable Negative and Unlabelled set
+
+Iterating EM algorithm on P, RN and U
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.65085715  0.34914285]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 930.0 / 1773 ( 52.4534686971 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.64762089  0.35237911]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 930.0 / 1773 ( 52.4534686971 %)
+
+Delta_i: 0
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.64753889  0.35246111]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 931.0 / 1773 ( 52.5098702764 %)
+
+Delta_i: 3721
+Approximated error has grown since last iteration.
+Aborting and returning classifier # 2
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 1.  1.  0.  0.  1.  0.  1.  0.  0.  0.]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.48      0.64      1773
+        1.0       0.40      1.00      0.57       623
+
+avg / total       0.84      0.61      0.63      2396
+
+
+
+---------------------------
+Training Roc-EM classifier
+---------------------------
+
+Determining RN using Rocchio method
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 1603 ( 90.4117315284828 %)
+
+Iterating I-EM with P, U-RN, and RN
+
+Building classifier from Positive and Reliable Negative set
+Class distribution: [ 0.27987421  0.72012579]
+Computing attribute probabilities for 20263 attributes
+
+Calculating initial probabilistic labels for Reliable Negative and Unlabelled set
+
+Iterating EM algorithm on P, RN and U
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.32257383  0.67742617]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 172.0 / 1773 ( 9.70107163001 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.33321361  0.66678639]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 182.0 / 1773 ( 10.2650874224 %)
+
+Delta_i: 10
+Approximated error has grown since last iteration.
+Aborting and returning classifier # 1
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.90      0.95      1773
+        1.0       0.78      0.99      0.88       623
+
+avg / total       0.94      0.93      0.93      2396
+
+
+
+---------------------------
+Training Spy-SVM classifier
+---------------------------
+
+Determining confidence threshold using Spy Documents and I-EM
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.23414023  0.76585977]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 37.0 / 1835 ( 2.01634877384 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.25223277  0.74776723]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 76.0 / 1835 ( 4.1416893733 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.26892586  0.73107414]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 110.0 / 1835 ( 5.99455040872 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.28070081  0.71929919]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 131.0 / 1835 ( 7.13896457766 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.28957533  0.71042467]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 143.0 / 1835 ( 7.79291553134 %)
+
+Iteration # 6
+Building new model using probabilistic labels
+Class distribution: [ 0.29550225  0.70449775]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 155.0 / 1835 ( 8.44686648501 %)
+
+Iteration # 7
+Building new model using probabilistic labels
+Class distribution: [ 0.30020829  0.69979171]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 160.0 / 1835 ( 8.71934604905 %)
+
+Iteration # 8
+Building new model using probabilistic labels
+Class distribution: [ 0.30328713  0.69671287]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 170.0 / 1835 ( 9.26430517711 %)
+
+Iteration # 9
+Building new model using probabilistic labels
+Class distribution: [ 0.30629341  0.69370659]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 174.0 / 1835 ( 9.48228882834 %)
+
+Iteration # 10
+Building new model using probabilistic labels
+Class distribution: [ 0.30810448  0.69189552]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 179.0 / 1835 ( 9.75476839237 %)
+
+Iteration # 11
+Building new model using probabilistic labels
+Class distribution: [ 0.30996301  0.69003699]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 181.0 / 1835 ( 9.86376021798 %)
+
+Iteration # 12
+Building new model using probabilistic labels
+Class distribution: [ 0.31143592  0.68856408]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 190.0 / 1835 ( 10.3542234332 %)
+
+Iteration # 13
+Building new model using probabilistic labels
+Class distribution: [ 0.31365272  0.68634728]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 192.0 / 1835 ( 10.4632152589 %)
+
+Iteration # 14
+Building new model using probabilistic labels
+Class distribution: [ 0.31505972  0.68494028]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 195.0 / 1835 ( 10.6267029973 %)
+
+Iteration # 15
+Building new model using probabilistic labels
+Class distribution: [ 0.31668508  0.68331492]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 198.0 / 1835 ( 10.7901907357 %)
+
+Iteration # 16
+Building new model using probabilistic labels
+Class distribution: [ 0.31788082  0.68211918]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 202.0 / 1835 ( 11.0081743869 %)
+
+Iteration # 17
+Building new model using probabilistic labels
+Class distribution: [ 0.31922815  0.68077185]
+Computing attribute probabilities for 20825 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 202.0 / 1835 ( 11.0081743869 %)
+
+Returning final model after 17 iterations
+Threshold given noise level: 1.4700200617e-17
+Unlabelled docs below threshold: 193 of 1773 
+
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 481
+Iteration # 2
+Reliable negative examples: 800
+Iteration # 3
+Reliable negative examples: 978
+Iteration # 4
+Reliable negative examples: 1112
+Iteration # 5
+Reliable negative examples: 1211
+Iteration # 6
+Reliable negative examples: 1278
+Iteration # 7
+Reliable negative examples: 1322
+Iteration # 8
+Reliable negative examples: 1341
+Iteration # 9
+Reliable negative examples: 1354
+Iteration # 10
+Reliable negative examples: 1361
+Iteration # 11
+Reliable negative examples: 1370
+Iteration # 12
+Reliable negative examples: 1372
+Iterative SVM converged. Reliable negative examples: 1372
+Ratio of positive examples misclassified as negative by initial SVM: 0.0
+Ratio of positive examples misclassified as negative by final SVM: 0.0016051364366
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 0 0 0 0 0 0 0 0]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.77      0.87      1773
+        1.0       0.61      1.00      0.76       623
+
+avg / total       0.90      0.83      0.84      2396
+
+
+
+---------------------------
+Training Biased-SVM
+---------------------------
+
+There are 24 parameter combinations to be evaluated.
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 10000
+
+(0.58402851467788608, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 10})
+(0, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 10})
+(0, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 10})
+(0, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 10})
+(0, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 10})
+(0, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 10})
+(0.58402851467788608, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 100})
+(0.8598181881730167, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 100})
+(1.0817564864382003, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 100})
+(1.0390173410404624, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 100})
+(1.0027894002789399, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 100})
+(0, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 100})
+(0.58402851467788608, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 1000})
+(0.61823394227094652, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 1000})
+(0.63801618229826063, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 1000})
+(0.62849355271171947, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 1000})
+(0.6640189635588849, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 1000})
+(0.69426415980598011, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 1000})
+(0.58402851467788608, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 10000})
+(0.61823394227094652, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 10000})
+(0.61823394227094652, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 10000})
+(0.61823394227094652, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 10000})
+(0.61823394227094652, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 10000})
+(0.61823394227094652, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 10000})
+
+Best model has parameters {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 100} and PU-score 1.08175648644
+Building final classifier
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 100
+
+
+-----------------------------------------------------------------------------
+EVALUATION ON VALIDATION SET
+-----------------------------------------------------------------------------
+
+---------------------------
+Dummy:
+             precision    recall  f1-score   support
+
+          0       0.50      1.00      0.67       300
+          1       0.00      0.00      0.00       300
+
+avg / total       0.25      0.50      0.33       600
+/usr/local/lib/python3.6/site-packages/sklearn/metrics/classification.py:1113: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+
+  'precision', 'predicted', average, warn_for)
+---------------------------
+One-Class SVM:
+             precision    recall  f1-score   support
+
+         -1       0.41      0.06      0.10       300
+          1       0.49      0.91      0.64       300
+
+avg / total       0.45      0.49      0.37       600
+
+---------------------------
+Roc-SVM:
+             precision    recall  f1-score   support
+
+          0       0.66      0.96      0.78       300
+          1       0.93      0.51      0.66       300
+
+avg / total       0.80      0.74      0.72       600
+
+---------------------------
+CR-SVM:
+             precision    recall  f1-score   support
+
+          0       0.72      0.78      0.75       300
+          1       0.76      0.70      0.73       300
+
+avg / total       0.74      0.74      0.74       600
+
+---------------------------
+I-EM:
+             precision    recall  f1-score   support
+
+          0       0.69      0.83      0.75       300
+          1       0.78      0.62      0.69       300
+
+avg / total       0.73      0.72      0.72       600
+
+---------------------------
+S-EM:
+             precision    recall  f1-score   support
+
+          0       0.68      0.47      0.56       300
+          1       0.60      0.78      0.68       300
+
+avg / total       0.64      0.63      0.62       600
+
+---------------------------
+Roc-EM:
+             precision    recall  f1-score   support
+
+          0       0.64      0.91      0.75       300
+          1       0.84      0.49      0.62       300
+
+avg / total       0.74      0.70      0.69       600
+
+---------------------------
+Spy-SVM:
+             precision    recall  f1-score   support
+
+          0       0.69      0.90      0.78       300
+          1       0.85      0.60      0.70       300
+
+avg / total       0.77      0.75      0.74       600
+
+---------------------------
+Biased-SVM:
+             precision    recall  f1-score   support
+
+          0       0.83      0.56      0.67       300
+          1       0.67      0.89      0.76       300
+
+avg / total       0.75      0.72      0.72       600
+
+---------------------------
+---------------------------
+SMS SPAM CORPUS
+---------------------------
+---------------------------
+
+Parameters for training data:
+ 50.0 % of positive documents are hidden in unlabelled set U.
+ 2.0 % of P is actually negative, to simulate noise.
+
+P: 310 , U: 4147
+
+
+---------------------------
+Training dummy classifier
+---------------------------
+
+
+
+---------------------------
+Training one-class SVM
+---------------------------
+
+Building for evaluation
+*
+optimization finished, #iter = 5
+obj = 12010.297972, rho = 154.971460
+nSV = 155, nBSV = 155
+[LibSVM]
+
+---------------------------
+Training roc-SVM classifier
+---------------------------
+
+Determining RN using Rocchio method
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 3787 ( 91.31902580178442 %)
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 3845
+Iteration # 2
+Reliable negative examples: 3848
+Iteration # 3
+Reliable negative examples: 3849
+Iterative SVM converged. Reliable negative examples: 3849
+Ratio of positive examples misclassified as negative by initial SVM: 0.0
+Ratio of positive examples misclassified as negative by final SVM: 0.0
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 0 0 0 0 0 0 0 0]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.93      0.96      4147
+        1.0       0.51      1.00      0.68       310
+
+avg / total       0.97      0.93      0.94      4457
+
+
+
+---------------------------
+Training CR_SVM classifier
+---------------------------
+
+Determining RN using Cosine Similarity threshold and Rocchio
+
+Computing ranking (cosine similarity to mean positive example)
+Choosing Potential Negative examples with ranking threshold
+Threshold given noise level: 0.125953488498
+Unlabelled docs below threshold: 3243 of 4147 
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 3662 ( 88.30479864962624 %)
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 3824
+Iteration # 2
+Reliable negative examples: 3839
+Iteration # 3
+Reliable negative examples: 3841
+Iteration # 4
+Reliable negative examples: 3842
+Iterative SVM converged. Reliable negative examples: 3842
+Ratio of positive examples misclassified as negative by initial SVM: 0.0
+Ratio of positive examples misclassified as negative by final SVM: 0.0
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 0 0 0 0 0 0 0 0]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.93      0.96      4147
+        1.0       0.50      1.00      0.67       310
+
+avg / total       0.97      0.93      0.94      4457
+
+
+
+---------------------------
+Training I-EM classifier
+---------------------------
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.4  0.6]
+Computing attribute probabilities for 11635 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 23.0 / 465 ( 4.94623655914 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.4292234  0.5707766]
+Computing attribute probabilities for 11635 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 24.0 / 465 ( 5.16129032258 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.43124192  0.56875808]
+Computing attribute probabilities for 11635 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 24.0 / 465 ( 5.16129032258 %)
+
+Returning final model after 3 iterations
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 0.  0.  1.  0.  0.  0.  0.  0.  0.  0.]
+             precision    recall  f1-score   support
+
+        0.0       0.99      0.95      0.97       465
+        1.0       0.93      0.99      0.96       310
+
+avg / total       0.97      0.97      0.97       775
+
+
+
+---------------------------
+Training S-EM classifier
+---------------------------
+
+Determining confidence threshold using Spy Documents and I-EM
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.06259816  0.93740184]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 231.0 / 4178 ( 5.52896122547 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.11435288  0.88564712]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 249.0 / 4178 ( 5.95978937291 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.11879071  0.88120929]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 260.0 / 4178 ( 6.22307324079 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.12105577  0.87894423]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 269.0 / 4178 ( 6.4384873145 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.12302821  0.87697179]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 271.0 / 4178 ( 6.48635710866 %)
+
+Iteration # 6
+Building new model using probabilistic labels
+Class distribution: [ 0.12344325  0.87655675]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 272.0 / 4178 ( 6.51029200574 %)
+
+Iteration # 7
+Building new model using probabilistic labels
+Class distribution: [ 0.1238555  0.8761445]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 274.0 / 4178 ( 6.5581617999 %)
+
+Iteration # 8
+Building new model using probabilistic labels
+Class distribution: [ 0.1241491  0.8758509]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 274.0 / 4178 ( 6.5581617999 %)
+
+Returning final model after 8 iterations
+Threshold given noise level: 1.44288254402e-18
+Unlabelled docs below threshold: 1720 of 4147 
+
+
+Iterating I-EM with P, U-RN, and RN
+
+Building classifier from Positive and Reliable Negative set
+Class distribution: [ 0.15270936  0.84729064]
+Computing attribute probabilities for 31317 attributes
+
+Calculating initial probabilistic labels for Reliable Negative and Unlabelled set
+
+Iterating EM algorithm on P, RN and U
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.1440789  0.8559211]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 328.0 / 4147 ( 7.90933204726 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.14438437  0.85561563]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 334.0 / 4147 ( 8.05401495057 %)
+
+Delta_i: 6
+Approximated error has grown since last iteration.
+Aborting and returning classifier # 1
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  0.  1.  1.  1.  1.] [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.92      0.96      4147
+        1.0       0.48      0.99      0.65       310
+
+avg / total       0.96      0.93      0.94      4457
+
+
+
+---------------------------
+Training Roc-EM classifier
+---------------------------
+
+Determining RN using Rocchio method
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 3787 ( 91.31902580178442 %)
+
+Iterating I-EM with P, U-RN, and RN
+
+Building classifier from Positive and Reliable Negative set
+Class distribution: [ 0.07566512  0.92433488]
+Computing attribute probabilities for 39362 attributes
+
+Calculating initial probabilistic labels for Reliable Negative and Unlabelled set
+
+Iterating EM algorithm on P, RN and U
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.13342702  0.86657298]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 288.0 / 4147 ( 6.94477935857 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.13473416  0.86526584]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 297.0 / 4147 ( 7.16180371353 %)
+
+Delta_i: 9
+Approximated error has grown since last iteration.
+Aborting and returning classifier # 1
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  0.  1.  1.  1.  1.] [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.93      0.96      4147
+        1.0       0.52      0.99      0.68       310
+
+avg / total       0.97      0.93      0.94      4457
+
+
+
+---------------------------
+Training Spy-SVM classifier
+---------------------------
+
+Determining confidence threshold using Spy Documents and I-EM
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.06259816  0.93740184]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 228.0 / 4178 ( 5.45715653423 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.1139223  0.8860777]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 251.0 / 4178 ( 6.00765916707 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.11949047  0.88050953]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 266.0 / 4178 ( 6.36668262326 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.12246652  0.87753348]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 276.0 / 4178 ( 6.60603159406 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.12453651  0.87546349]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 277.0 / 4178 ( 6.62996649114 %)
+
+Iteration # 6
+Building new model using probabilistic labels
+Class distribution: [ 0.12477725  0.87522275]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 279.0 / 4178 ( 6.6778362853 %)
+
+Iteration # 7
+Building new model using probabilistic labels
+Class distribution: [ 0.12542701  0.87457299]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 281.0 / 4178 ( 6.72570607946 %)
+
+Iteration # 8
+Building new model using probabilistic labels
+Class distribution: [ 0.12572035  0.87427965]
+Computing attribute probabilities for 41880 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 281.0 / 4178 ( 6.72570607946 %)
+
+Returning final model after 8 iterations
+Threshold given noise level: 2.23017622664e-14
+Unlabelled docs below threshold: 2323 of 4147 
+
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 3855
+Iteration # 2
+Reliable negative examples: 3869
+Iteration # 3
+Reliable negative examples: 3871
+Iterative SVM converged. Reliable negative examples: 3871
+Ratio of positive examples misclassified as negative by initial SVM: 0.0
+Ratio of positive examples misclassified as negative by final SVM: 0.0
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 0 0 0 0 0 0 0 0]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.93      0.97      4147
+        1.0       0.53      1.00      0.69       310
+
+avg / total       0.97      0.94      0.95      4457
+
+
+
+---------------------------
+Training Biased-SVM
+---------------------------
+
+There are 24 parameter combinations to be evaluated.
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 10000
+
+(3.0600924645655452, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 10})
+(5.9770441144010338, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 10})
+(2.5375591209630364, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 10})
+(1.0577075098814228, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 10})
+(1.0144048521607278, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 10})
+(1.0082893745290129, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 10})
+(3.093999306278183, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 100})
+(4.8415359514908598, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 100})
+(5.7326005896635452, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 100})
+(6.0004835030849604, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 100})
+(6.0415861453842723, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 100})
+(6.118838628063088, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 100})
+(3.093999306278183, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 1000})
+(3.9167991217939186, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 1000})
+(3.9098380707231133, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 1000})
+(3.8691105908197474, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 1000})
+(4.0643899977927029, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 1000})
+(4.0612495748428179, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 1000})
+(3.093999306278183, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 10000})
+(3.7144806888959265, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 10000})
+(3.7144806888959265, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 10000})
+(3.7552991580046728, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 10000})
+(3.8742252182961585, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 10000})
+(4.0373327904206064, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 10000})
+
+Best model has parameters {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 100} and PU-score 6.11883862806
+Building final classifier
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 100
+
+
+-----------------------------------------------------------------------------
+EVALUATION ON VALIDATION SET
+-----------------------------------------------------------------------------
+
+---------------------------
+Dummy:
+             precision    recall  f1-score   support
+/usr/local/lib/python3.6/site-packages/sklearn/metrics/classification.py:1113: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+
+  'precision', 'predicted', average, warn_for)
+          0       0.87      1.00      0.93       966
+          1       0.00      0.00      0.00       150
+
+avg / total       0.75      0.87      0.80      1116
+
+---------------------------
+One-Class SVM:
+             precision    recall  f1-score   support
+
+         -1       0.97      0.81      0.88       966
+          1       0.41      0.85      0.55       150
+
+avg / total       0.90      0.81      0.84      1116
+
+---------------------------
+Roc-SVM:
+             precision    recall  f1-score   support
+
+          0       0.99      0.99      0.99       966
+          1       0.93      0.91      0.92       150
+
+avg / total       0.98      0.98      0.98      1116
+
+---------------------------
+CR-SVM:
+             precision    recall  f1-score   support
+
+          0       0.99      0.99      0.99       966
+          1       0.93      0.91      0.92       150
+
+avg / total       0.98      0.98      0.98      1116
+
+---------------------------
+I-EM:
+             precision    recall  f1-score   support
+
+          0       0.99      0.96      0.98       966
+          1       0.80      0.97      0.88       150
+
+avg / total       0.97      0.96      0.96      1116
+
+---------------------------
+S-EM:
+             precision    recall  f1-score   support
+
+          0       0.99      0.99      0.99       966
+          1       0.92      0.95      0.94       150
+
+avg / total       0.98      0.98      0.98      1116
+
+---------------------------
+Roc-EM:
+             precision    recall  f1-score   support
+
+          0       0.99      0.99      0.99       966
+          1       0.94      0.93      0.94       150
+
+avg / total       0.98      0.98      0.98      1116
+
+---------------------------
+Spy-SVM:
+             precision    recall  f1-score   support
+
+          0       0.99      1.00      0.99       966
+          1       0.98      0.91      0.94       150
+
+avg / total       0.99      0.99      0.99      1116
+
+---------------------------
+Biased-SVM:
+             precision    recall  f1-score   support
+
+          0       0.98      0.99      0.98       966
+          1       0.92      0.87      0.89       150
+
+avg / total       0.97      0.97      0.97      1116
+
+---------------------------
+---------------------------
+UCI CORPUS
+---------------------------
+---------------------------
+
+Parameters for training data:
+ 50.0 % of positive documents are hidden in unlabelled set U.
+ 2.0 % of P is actually negative, to simulate noise.
+
+P: 259 , U: 947
+
+
+---------------------------
+Training dummy classifier
+---------------------------
+
+
+
+---------------------------
+Training one-class SVM
+---------------------------
+
+Building for evaluation
+*
+optimization finished, #iter = 0
+obj = 8383.519604, rho = 129.474926
+nSV = 130, nBSV = 129
+[LibSVM]
+
+---------------------------
+Training roc-SVM classifier
+---------------------------
+
+Determining RN using Rocchio method
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 866 ( 91.44667370644139 %)
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iterative SVM converged. Reliable negative examples: 866
+Ratio of positive examples misclassified as negative by initial SVM: 0.0
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 0 1 0 0 0 0 0 1]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.90      0.95       947
+        1.0       0.74      1.00      0.85       259
+
+avg / total       0.94      0.92      0.93      1206
+
+
+
+---------------------------
+Training CR_SVM classifier
+---------------------------
+
+Determining RN using Cosine Similarity threshold and Rocchio
+
+Computing ranking (cosine similarity to mean positive example)
+Choosing Potential Negative examples with ranking threshold
+Threshold given noise level: 0.115086301627
+Unlabelled docs below threshold: 158 of 947 
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 209 ( 22.069693769799365 %)
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 301
+Iteration # 2
+Reliable negative examples: 404
+Iteration # 3
+Reliable negative examples: 490
+Iteration # 4
+Reliable negative examples: 593
+Iteration # 5
+Reliable negative examples: 699
+Iteration # 6
+Reliable negative examples: 754
+Iteration # 7
+Reliable negative examples: 787
+Iteration # 8
+Reliable negative examples: 797
+Iteration # 9
+Reliable negative examples: 799
+Iterative SVM converged. Reliable negative examples: 799
+Ratio of positive examples misclassified as negative by initial SVM: 0.0888030888031
+Ratio of positive examples misclassified as negative by final SVM: 0.0
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 1 1 0 0 0 0 0 1]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.81      0.90       947
+        1.0       0.59      1.00      0.74       259
+
+avg / total       0.91      0.85      0.86      1206
+
+
+
+---------------------------
+Training I-EM classifier
+---------------------------
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.40030912  0.59969088]
+Computing attribute probabilities for 12136 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 33.0 / 388 ( 8.50515463918 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.45074546  0.54925454]
+Computing attribute probabilities for 12136 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 36.0 / 388 ( 9.27835051546 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.45585724  0.54414276]
+Computing attribute probabilities for 12136 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 36.0 / 388 ( 9.27835051546 %)
+
+Returning final model after 3 iterations
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 0.  0.  1.  0.  0.  0.  0.  0.  0.  0.]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.91      0.95       388
+        1.0       0.88      1.00      0.94       259
+
+avg / total       0.95      0.94      0.94       647
+
+
+
+---------------------------
+Training S-EM classifier
+---------------------------
+
+Determining confidence threshold using Spy Documents and I-EM
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.19402985  0.80597015]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 80.0 / 972 ( 8.2304526749 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.26184434  0.73815566]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 88.0 / 972 ( 9.05349794239 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.26737283  0.73262717]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 92.0 / 972 ( 9.46502057613 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.26985599  0.73014401]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 92.0 / 972 ( 9.46502057613 %)
+
+Returning final model after 4 iterations
+Threshold given noise level: 3.57844023398e-33
+Unlabelled docs below threshold: 138 of 947 
+
+
+Iterating I-EM with P, U-RN, and RN
+
+Building classifier from Positive and Reliable Negative set
+Class distribution: [ 0.6  0.4]
+Computing attribute probabilities for 8631 attributes
+
+Calculating initial probabilistic labels for Reliable Negative and Unlabelled set
+
+Iterating EM algorithm on P, RN and U
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.6376199  0.3623801]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 509.0 / 947 ( 53.7486800422 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.63598766  0.36401234]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 509.0 / 947 ( 53.7486800422 %)
+
+Delta_i: 0
+Returning final model after 2 iterations
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 0.  0.  1.  1.  1.  1.  0.  0.  1.  1.]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.46      0.63       947
+        1.0       0.34      1.00      0.50       259
+
+avg / total       0.86      0.58      0.60      1206
+
+
+
+---------------------------
+Training Roc-EM classifier
+---------------------------
+
+Determining RN using Rocchio method
+
+Building Rocchio model to determine Reliable Negative examples
+Reliable Negative examples in U: 866 ( 91.44667370644139 %)
+
+Iterating I-EM with P, U-RN, and RN
+
+Building classifier from Positive and Reliable Negative set
+Class distribution: [ 0.23022222  0.76977778]
+Computing attribute probabilities for 17677 attributes
+
+Calculating initial probabilistic labels for Reliable Negative and Unlabelled set
+
+Iterating EM algorithm on P, RN and U
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.29286807  0.70713193]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 96.0 / 947 ( 10.1372756072 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.29489317  0.70510683]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 98.0 / 947 ( 10.348468849 %)
+
+Delta_i: 2
+Approximated error has grown since last iteration.
+Aborting and returning classifier # 1
+Classification Report:
+
+[ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.] [ 0.  0.  0.  1.  0.  0.  0.  0.  0.  1.]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.90      0.95       947
+        1.0       0.73      1.00      0.84       259
+
+avg / total       0.94      0.92      0.92      1206
+
+
+
+---------------------------
+Training Spy-SVM classifier
+---------------------------
+
+Determining confidence threshold using Spy Documents and I-EM
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.19402985  0.80597015]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 80.0 / 972 ( 8.2304526749 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.26118469  0.73881531]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 87.0 / 972 ( 8.95061728395 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.26666748  0.73333252]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 92.0 / 972 ( 9.46502057613 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.27073198  0.72926802]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 93.0 / 972 ( 9.56790123457 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.27116658  0.72883342]
+Computing attribute probabilities for 17785 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 93.0 / 972 ( 9.56790123457 %)
+
+Returning final model after 5 iterations
+Threshold given noise level: 2.66796651543e-28
+Unlabelled docs below threshold: 237 of 947 
+
+
+Iterating SVM with P, U-RN, and RN
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 526
+Iteration # 2
+Reliable negative examples: 694
+Iteration # 3
+Reliable negative examples: 742
+Iteration # 4
+Reliable negative examples: 756
+Iteration # 5
+Reliable negative examples: 760
+Iteration # 6
+Reliable negative examples: 762
+Iterative SVM converged. Reliable negative examples: 762
+Ratio of positive examples misclassified as negative by initial SVM: 0.0
+Ratio of positive examples misclassified as negative by final SVM: 0.0
+Returning final classifier
+Classification Report:
+
+[1 1 1 1 1 1 1 1 1 1] [0 0 1 1 0 0 0 0 0 1]
+             precision    recall  f1-score   support
+
+        0.0       1.00      0.80      0.89       947
+        1.0       0.58      1.00      0.74       259
+
+avg / total       0.91      0.85      0.86      1206
+
+
+
+---------------------------
+Training Biased-SVM
+---------------------------
+
+There are 24 parameter combinations to be evaluated.
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 10
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 100
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.5 	C- := 0.5 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.9987531172069826 	C- := 0.0012468827930174563 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 1000
+Building biased-SVM with normalized weights. C+ := 0.995049504950495 	C- := 0.0049504950495049506 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.999001996007984 	C- := 0.000998003992015968 	C := 10000
+Building biased-SVM with normalized weights. C+ := 0.9983388704318937 	C- := 0.0016611295681063123 	C := 10000
+
+(0.48952169625246544, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 10})
+(0, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 10})
+(0, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 10})
+(0, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 10})
+(0, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 10})
+(0, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 10})
+(0.47864343633574402, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 100})
+(0.85235277542969856, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 100})
+(1.3673159105851416, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 100})
+(1.1301979948453285, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 100})
+(1.0139664804469275, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 100})
+(0, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 100})
+(0.46823814424148869, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 1000})
+(0.63125246548323477, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 1000})
+(0.67386007657500879, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 1000})
+(0.67386007657500879, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 1000})
+(0.67386007657500879, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 1000})
+(0.76100628930817604, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 1000})
+(0.46823814424148869, {'C_pos': 0.5, 'C_neg': 0.5, 'C': 10000})
+(0.63125246548323477, {'C_pos': 0.995049504950495, 'C_neg': 0.0049504950495049506, 'C': 10000})
+(0.63125246548323477, {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 10000})
+(0.63125246548323477, {'C_pos': 0.9983388704318937, 'C_neg': 0.0016611295681063123, 'C': 10000})
+(0.63125246548323477, {'C_pos': 0.9987531172069826, 'C_neg': 0.0012468827930174563, 'C': 10000})
+(0.63125246548323477, {'C_pos': 0.999001996007984, 'C_neg': 0.000998003992015968, 'C': 10000})
+
+Best model has parameters {'C_pos': 0.9975124378109452, 'C_neg': 0.0024875621890547263, 'C': 100} and PU-score 1.36731591059
+Building final classifier
+Building biased-SVM with normalized weights. C+ := 0.9975124378109452 	C- := 0.0024875621890547263 	C := 100
+
+
+-----------------------------------------------------------------------------
+EVALUATION ON VALIDATION SET
+-----------------------------------------------------------------------------
+
+---------------------------
+Dummy:
+             precision    recall  f1-score   support
+
+          0       0.59      1.00      0.74       177
+          1       1.00      0.01      0.02       125
+
+avg / total       0.76      0.59      0.44       302
+
+---------------------------
+One-Class SVM:
+             precision    recall  f1-score   support
+
+         -1       0.55      0.03      0.06       177
+          1       0.41      0.96      0.58       125
+
+avg / total       0.49      0.42      0.28       302
+
+---------------------------
+Roc-SVM:
+             precision    recall  f1-score   support
+
+          0       0.70      0.97      0.81       177
+          1       0.90      0.42      0.58       125
+
+avg / total       0.78      0.74      0.72       302
+
+---------------------------
+CR-SVM:
+             precision    recall  f1-score   support
+
+          0       0.73      0.89      0.81       177
+          1       0.78      0.54      0.64       125
+
+avg / total       0.75      0.75      0.74       302
+
+---------------------------
+I-EM:
+             precision    recall  f1-score   support
+
+          0       0.74      0.72      0.73       177
+          1       0.62      0.64      0.63       125
+
+avg / total       0.69      0.69      0.69       302
+
+---------------------------
+S-EM:
+             precision    recall  f1-score   support
+
+          0       0.78      0.41      0.54       177
+          1       0.50      0.83      0.62       125
+
+avg / total       0.66      0.59      0.57       302
+
+---------------------------
+Roc-EM:
+             precision    recall  f1-score   support
+
+          0       0.70      0.92      0.79       177
+          1       0.79      0.45      0.57       125
+
+avg / total       0.74      0.72      0.70       302
+
+---------------------------
+Spy-SVM:
+             precision    recall  f1-score   support
+
+          0       0.76      0.91      0.83       177
+          1       0.82      0.58      0.68       125
+
+avg / total       0.78      0.77      0.77       302
+
+---------------------------
+Biased-SVM:
+             precision    recall  f1-score   support
+
+          0       0.77      0.86      0.81       177
+          1       0.77      0.63      0.69       125
+
+avg / total       0.77      0.77      0.76       302
+
+
+Process finished with exit code 0
