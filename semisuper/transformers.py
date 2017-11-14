@@ -170,9 +170,8 @@ def prenormalize(text):
 
 prenormalize_dict = [
     # replace ":" or whitespace after section headlines with dots so they will become separate sentences
-    #  TODO check if this is better or worse
-    (re.compile("(AIMS?|BACKGROUNDS?|METHODS?|RESULTS?|CONCLUSIONS?|PATIENTS?|FINDINGS?|FUNDINGS?)"
-                "(:)"), r"\1. "),
+    # TODO check if this is better or worse (isolate headlines)
+    # (re.compile("(AIMS?|BACKGROUNDS?|METHODS?|RESULTS?|CONCLUSIONS?|PATIENTS?|FINDINGS?|FUNDINGS?)" "(:)"), r"\1. "),
 
     # usual abbreviations
     # TODO consider lookahead: (?=[a-z0-9]) (was not useful until now)

@@ -20,8 +20,8 @@ print("PIBOSO sentences:", len(piboso_other))
 P = civic # + hocpos
 U = abstracts # + hocneg
 
-P = random.sample(P, 2000)
-U = random.sample(U, 2000)
+# P = random.sample(P, 4000)
+# U = random.sample(U, 4000)
 
 # ------------------
 # SPY-SVM Test
@@ -80,19 +80,19 @@ print("\n\n"
       "------------\n")
 
 start_time = time.time()
-rocem = pu_two_step.roc_EM(P, U, max_neg_ratio=0.1, text=True)
+rocem = pu_two_step.roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, text=True, clf_selection=True)
 print("\nTraining ROC-EM took %s seconds\n" % (time.time() - start_time))
 
 
 def sort_roc_em(sentences):
     return sorted(zip(rocem.predict_proba(sentences),
                       sentences),
-                  key=lambda x: x[0][1],
+                  key=lambda x: x[0],
                   reverse=True)
 
 
 def top_bot_12_roc_em(predictions, name):
-    print("\nroc-em", name, "prediction", sum([1 for x in predictions if x[0][1] > 0.5]), "/",
+    print("\nroc-em", name, "prediction", sum([1 for x in predictions if x[0] > 0.5]), "/",
           num_rows(predictions))
     print(name, "top-12")
     [print(x) for x in (predictions[0:12])]

@@ -35,12 +35,6 @@ def prepare_corpus(data_tuple):
 def train_test_all_clfs(data_tuple):
     P, U, X, y, X_test, y_test, P_test, y_P_test, N_test, y_N_test = data_tuple
 
-    # Move down!
-    print("\n\n---------------------------")
-    print("Training CR_SVM classifier")
-    print("---------------------------\n")
-    cr_svm = pu_two_step.cr_SVM(P, U, noise_lvl=0.4)
-
     print("\n\n---------------------------")
     print("Training dummy classifier")
     print("---------------------------\n")
@@ -56,7 +50,10 @@ def train_test_all_clfs(data_tuple):
     print("---------------------------\n")
     roc_svm = pu_two_step.roc_SVM(P, U)
 
-    # CR-Roc here!
+    print("\n\n---------------------------")
+    print("Training CR_SVM classifier")
+    print("---------------------------\n")
+    cr_svm = pu_two_step.cr_SVM(P, U, noise_lvl=0.4)
 
     print("\n\n---------------------------")
     print("Training I-EM classifier")
@@ -69,13 +66,19 @@ def train_test_all_clfs(data_tuple):
     s_em = pu_two_step.s_EM(P, U)
 
     print("\n\n---------------------------")
+    print("Training Roc-EM classifier")
+    print("---------------------------\n")
+    roc_em = pu_two_step.roc_EM(P, U)
+
+    print("\n\n---------------------------")
+    print("Training Spy-SVM classifier")
+    print("---------------------------\n")
+    spy_svm = pu_two_step.spy_SVM(P, U)
+
+    print("\n\n---------------------------")
     print("Training Biased-SVM")
     print("---------------------------\n")
-    biased_svm = pu_biased_svm.biased_SVM_weight_selection(P, U,
-                                                           # Cs=[10 ** x for x in range(-4, 5, 4)],
-                                                           Cs_neg=arange(0.01, 0.63, 0.32),
-                                                           Cs_pos_factors=range(1, 2200, 200),
-                                                           text=True)
+    biased_svm = pu_biased_svm.biased_SVM_weight_selection(P, U, text=True)
 
     print("\n\n-----------------------------------------------------------------------------")
     print("EVALUATION ON VALIDATION SET")
@@ -104,6 +107,14 @@ def train_test_all_clfs(data_tuple):
     print("---------------------------")
     print("S-EM:")
     print(clsr(y_test, s_em.predict(X_test)))
+
+    print("---------------------------")
+    print("Roc-EM:")
+    print(clsr(y_test, roc_em.predict(X_test)))
+
+    print("---------------------------")
+    print("Spy-SVM:")
+    print(clsr(y_test, spy_svm.predict(X_test)))
 
     print("---------------------------")
     print("Biased-SVM:")

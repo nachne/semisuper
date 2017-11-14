@@ -23,6 +23,7 @@ def build_proba_MNB(X, y, verbose=True, text=True):
     if text:
         model = Pipeline([
             ('preprocessor', BasicPreprocessor()),
+            # TODO ngrams back to 3
             ('vectorizer', CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 2))),
             ('classifier', clf)
         ])
