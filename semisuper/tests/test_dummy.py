@@ -1,6 +1,8 @@
 from semisuper import transformers, basic_pipeline, loaders
+from sklearn.linear_model import SGDClassifier
 import random
 import pandas as pd
+import sys
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 
@@ -30,12 +32,14 @@ print("\n\n"
       "----------------------------------\n")
 
 # comment out for quick testing of existing model
-model = basic_pipeline.build_classifier(X, y)  # , outpath="./dummy_clf.pickle")
+model = basic_pipeline.build_classifier(X, y, classifier=SGDClassifier,
+                                        words=True, chars=True, chargram_range=(1,3))
 
 print("Most informative features per class:")
 print(basic_pipeline.show_most_informative_features(model))
 
 # ----------------------------------------------------------------
+sys.exit(0)
 
 # unpickle classifier
 # with open('../pickles/dummy_clf.pickle', 'rb') as f:

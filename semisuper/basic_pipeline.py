@@ -15,7 +15,7 @@ import pickle
 
 def build_classifier(X, y, classifier=None, outpath=None, verbose=False,
                      words=True, wordgram_range=(1, 3),
-                     chars=True, chargram_range=(1, 2),
+                     chars=True, chargram_range=(2, 4),
                      binary=False):
     def build(classifier, X, y=None):
         """
@@ -34,18 +34,20 @@ def build_classifier(X, y, classifier=None, outpath=None, verbose=False,
                     n_jobs=3,
                     transformer_list=[
                         ("wordgrams", None if not words else
-                        Pipeline([
+                        FeatureNamePipeline([
                             ("preprocessor", TokenizePreprocessor()),
                             ("word_tfidf", TfidfVectorizer(
-                                    min_df=20,
+                                    analyzer='word',
+                                    # min_df=5, # TODO find reasonable value (5 <= n << 50)
                                     tokenizer=identity, preprocessor=None, lowercase=False,
                                     ngram_range=wordgram_range,
                                     binary=binary, norm='l2' if not binary else None, use_idf=not binary))
                         ])),
                         ("chargrams", None if not chars else
-                        Pipeline([
+                        FeatureNamePipeline([
                             ("char_tfidf", TfidfVectorizer(
-                                    min_df=20,
+                                    analyzer='char',
+                                    # min_df=5,
                                     preprocessor=None, lowercase=False,
                                     ngram_range=chargram_range,
                                     binary=binary, norm='l2' if not binary else None, use_idf=not binary))
@@ -94,7 +96,7 @@ def show_most_informative_features(model: object, text: object = None, n: object
     Note that this function will only work on linear models with coefs_
     """
     # Extract the vectorizer and the classifier from the pipeline
-    vectorizer = model.named_steps['vectorizer']
+    features = model.named_steps['features']
     classifier = model.named_steps['classifier']
 
     # Check to make sure that we can perform this computation
@@ -114,7 +116,7 @@ def show_most_informative_features(model: object, text: object = None, n: object
 
     # Zip the feature names with the coefs and sort
     coefs = sorted(
-            zip(tvec[0], vectorizer.get_feature_names()),
+            zip(tvec[0], features.get_feature_names()),
             key=itemgetter(0), reverse=True
     )
 

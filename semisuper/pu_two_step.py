@@ -17,6 +17,8 @@ from semisuper.basic_pipeline import build_classifier, show_most_informative_fea
 # COMPLETE 2-STEP METHODS
 # ----------------------------------------------------------------
 
+# TODO add Pipeline parameters everywhere (OR set defaults...)
+
 def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.2, alpha=16, beta=4, outpath=None):
     """Two-Step technique based on Cosine Similarity, Rocchio and SVM
 
