@@ -8,6 +8,7 @@ from multiprocessing import Pool, cpu_count
 from functools import partial
 from semisuper.helpers import identity, num_rows, pu_measure
 from semisuper.transformers import TokenizePreprocessor, FeatureNamePipeline, TextStats
+from semisuper.basic_pipeline import build_classifier
 
 
 def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None, kernel='linear',
@@ -74,44 +75,26 @@ def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear'):
 # BIASED SVM BUILDERS AND CLASSES
 # ----------------------------------------------------------------
 
-def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=False, verbose=True):
+def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=False,
+            words=True, wordgram_range=(1, 3), chars=True, chargram_range=(1, 3), binary=False):
     """build biased-SVM classifier (weighting false positives and false negatives differently)
 
     C_pos is the weight for positive class, or penalty for false negative errors; C_neg analogously.
     C controls how hard the margin is in general."""
 
-    def build(X, y):
-        """
-        Inner build function that builds a single model.
-        """
 
-        class_weight = {1.0: C_pos / (C_pos + C_neg), 0.0: C_neg / (C_pos + C_neg)}  # normalizing version
-        # print("Building biased-SVM with normalized weights. "
-        #       "C+ :=", C_pos / (C_pos + C_neg), "\tC- :=", C_neg / (C_pos + C_neg),  "\tC :=", C)
+    class_weight = {1.0: C_pos / (C_pos + C_neg), 0.0: C_neg / (C_pos + C_neg)}  # normalizing version
+    # print("Building biased-SVM with normalized weights. "
+    #       "C+ :=", C_pos / (C_pos + C_neg), "\tC- :=", C_neg / (C_pos + C_neg),  "\tC :=", C)
 
-        clf = BiasedSVM(C=C, class_weight=class_weight, kernel=kernel, probability=probability)
+    clf = BiasedSVM(C=C, class_weight=class_weight, kernel=kernel, probability=probability)
 
-        model = Pipeline([
-            # ('preprocessor', TokenizePreprocessor()),
-            ('vectorizer', FeatureUnion(transformer_list=[
-                ("words", TfidfVectorizer(
-                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3), analyzer='char')
-                 ),
-                ("stats", FeatureNamePipeline([
-                    ("stats", TextStats()),
-                    ("vect", DictVectorizer())
-                ]))
-            ]
-            )),
-            ('classifier', clf)
-        ])
+    model = build_classifier(X, y, classifier=clf,
+                             words=words, wordgram_range=wordgram_range,
+                             chars=chars, chargram_range=chargram_range, binary=binary)
 
-        model.fit(X, y)
-        model.get_class_weights = clf.get_class_weights
 
-        return model
-
-    model = build(X, y)
+    model.get_class_weights = clf.get_class_weights
 
     return model
 

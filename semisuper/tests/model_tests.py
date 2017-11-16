@@ -4,10 +4,10 @@ import random
 import pandas as pd
 import time
 
-civic, abstracts = loaders.sentences_civic_abstracts()[:]
-hocpos, hocneg = loaders.sentences_HoC()[:]
-piboso_other = loaders.sentences_piboso_other()[:]
-piboso_outcome = loaders.sentences_piboso_outcome()[:]
+civic, abstracts = loaders.sentences_civic_abstracts()
+hocpos, hocneg = loaders.sentences_HoC()
+piboso_other = loaders.sentences_piboso_other()
+piboso_outcome = loaders.sentences_piboso_outcome()
 
 print("CIViC sentences:", len(civic))
 print("Abstract sentences:", len(abstracts))
@@ -19,8 +19,8 @@ print("PIBOSO other sentences:", len(piboso_other))
 P = civic  # + hocpos
 U = abstracts  # + hocneg
 
-P = random.sample(P, 1000)
-U = random.sample(U, 1000)
+# P = random.sample(P, 400)
+# U = random.sample(U, 400)
 
 
 # ------------------
@@ -30,8 +30,8 @@ U = random.sample(U, 1000)
 def test_all():
     test_i_em(P, U)
     test_s_em(P, U)
-    test_roc_svm(P, U)
     test_cr_svm(P, U)
+    test_roc_svm(P, U)
     test_roc_em(P, U)
     test_spy_svm(P, U)
     test_biased_svm(P, U)
@@ -45,7 +45,7 @@ def test_s_em(P, U):
 
     start_time = time.time()
 
-    model = pu_two_step.s_EM(P, U, spy_ratio=0.15, tolerance=0.15, noise_lvl=0.2)
+    model = pu_two_step.s_EM(P, U, spy_ratio=0.15, tolerance=0.15, noise_lvl=0.1)
     print("\nTraining S-EM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "S-EM")
@@ -60,7 +60,7 @@ def test_i_em(P, U):
 
     start_time = time.time()
 
-    model = pu_two_step.i_EM(P, U, max_pos_ratio=0.5, max_imbalance=1.0, tolerance=0.15)
+    model = pu_two_step.i_EM(P, U, max_pos_ratio=0.5, max_imbalance=100.0, tolerance=0.15)
     print("\nTraining I-EM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "I-EM")
@@ -145,6 +145,7 @@ def test_biased_svm(P, U):
 # ------------------
 
 def print_sentences(model, modelname=""):
+    return
     print("\n\n"
           "----------------\n"
           "{} SENTENCES\n"

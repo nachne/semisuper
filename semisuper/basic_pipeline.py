@@ -5,6 +5,7 @@ from sklearn import svm, naive_bayes
 from sklearn.metrics import classification_report as clsr
 from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
 from sklearn.feature_extraction import DictVectorizer
+from sklearn.decomposition import TruncatedSVD
 from sklearn.model_selection import train_test_split as tts
 from operator import itemgetter
 from semisuper.helpers import identity
@@ -12,39 +13,54 @@ from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNameP
 import pickle
 
 
-def build_classifier(X, y, classifier=None, outpath=None, verbose=False):
+def build_classifier(X, y, classifier=None, outpath=None, verbose=False,
+                     words=True, wordgram_range=(1, 3),
+                     chars=True, chargram_range=(1, 2),
+                     binary=False):
     def build(classifier, X, y=None):
         """
         Inner build function that builds a single model.
         """
 
         if not classifier:
-            classifier = naive_bayes.MultinomialNB(alpha=0.1, class_prior=None, fit_prior=True)
-
-        if isinstance(classifier, type):
-            classifier = classifier()
+            clf = naive_bayes.MultinomialNB(alpha=0.1, class_prior=None, fit_prior=True)
+        elif isinstance(classifier, type):
+            clf = classifier()
+        else:
+            clf = classifier
 
         model = Pipeline([
-            # ('preprocessor', TokenizePreprocessor()),
-            ('vectorizer', FeatureUnion(transformer_list=[
-                ("words", TfidfVectorizer(
-                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3), analyzer='char')
-                 ),
-                ("stats", FeatureNamePipeline([
-                    ("stats", TextStats()),
-                    ("vect", DictVectorizer())
-                ]))
-            ]
-            )),
-            ('classifier', classifier)
+            ('features', FeatureUnion(
+                    n_jobs=3,
+                    transformer_list=[
+                        ("wordgrams", None if not words else
+                        Pipeline([
+                            ("preprocessor", TokenizePreprocessor()),
+                            ("word_tfidf", TfidfVectorizer(
+                                    min_df=20,
+                                    tokenizer=identity, preprocessor=None, lowercase=False,
+                                    ngram_range=wordgram_range,
+                                    binary=binary, norm='l2' if not binary else None, use_idf=not binary))
+                        ])),
+                        ("chargrams", None if not chars else
+                        Pipeline([
+                            ("char_tfidf", TfidfVectorizer(
+                                    min_df=20,
+                                    preprocessor=None, lowercase=False,
+                                    ngram_range=chargram_range,
+                                    binary=binary, norm='l2' if not binary else None, use_idf=not binary))
+                        ])),
+                        ("stats", None if binary else
+                        FeatureNamePipeline([
+                            ("stats", TextStats()),
+                            ("vect", DictVectorizer())
+                        ]))
+                    ])),
+            ('classifier', clf)
         ])
 
         model.fit(X, y)
         return model
-
-    # Label encode the targets
-    labels = LabelEncoder()
-    y = labels.fit_transform(y)
 
     # Begin evaluation
     if verbose:
@@ -55,12 +71,11 @@ def build_classifier(X, y, classifier=None, outpath=None, verbose=False):
         print("Classification Report:\n")
 
         y_pred = model.predict(X_test)
-        print(clsr(y_test, y_pred, target_names=labels.classes_))
+        print(clsr(y_test, y_pred))
 
     if verbose:
         print("Building complete model and saving ...")
     model = build(classifier, X, y)
-    model.labels_ = labels
 
     if outpath:
         with open(outpath, 'wb') as f:

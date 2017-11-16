@@ -226,6 +226,7 @@ class TextStats(BaseEstimator, TransformerMixin):
 
 
 
+# TODO steal from Jurica
 def prepareTrainTest(self, ngramRange, trainData, testData, trainLabels, max_df_freq, analyzerLevel='char',
                          featureSelect=False, vocab=None):
 

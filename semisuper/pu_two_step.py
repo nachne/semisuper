@@ -259,8 +259,7 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, clf_selection=Tr
 
     print("\nBuilding classifier from Positive and Reliable Negative set")
     initial_model = build_proba_MNB(np.concatenate((P_init, RN)),
-                                    [1] * num_rows(P_init) + [0] * num_rows(RN),
-                                    verbose=False)
+                                    [1] * num_rows(P_init) + [0] * num_rows(RN))
 
     y_P = np.array([1] * num_rows(P))
 
@@ -284,9 +283,9 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, clf_
         iterate NB classifier with updated labels for unlabelled set (with optional initial labels) until convergence"""
 
     if y_P is None:
-        y_P = np.array([1.] * num_rows(P))
+        y_P = ([1.] * num_rows(P))
     if ypU is None:
-        ypU = np.array([0.] * num_rows(U))
+        ypU = ([0.] * num_rows(U))
 
     ypU_old = [-999]
 

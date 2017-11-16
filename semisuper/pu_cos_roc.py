@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split as tts
 from numpy import concatenate, ones, zeros
 from semisuper.helpers import identity, partition_pos_neg, num_rows, label2num, unsparsify
 from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
+from semisuper.basic_pipeline import build_classifier
 
 
 # ----------------------------------------------------------------
@@ -19,55 +20,38 @@ from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNameP
 
 
 # TODO: compute somewhat more meaningful threshold
-def ranking_cos_sim(X, threshold=0.1, compute_thresh=False):
+def ranking_cos_sim(X, threshold=0.1, compute_thresh=False,
+            words=True, wordgram_range=(1, 3), chars=True, chargram_range=(1, 3), binary=False):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
     predict_proba returns similarity scores.
     if X_thresh is true, uses the training vectors' similarity scores to compute a threshold.
     """
 
-    def build(X, threshold, compute_thresh):
-        model = Pipeline([
-            # ('preprocessor', TokenizePreprocessor()),
-            ('vectorizer', TfidfVectorizer(
-                    tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(3, 6), analyzer='char')
-             ),
-            # ('normalizer', Normalizer()),
-            ('classifier', SimRanker(threshold, compute_thresh))
-        ])
+    clf = SimRanker(threshold, compute_thresh)
 
-        model.fit(X)
-        return model
-
-    model = build(X, threshold, compute_thresh)
+    model = build_classifier(X, [1] * num_rows(X), classifier=clf,
+                             words=words, wordgram_range=wordgram_range,
+                             chars=chars, chargram_range=chargram_range, binary=binary)
     return model
 
 
-# TODO make unified clf builder!
-def rocchio(P, N, alpha=16, beta=4):
+def rocchio(P, N, alpha=16, beta=4,
+            words=True, wordgram_range=(1, 3), chars=True, chargram_range=(1, 3), binary=False):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
     predict_proba returns similarity scores.
     if X_thresh is true, uses the training vectors' similarity scores to compute a threshold.
     """
 
-    def build(P, N, alpha=16, beta=4):
-        model = Pipeline([
-            # ('preprocessor', TokenizePreprocessor()),
-            ('vectorizer', TfidfVectorizer(
-                    tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(3, 6), analyzer='char')
-             ),
-            # ('normalizer', Normalizer()),
-            ('classifier', BinaryRocchio(alpha, beta))
-        ])
+    clf = BinaryRocchio(alpha=alpha, beta=beta)
 
-        X = concatenate((P, N))
-        y = [1] * num_rows(P) + [0] * num_rows(N)
+    X = concatenate((P, N))
+    y = [1] * num_rows(P) + [0] * num_rows(N)
 
-        model.fit(X, y)
-        return model
-
-    model = build(P, N, alpha, beta)
+    model = build_classifier(X, y, classifier=clf,
+                             words=words, wordgram_range=wordgram_range,
+                             chars=chars, chargram_range=chargram_range, binary=binary)
     return model
 
 
