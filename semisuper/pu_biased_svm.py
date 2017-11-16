@@ -7,7 +7,7 @@ from numpy import concatenate, zeros, ones, arange
 from multiprocessing import Pool, cpu_count
 from functools import partial
 from semisuper.helpers import identity, num_rows, pu_measure
-from semisuper.transformers import BasicPreprocessor, FeatureNamePipeline, TextStats
+from semisuper.transformers import TokenizePreprocessor, FeatureNamePipeline, TextStats
 
 
 def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None, kernel='linear', text=True,
@@ -19,7 +19,7 @@ def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None,
     if Cs is None:
         Cs = [10 ** x for x in range(1, 5, 1)]
     if Cs_neg is None:
-        Cs_neg = [1] #arange(0.01, 0.63, 0.04)
+        Cs_neg = [1]  # arange(0.01, 0.63, 0.04)
     if Cs_pos_factors is None:
         Cs_pos_factors = range(1, 1100, 200)
 
@@ -85,27 +85,18 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
         Inner build function that builds a single model.
         """
 
-        # print("NON-NORMALIZED WEIGHTS")
-        # class_weight = {1.0: C_pos, 0.0: C_neg}  # non-normalizing version
-        # print("Building biased-SVM with non-normalized weights. "
-        #       "C+ :=", C_pos,
-        #       "\tC- :=", C_neg,
-        #       "\tC :=", C)
-
         class_weight = {1.0: C_pos / (C_pos + C_neg), 0.0: C_neg / (C_pos + C_neg)}  # normalizing version
-        print("Building biased-SVM with normalized weights. "
-              "C+ :=", C_pos / (C_pos + C_neg),
-              "\tC- :=", C_neg / (C_pos + C_neg),
-              "\tC :=", C)
+        # print("Building biased-SVM with normalized weights. "
+        #       "C+ :=", C_pos / (C_pos + C_neg), "\tC- :=", C_neg / (C_pos + C_neg),  "\tC :=", C)
 
         clf = BiasedSVM(C=C, class_weight=class_weight, kernel=kernel, probability=probability)
 
         if text:
             model = Pipeline([
-                ('preprocessor', BasicPreprocessor()),
+                # ('preprocessor', TokenizePreprocessor()),
                 ('vectorizer', FeatureUnion(transformer_list=[
                     ("words", TfidfVectorizer(
-                            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+                            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3), analyzer='char')
                      ),
                     ("stats", FeatureNamePipeline([
                         ("stats", TextStats()),

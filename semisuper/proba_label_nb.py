@@ -1,5 +1,5 @@
 from semisuper.helpers import num_rows, label2num, unsparsify, identity
-from semisuper.transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
+from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
@@ -20,11 +20,13 @@ def build_proba_MNB(X, y, verbose=True, text=True):
     if text is true, preprocess Text with binary encoding"""
     clf = ProbaLabelMNB(alpha=0.1)
 
+    # TODO make it work for char n-grams
     if text:
         model = Pipeline([
-            ('preprocessor', BasicPreprocessor()),
+            ('preprocessor', TokenizePreprocessor()),
             # TODO ngrams back to 3
-            ('vectorizer', CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 2))),
+            ('vectorizer',
+             CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 3), analyzer='word')),
             ('classifier', clf)
         ])
     else:
@@ -66,9 +68,9 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
         """predicts probabilistic class labels for set of docs."""
 
         with multi.Pool(multi.cpu_count()) as p:
-            probas = np.exp(p.map(self.log_proba, [x for x in X]))
+            log_probas = np.array(p.map(self.log_proba, [x for x in X]))
 
-        return probas
+        return np.exp(log_probas)
 
     def log_proba(self, x):
         """predict probabilities of a given class for one doc, using fitted class proba and word proba per class"""
@@ -80,11 +82,14 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
                       self.log_pr_c[1] + np.sum(neg_log_probs))
         denominator = logsumexp(numerators)
 
-        return numerators[0] - denominator
+        log_proba_pos = numerators[0] - denominator
+        log_proba_neg = numerators[1] - denominator
+
+        return [log_proba_neg, log_proba_pos]
 
     def predict(self, X):
         """predict class labels using probabilistic class labels"""
-        return np.round(self.predict_proba(X))
+        return np.round(self.predict_proba(X)[:,1])
 
     @staticmethod
     def proba_c(y):

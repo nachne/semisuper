@@ -41,7 +41,7 @@ print(basic_pipeline.show_most_informative_features(model))
 # with open('../pickles/dummy_clf.pickle', 'rb') as f:
 #     model = pickle.load(f)
 
-preppy = transformers.BasicPreprocessor()
+preppy = transformers.TokenizePreprocessor()
 
 lab_civ = pd.DataFrame(data={"Label" : model.predict(civic),
                              "Text"  : civic,

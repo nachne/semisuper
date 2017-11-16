@@ -1,0 +1,13 @@
+OUTCOME: PATIENTS SURVIVAL: NUM PERCENT GENE WITH PATIENTS SURVIVAL PROGRESSION
+(0, '0.146*"_num_" + 0.046*"_percent_" + 0.039*"_gene_" + 0.031*"with" + 0.027*"in" + 0.026*"and" + 0.022*"patients" + 0.022*"_ineq_" + 0.021*"survival" + 0.020*"was" + 0.019*"of" + 0.018*"p" + 0.018*"the" + 0.011*"a" + 0.011*"_abbrev_" + 0.010*"mutations" + 0.010*"were" + 0.010*"progression" + 0.010*"_range_" + 0.010*"overall"'), 
+
+FINDINGS: GENE DISEASE MUTATIONS EXPRESSION IDENTIFIED
+(1, '0.052*"_gene_" + 0.047*"of" + 0.038*"the" + 0.038*"and" + 0.035*"in" + 0.020*"_num_" + 0.017*"a" + 0.016*"_disease_" + 0.016*"mutations" + 0.011*"_abbrev_" + 0.011*"we" + 0.010*"were" + 0.010*"to" + 0.009*"by" + 0.009*"with" + 0.009*"gene" + 0.009*"was" + 0.008*"expression" + 0.007*"for" + 0.006*"identified"'), 
+
+CELLULAR PROCESSES: GENE  CHEMICAL WITH DISEASE RESISTANCE INHIBITOR
+(2, '0.063*"_gene_" + 0.038*"of" + 0.037*"in" + 0.034*"the" + 0.031*"_abbrev_" + 0.027*"to" + 0.027*"and" + 0.023*"_chemical_" + 0.017*"a" + 0.014*"with" + 0.014*"cell" + 0.013*"that" + 0.011*"is" + 0.011*"_disease_" + 0.010*"cancer" + 0.009*"cells" + 0.008*"for" + 0.007*"resistance" + 0.006*"inhibitor" + 0.006*"kinase"'), 
+
+PATIENTS' RESPONSE: CHEMICAL PATIENTS WITH RESPONSE TREATMENT DISEASE CHEMOTHERAPY
+(3, '0.063*"_num_" + 0.045*"_chemical_" + 0.044*"patients" + 0.036*"with" + 0.029*"and" + 0.028*"of" + 0.027*"the" + 0.023*"in" + 0.016*"to" + 0.016*"a" + 0.014*"were" + 0.012*"response" + 0.012*"was" + 0.012*"or" + 0.011*"treatment" + 0.010*"_disease_" + 0.009*"treated" + 0.009*"for" + 0.008*"chemotherapy" + 0.007*"study"')]
+[(0, 0.3572854999161757), (1, 0.26347793587216611), (2, 0.20065052398210328), 
+

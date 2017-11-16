@@ -4,7 +4,7 @@ from sklearn.metrics import classification_report as clsr
 from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
 from sklearn.feature_extraction import DictVectorizer
 from semisuper.helpers import identity
-from semisuper.transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
+from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
 import pickle
 
 
@@ -17,10 +17,10 @@ def one_class_svm(X, X_test=None, y_test=None, outpath=None, verbose=True,
         classifier = svm.OneClassSVM(kernel=kernel, degree=degree, verbose=verbose, shrinking=shrinking)
 
         model = Pipeline([
-            ('preprocessor', BasicPreprocessor()),
+            # ('preprocessor', TokenizePreprocessor()),
             ('vectorizer', FeatureUnion(transformer_list=[
                 ("words", TfidfVectorizer(
-                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3), analyzer='char')
                  ),
                 ("stats", FeatureNamePipeline([
                     ("stats", TextStats()),

@@ -1,0 +1,13 @@
+GENE CHEMICAL DISEASE CELL MUTATION
+(0, '0.056*"_gene_" + 0.042*"of" + 0.036*"the" + 0.036*"in" + 0.030*"and" + 0.023*"_abbrev_" + 0.022*"to" + 0.018*"a" + 0.017*"_chemical_" + 0.014*"with" + 0.013*"_disease_" + 0.010*"cell" + 0.010*"that" + 0.009*"cancer" + 0.008*"is" + 0.008*"mutations" + 0.008*"for" + 0.007*"we" + 0.006*"by" + 0.005*"cells"'), 
+
+PATIENTS WITH GENE PERCENT
+(1, '0.119*"_num_" + 0.030*"with" + 0.029*"and" + 0.028*"patients" + 0.026*"_gene_" + 0.026*"in" + 0.025*"_percent_" + 0.024*"of" + 0.022*"the" + 0.018*"was" + 0.016*"_chemical_" + 0.015*"were" + 0.012*"a" + 0.012*"_ineq_" + 0.011*"survival" + 0.010*"p" + 0.010*"to" + 0.009*"_disease_" + 0.009*"or" + 0.008*"for"')]
+[(0, 0.44380674081491273), (1, 0.55619325918508722)
+
+             precision    recall  f1-score   support
+
+          0       0.77      0.62      0.69     12605
+          1       0.37      0.55      0.44      5172
+
+avg / total       0.65      0.60      0.62     17777

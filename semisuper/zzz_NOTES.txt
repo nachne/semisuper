@@ -21,8 +21,13 @@ falsches mapping: wild-type -> _disease_
 HoC als zusätzliche Beispiele (pos/neg)
 
 
+# TODO Tokenization nur einmal pro Algorithmus, nicht pro Iteration
+
+# TODO char n-grams statt word
+# TODO concat char, word topic
 
 LIBS/TOOLS
 
 GeniaSS ist schlechter als eigenes sentence splitting
 HoC-Skripte fürs Preprocessing?
+

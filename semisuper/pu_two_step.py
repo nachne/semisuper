@@ -190,8 +190,8 @@ def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise
     model = iterate_EM(P_minus_spies, U_plus_spies, tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio,
                        clf_selection=False)
 
-    y_spies = model.predict_proba(spies)
-    y_U = model.predict_proba(U)
+    y_spies = model.predict_proba(spies)[:,1]
+    y_U = model.predict_proba(U)[:,1]
 
     U_minus_RN, RN = select_PN_below_score(y_spies, U, y_U, noise_lvl=noise_lvl)
 
@@ -271,8 +271,8 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, text=True, clf_s
     y_P = np.array([1] * num_rows(P))
 
     print("\nCalculating initial probabilistic labels for Reliable Negative and Unlabelled set")
-    ypU = initial_model.predict_proba(U)
-    ypN = initial_model.predict_proba(RN)
+    ypU = initial_model.predict_proba(U)[:,1]
+    ypN = initial_model.predict_proba(RN)[:,1]
 
     print("\nIterating EM algorithm on P, RN and U\n")
     model = iterate_EM(P, np.concatenate((RN, U)),
@@ -315,7 +315,7 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, text
 
         print("Predicting probabilities for U")
         ypU_old = ypU
-        ypU = new_model.predict_proba(U)
+        ypU = new_model.predict_proba(U)[:,1]
 
         predU = [round(p) for p in ypU]
         pos_ratio = sum(predU) / len(U)
@@ -488,7 +488,7 @@ def choose_noise_lvl(sims_P, sims_U):
 def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1):
     """given the scores of positive docs, a set of unlabelled docs, and their scores, extract potential negative set"""
 
-    y_pos_sorted = sorted(y_pos)
+    y_pos_sorted = np.sort(y_pos)
 
     # choose probability threshold such that a noise_lvl-th part of spy docs is rated lower
     threshold = y_pos_sorted[int(noise_lvl * num_rows(y_pos_sorted))]

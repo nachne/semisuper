@@ -1,6 +1,6 @@
 from semisuper import loaders
 import semisuper.transformers as transformers
-from semisuper.transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
+from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
 from semisuper.helpers import identity
 
 from sklearn.pipeline import Pipeline, FeatureUnion
@@ -29,7 +29,7 @@ abstracts_ = random.sample(abstracts, 20)
 # Pipeline
 # ----------------------------------------------------------------
 
-pp = BasicPreprocessor()
+pp = TokenizePreprocessor()
 
 pppl = Pipeline([
     ('preprocessor', pp),

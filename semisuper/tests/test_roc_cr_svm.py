@@ -20,8 +20,8 @@ print("PIBOSO sentences:", len(piboso_other))
 P = civic # + hocpos
 U = abstracts # + hocneg
 
-P = random.sample(P, 4000)
-U = random.sample(U, 8000)
+# P = random.sample(P, 4000)
+# U = random.sample(U, 8000)
 
 # ------------------
 # ROC-SVM Test
@@ -44,7 +44,7 @@ def sort_roc_svm(sentences):
 
 
 def top_bot_12_cr_svm(predictions, name):
-    print("\nroc-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > 0.5]), "/",
+    print("\nroc-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > x[0][0]]), "/",
           num_rows(predictions))
     print(name, "top-12")
     [print(x) for x in (predictions[0:12])]
@@ -62,7 +62,7 @@ hocpos_lab_sim = sort_roc_svm(hocpos)
 top_bot_12_cr_svm(hocpos_lab_sim, "HoC-pos")
 
 hocneg_lab_sim = sort_roc_svm(hocpos)
-top_bot_12_cr_svm(hocpos_lab_sim, "HoC-neg")
+top_bot_12_cr_svm(hocneg_lab_sim, "HoC-neg")
 
 oth_lab_sim = sort_roc_svm(piboso_other)
 top_bot_12_cr_svm(oth_lab_sim, "piboso-other")
@@ -92,7 +92,7 @@ def sort_cr_svm(sentences):
 
 
 def top_bot_12_cr_svm(predictions, name):
-    print("\ncr-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > 0.5]), "/",
+    print("\ncr-svm", name, "prediction", sum([1 for x in predictions if x[0][1] > x[0][0]]), "/",
           num_rows(predictions))
     print(name, "top-12")
     [print(x) for x in (predictions[0:12])]

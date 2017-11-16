@@ -37,7 +37,6 @@ def file_path(file_relative):
 # META MAP LITE
 
 def metamaplite(text):
-
     mmlitepath = file_path("../resources/programs/public_mm_lite/metamaplite.sh")
     pipe_flag = "--"
     sem_types = ["aapp",  # |T116|Amino Acid, Peptide, or Protein
@@ -141,13 +140,14 @@ def metamaplite(text):
         return text, out
 
 
-with multi.Pool(multi.cpu_count() * 4) as p:
-    mmapped = p.imap_unordered(metamaplite, civic[:120])
+def test_metamap():
+    with multi.Pool(multi.cpu_count() * 4) as p:
+        mmapped = p.imap_unordered(metamaplite, civic[:120])
 
-for m in mmapped:
-    print(m[0], "\n", m[1], "\n")
+    for m in mmapped:
+        print(m[0], "\n", m[1], "\n")
 
-print(mmapped)
+    print(mmapped)
 
 
 # ----------------------------------------------------------------
@@ -164,8 +164,7 @@ def tagtog_req(text):
     payload = {'text': text}
     response = requests.put(url, params=params, auth=auth, data=payload)
     print("text:", response, response.text)
+
+    for c in civic[1000:1010]:
+        tagtog_req(c)
     return
-
-
-for c in civic[1000:1010]:
-    tagtog_req(c)

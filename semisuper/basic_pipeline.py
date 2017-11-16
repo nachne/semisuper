@@ -8,7 +8,7 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import train_test_split as tts
 from operator import itemgetter
 from semisuper.helpers import identity
-from semisuper.transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
+from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
 import pickle
 
 
@@ -34,10 +34,10 @@ def build_classifier(X, y,
 
         if text:
             model = Pipeline([
-                ('preprocessor', BasicPreprocessor()),
+                # ('preprocessor', TokenizePreprocessor()),
                 ('vectorizer', FeatureUnion(transformer_list=[
                     ("words", TfidfVectorizer(
-                            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+                            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3), analyzer='char')
                      ),
                     ("stats", FeatureNamePipeline([
                         ("stats", TextStats()),

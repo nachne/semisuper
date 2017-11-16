@@ -1,0 +1,17 @@
+MUTATED GENES: DISEASE GENE MUTATION
+(0, '0.039*"_num_" + 0.035*"and" + 0.031*"_disease_" + 0.027*"in" + 0.022*"_gene_" + 0.021*"the" + 0.019*"a" + 0.019*"with" + 0.017*"cell" + 0.016*"was" + 0.016*"of" + 0.015*"mutation" + 0.013*"this" + 0.012*"leukemia" + 0.012*"_year_" + 0.010*"found" + 0.009*"patient" + 0.009*"family" + 0.009*"carcinoma" + 0.007*"acute"'), 
+
+CELLULAR PROCESSES: INHIBITOR RESISTANCE
+(1, '0.084*"_gene_" + 0.056*"_abbrev_" + 0.039*"in" + 0.036*"of" + 0.034*"the" + 0.033*"and" + 0.030*"to" + 0.026*"_chemical_" + 0.020*"cell" + 0.016*"cells" + 0.012*"with" + 0.012*"kinase" + 0.011*"inhibitor" + 0.010*"_disease_" + 0.010*"a" + 0.010*"lines" + 0.010*"resistance" + 0.009*"was" + 0.008*"that" + 0.008*"inhibition"'), 
+
+RESPONSE: CHEMICAL GENE PATIENT TREATMENT RESPONSE
+(2, '0.045*"with" + 0.041*"_chemical_" + 0.041*"_gene_" + 0.032*"and" + 0.029*"in" + 0.028*"patients" + 0.028*"of" + 0.024*"cancer" + 0.019*"a" + 0.017*"_disease_" + 0.016*"to" + 0.012*"the" + 0.011*"or" + 0.011*"treatment" + 0.010*"lung" + 0.009*"we" + 0.009*"for" + 0.008*"was" + 0.008*"clinical" + 0.007*"response"'), 
+
+MISC.
+(3, '0.057*"of" + 0.055*"the" + 0.043*"_gene_" + 0.036*"in" + 0.026*"and" + 0.025*"a" + 0.021*"to" + 0.018*"mutations" + 0.017*"that" + 0.015*"for" + 0.015*"is" + 0.011*"we" + 0.011*"gene" + 0.011*"_disease_" + 0.010*"are" + 0.009*"be" + 0.009*"as" + 0.008*"these" + 0.008*"_abbrev_" + 0.007*"this"'), 
+
+SURVIVAL: PROGRESSION INEQ SURVIVAL OVERALL MONTHS
+(4, '0.084*"_num_" + 0.043*"_gene_" + 0.038*"with" + 0.030*"_ineq_" + 0.028*"and" + 0.028*"survival" + 0.025*"p" + 0.021*"patients" + 0.019*"was" + 0.019*"in" + 0.016*"the" + 0.015*"_percent_" + 0.014*"progression" + 0.013*"overall" + 0.011*"of" + 0.011*"ci" + 0.010*"for" + 0.010*"months" + 0.010*"to" + 0.009*"a"'), 
+
+TEST POPULATION: PERCENT PATIENTS CHEMICAL MUTATIONS UNIT
+(5, '0.204*"_num_" + 0.049*"_percent_" + 0.039*"of" + 0.033*"in" + 0.032*"the" + 0.029*"patients" + 0.028*"and" + 0.023*"_chemical_" + 0.023*"were" + 0.017*"was" + 0.012*"with" + 0.011*"had" + 0.011*"to" + 0.010*"mutations" + 0.010*"a" + 0.009*"response" + 0.009*"at" + 0.009*"_unit_" + 0.008*"_abbrev_" + 0.008*"or"')

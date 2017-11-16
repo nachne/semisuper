@@ -10,7 +10,7 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import train_test_split as tts
 from numpy import concatenate, ones, zeros
 from semisuper.helpers import identity, partition_pos_neg, num_rows, label2num, unsparsify
-from semisuper.transformers import BasicPreprocessor, TextStats, FeatureNamePipeline
+from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
 
 
 # ----------------------------------------------------------------
@@ -29,9 +29,9 @@ def ranking_cos_sim(X, threshold=0.1, compute_thresh=False, text=True):
     def build(X, threshold, compute_thresh, text=True):
         if text:
             model = Pipeline([
-                ('preprocessor', BasicPreprocessor()),
+                ('preprocessor', TokenizePreprocessor()),
                 ('vectorizer', TfidfVectorizer(
-                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(3, 6), analyzer='char')
                  ),
                 # ('normalizer', Normalizer()),
                 ('classifier', SimRanker(threshold, compute_thresh))
@@ -48,7 +48,7 @@ def ranking_cos_sim(X, threshold=0.1, compute_thresh=False, text=True):
     model = build(X, threshold, compute_thresh, text=text)
     return model
 
-
+# TODO make unified clf builder!
 def rocchio(P, N, alpha=16, beta=4, text=True):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
@@ -59,9 +59,9 @@ def rocchio(P, N, alpha=16, beta=4, text=True):
     def build(P, N, alpha=16, beta=4, text=True):
         if text:
             model = Pipeline([
-                ('preprocessor', BasicPreprocessor()),
+                # ('preprocessor', TokenizePreprocessor()),
                 ('vectorizer', TfidfVectorizer(
-                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(3, 6), analyzer='char')
                  ),
                 # ('normalizer', Normalizer()),
                 ('classifier', BinaryRocchio(alpha, beta))
@@ -110,7 +110,8 @@ class SimRanker(BaseEstimator, ClassifierMixin):
         return [1 if s > [self.threshold] else 0 for s in sims]
 
     def predict_proba(self, X):
-        return cosine_similarity(self.mean_X, X)[0]
+        proba = cosine_similarity(self.mean_X, X)[0]
+        return proba
 
     def ranking(self, X):
         return self.predict_proba(X)

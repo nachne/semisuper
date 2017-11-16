@@ -19,8 +19,8 @@ print("PIBOSO sentences:", len(piboso_other))
 P = civic
 U = abstracts
 
-P = random.sample(civic, 4000) + random.sample(piboso_outcome, 0)
-U = random.sample(abstracts, 8000) + random.sample(P, 0)
+P = random.sample(civic, 400) + random.sample(piboso_outcome, 0)
+U = random.sample(abstracts, 800) + random.sample(P, 0)
 
 
 def file_path(file_relative):
@@ -44,10 +44,10 @@ print("\nS-EM took %s seconds\n" % (time.time() - start_time))
 def sort_s_em(sentences):
     return sorted(zip(model.predict_proba(sentences),
                       sentences),
-                  key=lambda x: x[0],
+                  key=lambda x: x[0][1],
                   reverse=True)
 def top_bot_12_s_em(predictions, name):
-    print("\nS-EM", name, "prediction", sum([1 for x in predictions if x[0] > 0.5]), "/",
+    print("\nS-EM", name, "prediction", sum([1 for x in predictions if x[0][1] > x[0][0]]), "/",
           num_rows(predictions))
     print(name, "top-12")
     [print(x) for x in (predictions[0:12])]
@@ -84,10 +84,10 @@ print("\nEM took %s seconds\n" % (time.time() - start_time))
 def sort_i_em(sentences):
     return sorted(zip(model.predict_proba(sentences),
                       sentences),
-                  key=lambda x: x[0],
+                  key=lambda x: x[0][1],
                   reverse=True)
 def top_bot_12_i_em(predictions, name):
-    print("\nI-EM", name, "prediction", sum([1 for x in predictions if x[0] > 0.5]), "/",
+    print("\nI-EM", name, "prediction", sum([1 for x in predictions if x[0][1] > x[0][0]]), "/",
           num_rows(predictions))
     print(name, "top-12")
     [print(x) for x in (predictions[0:12])]

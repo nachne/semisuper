@@ -16,8 +16,8 @@ piboso_outcome = loaders.sentences_piboso_outcome()
 
 print("PIBOSO sentences:", len(piboso_other))
 
-pos = random.sample(civic, 2000) + random.sample(piboso_outcome, 0)
-neg = random.sample(abstracts, 2000) + random.sample(piboso_other, 0)
+pos = civic # random.sample(civic, 2000) + random.sample(piboso_outcome, 0)
+neg = abstracts # random.sample(abstracts, 2000) + random.sample(piboso_other, 0)
 
 X = pos + neg
 y = ["pos"] * len(pos) + ["neg"] * len(neg)

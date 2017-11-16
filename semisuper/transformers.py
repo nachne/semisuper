@@ -2,6 +2,8 @@ import string
 import re
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_selection import chi2, SelectPercentile
 from nltk import TreebankWordTokenizer, WhitespaceTokenizer, RegexpTokenizer, wordpunct_tokenize
 import os.path
 import pickle
@@ -14,12 +16,13 @@ from semisuper.dict_matchers import HypernymMapper
 import semisuper.loaders
 
 
-class BasicPreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, punct=None, lower=True, strip=True, lemmatize=False):
+class TokenizePreprocessor(BaseEstimator, TransformerMixin):
+    def __init__(self, punct=None, lower=True, strip=True, lemmatize=False, rules=True):
         self.lower = lower
         self.strip = strip
         self.punct = punct or set(string.punctuation).difference(set('%='))
 
+        self.rules = rules
         self.lemma = lemmatize
 
         self.splitters = re.compile("-->|->|[-/.,|<>]")
@@ -73,8 +76,9 @@ class BasicPreprocessor(BaseEstimator, TransformerMixin):
 
         token = token.lower() if self.lower else token
 
-        token = self.dict_mapper.replace(token)
-        token = map_regex_concepts(token)
+        if self.rules:
+            token = self.dict_mapper.replace(token)
+            token = map_regex_concepts(token)
 
         if self.lemma:
             token = self.lemmatize(token.lower(), tag)
@@ -157,9 +161,6 @@ def sentence_tokenize(text):
 
     return sent_tokenize(prenormalize(text))
 
-
-# TODO: detect and isolate headlines?
-# TODO: switch from dict to hardcoded to capture following lower-cases?
 def prenormalize(text):
     """normalize common abbreviations and symbols known to mess with sentence boundary disambiguation"""
     for regex, repl in prenormalize_dict:
@@ -174,7 +175,7 @@ prenormalize_dict = [
     # (re.compile("(AIMS?|BACKGROUNDS?|METHODS?|RESULTS?|CONCLUSIONS?|PATIENTS?|FINDINGS?|FUNDINGS?)" "(:)"), r"\1. "),
 
     # usual abbreviations
-    # TODO consider lookahead: (?=[a-z0-9]) (was not useful until now)
+    # TODO consider lookahead: (?=[a-z0-9]) (not useful so far)
     (re.compile("\W[Ee]\.[Gg]\.\s"), " eg "),
     (re.compile("\W[Ii]\.?[Ee]\.\s"), " ie "),
     (re.compile("\W[Aa]pprox\.\s"), " approx "),
@@ -205,7 +206,6 @@ class FeatureNamePipeline(Pipeline):
         return self._final_estimator.get_feature_names()
 
 
-# TODO make piped class from this and DictVectorize
 class TextStats(BaseEstimator, TransformerMixin):
     """Extract features from tokenized document for DictVectorizer
 
@@ -225,30 +225,25 @@ class TextStats(BaseEstimator, TransformerMixin):
         return list(self.key_dict.keys())
 
 
-def PubMedSentenceTokenizer():
-    """Punkt sentence tokenizer trained on CIViC and abstracts"""
 
-    def file_path(file_relative):
-        """return the correct file path given the file's path relative to calling script"""
-        return os.path.join(os.path.dirname(__file__), file_relative)
+def prepareTrainTest(self, ngramRange, trainData, testData, trainLabels, max_df_freq, analyzerLevel='char',
+                         featureSelect=False, vocab=None):
 
-    try:
-        with open(file_path("./pickles/custom_sent_tokenizer.pickle"), "rb") as f:
-            tokenizer = pickle.load(f)
-    except IOError:
-        print("Custom sentence tokenizer:")
+        tfidfVect = TfidfVectorizer(ngram_range=ngramRange, analyzer=analyzerLevel, norm='l2', decode_error='replace',
+                                    max_df=max_df_freq, sublinear_tf=True,
+                                    lowercase=True, strip_accents='unicode', token_pattern=u'\S+[^.,!?\s]',
+                                    vocabulary=vocab)
+        transformedTrainData = tfidfVect.fit_transform(trainData)
+        transformedTestData = tfidfVect.transform(testData)
 
-        print("Loading training data")
-        civic, abstracts = semisuper.loaders.load_civic_abstracts()
-        text = " ".join(list(abstracts["abstract"]) + list(civic["evidence_statement"]))
+        # def featureSelection(self, trainData, trainLabels, testData):
+        ch2 = None
+        if featureSelect:
+            print()
+            "Selecting best features"
+            ch2 = SelectPercentile(chi2, 20)
+            transformedTrainData = ch2.fit_transform(transformedTrainData, trainLabels)
+            transformedTestData = ch2.transform(transformedTestData)
 
-        print("Training")
-        tokenizer = PunktSentenceTokenizer()
-        tokenizer.train(text)
-
-        print("Saving tokenizer for future use")
-
-        with open(file_path("./pickles/custom_sent_tokenizer.pickle"), "wb") as f:
-            pickle.dump(tokenizer, f)
-
-    return tokenizer
+        # print 'Transformed train data set feature space size:\tTrain {}\t\t Test{}'.format(transformedTrainData.shape, transformedTestData.shape)
+        return transformedTrainData, transformedTestData, tfidfVect, ch2

@@ -17,13 +17,14 @@ Entrez.email = 'wackerbm@informatik.hu-berlin.de'
 # top-level
 # ----------------------------------------------------------------
 
-def sentences_civic_abstracts():
+def sentences_civic_abstracts(verbose=False):
     """load CIViC summaries and corresponding PubMed abstracts, return one list of sentences each"""
 
     civic, abstracts = load_civic_abstracts()
 
-    print("No. of PubMed IDs:\t", len(civic["evidence_statement"]))
-    print("No. of abstracts:\t", len(abstracts))
+    if verbose:
+        print("No. of PubMed IDs:\t", len(civic["evidence_statement"]))
+        print("No. of abstracts:\t", len(abstracts))
 
     with multi.Pool(processes=multi.cpu_count()) as p:
         summary_sentences = flatten(p.map(transformers.sentence_tokenize, civic["evidence_statement"]))
