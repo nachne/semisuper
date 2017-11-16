@@ -15,7 +15,7 @@ import pickle
 
 def build_classifier(X, y, classifier=None, outpath=None, verbose=False,
                      words=True, wordgram_range=(1, 3),
-                     chars=True, chargram_range=(2, 4),
+                     chars=True, chargram_range=(3, 6),
                      binary=False):
     def build(classifier, X, y=None):
         """
