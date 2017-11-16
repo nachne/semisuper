@@ -1,6 +1,6 @@
 from semisuper import transformers, basic_pipeline, loaders
 from semisuper.pu_one_class_svm import one_class_svm
-from semisuper.pu_ranking import ranking_cos_sim
+from semisuper.pu_cos_roc import ranking_cos_sim
 import random
 from operator import itemgetter
 import pandas as pd

@@ -1,5 +1,5 @@
 import semisuper.tests.load_test_corpora as test_corpus
-from semisuper import pu_two_step, pu_biased_svm, pu_ranking, pu_one_class_svm, basic_pipeline
+from semisuper import pu_two_step, pu_biased_svm, pu_cos_roc, pu_one_class_svm, basic_pipeline
 from numpy import concatenate, arange
 from sklearn.metrics import classification_report as clsr
 
@@ -78,7 +78,7 @@ def train_test_all_clfs(data_tuple):
     print("\n\n---------------------------")
     print("Training Biased-SVM")
     print("---------------------------\n")
-    biased_svm = pu_biased_svm.biased_SVM_weight_selection(P, U, text=True)
+    biased_svm = pu_biased_svm.biased_SVM_weight_selection(P, U)
 
     print("\n\n-----------------------------------------------------------------------------")
     print("EVALUATION ON VALIDATION SET")

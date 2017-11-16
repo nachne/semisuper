@@ -14,7 +14,7 @@ def one_class_svm(X, X_test=None, y_test=None, outpath=None, verbose=True,
     def build(X):
         """One-class SVM as PU baseline"""
 
-        classifier = svm.OneClassSVM(kernel=kernel, degree=degree, verbose=verbose, shrinking=shrinking)
+        clf = svm.OneClassSVM(kernel=kernel, degree=degree, verbose=verbose, shrinking=shrinking)
 
         model = Pipeline([
             # ('preprocessor', TokenizePreprocessor()),
@@ -28,7 +28,7 @@ def one_class_svm(X, X_test=None, y_test=None, outpath=None, verbose=True,
                 ]))
             ]
             )),
-            ('classifier', classifier)
+            ('classifier', clf)
         ])
         model.fit(X)
         return model

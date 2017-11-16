@@ -10,12 +10,12 @@ from semisuper.helpers import identity, num_rows, pu_measure
 from semisuper.transformers import TokenizePreprocessor, FeatureNamePipeline, TextStats
 
 
-def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None, kernel='linear', text=True,
+def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None, kernel='linear',
                                 test_size=0.3):
     """run biased SVMs with combinations of class weight values, choose the one with the best pu_measure"""
 
     # default values
-    # TODO remove C as a parameter, find meaningful range of pos and neg weights
+    # TODO remove C as a parameter, find good range of pos and neg weights
     if Cs is None:
         Cs = [10 ** x for x in range(1, 5, 1)]
     if Cs_neg is None:
@@ -36,7 +36,7 @@ def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None,
     with Pool(processes=cpu_count()) as p:
         score_weights = p.map(partial(eval_params,
                                       X_train=X, y_train=y, P_test=P_test, U_test=U_test,
-                                      kernel=kernel, text=text),
+                                      kernel=kernel),
                               Cs)
 
     best_score_params = max(score_weights, key=lambda tup: tup[0])
@@ -52,14 +52,14 @@ def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None,
                              C_pos=best_score_params[1]['C_pos'],
                              C_neg=best_score_params[1]['C_neg'],
                              C=best_score_params[1]['C'],
-                             probability=True, kernel=kernel, text=text)
+                             probability=True, kernel=kernel)
 
     return model
 
 
-def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear', text=True):
+def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear'):
     C, C_pos, C_neg = Cs
-    model = build_biased_SVM(X_train, y_train, C_pos=C_pos, C_neg=C_neg, C=C, kernel=kernel, text=text)
+    model = build_biased_SVM(X_train, y_train, C_pos=C_pos, C_neg=C_neg, C=C, kernel=kernel)
 
     y_P = model.predict(P_test)
     y_U = model.predict(U_test)
@@ -74,7 +74,7 @@ def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear', text=True
 # BIASED SVM BUILDERS AND CLASSES
 # ----------------------------------------------------------------
 
-def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=False, verbose=True, text=True):
+def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=False, verbose=True):
     """build biased-SVM classifier (weighting false positives and false negatives differently)
 
     C_pos is the weight for positive class, or penalty for false negative errors; C_neg analogously.
@@ -91,34 +91,25 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
 
         clf = BiasedSVM(C=C, class_weight=class_weight, kernel=kernel, probability=probability)
 
-        if text:
-            model = Pipeline([
-                # ('preprocessor', TokenizePreprocessor()),
-                ('vectorizer', FeatureUnion(transformer_list=[
-                    ("words", TfidfVectorizer(
-                            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3), analyzer='char')
-                     ),
-                    ("stats", FeatureNamePipeline([
-                        ("stats", TextStats()),
-                        ("vect", DictVectorizer())
-                    ]))
-                ]
-                )),
-                ('classifier', clf)
-            ])
-        else:
-            model = Pipeline([
-                ('classifier', clf)
-            ])
+        model = Pipeline([
+            # ('preprocessor', TokenizePreprocessor()),
+            ('vectorizer', FeatureUnion(transformer_list=[
+                ("words", TfidfVectorizer(
+                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3), analyzer='char')
+                 ),
+                ("stats", FeatureNamePipeline([
+                    ("stats", TextStats()),
+                    ("vect", DictVectorizer())
+                ]))
+            ]
+            )),
+            ('classifier', clf)
+        ])
 
         model.fit(X, y)
         model.get_class_weights = clf.get_class_weights
 
         return model
-
-        # if verbose:
-        # print('.', end='', flush=True)
-        # print("Building model with parameters C+ := ", C_pos, ", C- :=", C_neg)
 
     model = build(X, y)
 

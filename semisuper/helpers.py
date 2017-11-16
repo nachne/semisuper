@@ -45,16 +45,9 @@ def arrays(args):
 
 def partition_pos_neg(X, y):
     """partitions X into elements where corresponding y element is nonzero VS zero"""
-    # TODO array/sparse/list dispatch
-
     pos_idx = nonzero(y)
-
     neg_idx = ones(num_rows(y), dtype=bool)
     neg_idx[pos_idx] = False
-
-    # print(X[pos_idx])
-    # print(X[neg_idx])
-
     return X[pos_idx], X[neg_idx]
 
 
@@ -76,9 +69,8 @@ def unsparsify(X):
 
 
 def pu_measure(y_P, y_U):
-    """performance measure for PU problems (r^2)/Pr[f(X)=1], equivalent to (p*r)/Pr[Y=1]
+    """performance measure for PU problems (r^2)/Pr[f(X)=1], approximates (p*r)/Pr[Y=1]
 
-    i.e. divide
     requires validation set to be partitioned into P and U before classification, labels to be 1 and 0"""
 
     if sum(round(y_U)) == num_rows(y_U) or sum(round(y_P)) == 0:

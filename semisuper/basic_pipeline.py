@@ -12,45 +12,32 @@ from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNameP
 import pickle
 
 
-def build_classifier(X, y,
-                     MNB=naive_bayes.MultinomialNB(alpha=1.0,
-                                                     class_prior=None,
-                                                     fit_prior=True),
-                     SGD=SGDClassifier(n_jobs=-1, loss="log"),
-                     classifier=None,
-                     outpath=None,
-                     verbose=False,
-                     text=True):
+def build_classifier(X, y, classifier=None, outpath=None, verbose=False):
     def build(classifier, X, y=None):
         """
         Inner build function that builds a single model.
         """
 
         if not classifier:
-            classifier = MNB
+            classifier = naive_bayes.MultinomialNB(alpha=0.1, class_prior=None, fit_prior=True)
 
         if isinstance(classifier, type):
             classifier = classifier()
 
-        if text:
-            model = Pipeline([
-                # ('preprocessor', TokenizePreprocessor()),
-                ('vectorizer', FeatureUnion(transformer_list=[
-                    ("words", TfidfVectorizer(
-                            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3), analyzer='char')
-                     ),
-                    ("stats", FeatureNamePipeline([
-                        ("stats", TextStats()),
-                        ("vect", DictVectorizer())
-                    ]))
-                ]
-                )),
-                ('classifier', classifier)
-            ])
-        else:
-            model = Pipeline([
-                ('classifier', classifier)
-            ])
+        model = Pipeline([
+            # ('preprocessor', TokenizePreprocessor()),
+            ('vectorizer', FeatureUnion(transformer_list=[
+                ("words", TfidfVectorizer(
+                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3), analyzer='char')
+                 ),
+                ("stats", FeatureNamePipeline([
+                    ("stats", TextStats()),
+                    ("vect", DictVectorizer())
+                ]))
+            ]
+            )),
+            ('classifier', classifier)
+        ])
 
         model.fit(X, y)
         return model

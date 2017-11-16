@@ -16,10 +16,15 @@ hocpos, hocneg = loaders.sentences_HoC()
 # civic = random.sample(civic, 100)
 # abstracts = random.sample(abstracts, 100)
 
-corpus = civic + abstracts
-# corpus = hocpos + hocneg
+corpus = (
+    []
+    + civic
+    + abstracts
+    + hocpos
+    + hocneg
+)
 
-pp = transformers.TokenizePreprocessor(rules=True, lemmatize=True)
+pp = transformers.TokenizePreprocessor(rules=False, lemmatize=False)
 corp_tokenized = pp.transform(corpus)
 
 # --------------------------------
@@ -37,10 +42,12 @@ ldamodel = Lda(doc_term_matrix, num_topics=2, id2word=dictionary, passes=50)
 
 [print(x) for x in ldamodel.print_topics(num_topics=-1, num_words=20)]
 
+
 # --------------------------------
 
 def topics2label(topics):
     return max(topics, key=itemgetter(1))[0]
+
 
 # y_true = [1] * len(civic) + [0] * len(abstracts)
 # y_pred = [topics2label(ldamodel[dictionary.doc2bow(x)])
@@ -54,7 +61,7 @@ def label_dist(corpus, dict, ldamodel):
 
     freqs = Counter(labels)
 
-    return [(lbl, freqs[lbl], freqs[lbl]/len(corpus)) for lbl in sorted(freqs)]
+    return [(lbl, freqs[lbl], freqs[lbl] / len(corpus)) for lbl in sorted(freqs)]
 
 
 print("CIViC:")
@@ -73,13 +80,13 @@ print("HoC neg:")
 [print(x, end="\t") for x in (label_dist(pp.transform(hocneg), dictionary, ldamodel))]
 print()
 
-
 # --------------------------------
 # obsolete tutorial stuff
 
 stop = set(stopwords.words('english'))
 exclude = set(string.punctuation)
 lemma = WordNetLemmatizer()
+
 
 def clean(doc):
     stop_free = " ".join([i for i in doc.lower().split() if i not in stop])

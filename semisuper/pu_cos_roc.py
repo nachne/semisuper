@@ -19,57 +19,47 @@ from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNameP
 
 
 # TODO: compute somewhat more meaningful threshold
-def ranking_cos_sim(X, threshold=0.1, compute_thresh=False, text=True):
+def ranking_cos_sim(X, threshold=0.1, compute_thresh=False):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
     predict_proba returns similarity scores.
     if X_thresh is true, uses the training vectors' similarity scores to compute a threshold.
     """
 
-    def build(X, threshold, compute_thresh, text=True):
-        if text:
-            model = Pipeline([
-                ('preprocessor', TokenizePreprocessor()),
-                ('vectorizer', TfidfVectorizer(
-                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(3, 6), analyzer='char')
-                 ),
-                # ('normalizer', Normalizer()),
-                ('classifier', SimRanker(threshold, compute_thresh))
-            ])
-        else:
-            model = Pipeline([
-                # ('normalizer', Normalizer()),
-                ('classifier', SimRanker(threshold, compute_thresh))
-            ])
+    def build(X, threshold, compute_thresh):
+        model = Pipeline([
+            # ('preprocessor', TokenizePreprocessor()),
+            ('vectorizer', TfidfVectorizer(
+                    tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(3, 6), analyzer='char')
+             ),
+            # ('normalizer', Normalizer()),
+            ('classifier', SimRanker(threshold, compute_thresh))
+        ])
 
         model.fit(X)
         return model
 
-    model = build(X, threshold, compute_thresh, text=text)
+    model = build(X, threshold, compute_thresh)
     return model
 
+
 # TODO make unified clf builder!
-def rocchio(P, N, alpha=16, beta=4, text=True):
+def rocchio(P, N, alpha=16, beta=4):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
     predict_proba returns similarity scores.
     if X_thresh is true, uses the training vectors' similarity scores to compute a threshold.
     """
 
-    def build(P, N, alpha=16, beta=4, text=True):
-        if text:
-            model = Pipeline([
-                # ('preprocessor', TokenizePreprocessor()),
-                ('vectorizer', TfidfVectorizer(
-                        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(3, 6), analyzer='char')
-                 ),
-                # ('normalizer', Normalizer()),
-                ('classifier', BinaryRocchio(alpha, beta))
-            ])
-        else:
-            model = Pipeline([
-                ('classifier', BinaryRocchio(alpha, beta))
-            ])
+    def build(P, N, alpha=16, beta=4):
+        model = Pipeline([
+            # ('preprocessor', TokenizePreprocessor()),
+            ('vectorizer', TfidfVectorizer(
+                    tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(3, 6), analyzer='char')
+             ),
+            # ('normalizer', Normalizer()),
+            ('classifier', BinaryRocchio(alpha, beta))
+        ])
 
         X = concatenate((P, N))
         y = [1] * num_rows(P) + [0] * num_rows(N)
@@ -77,7 +67,7 @@ def rocchio(P, N, alpha=16, beta=4, text=True):
         model.fit(X, y)
         return model
 
-    model = build(P, N, alpha, beta, text=text)
+    model = build(P, N, alpha, beta)
     return model
 
 
@@ -100,7 +90,7 @@ class SimRanker(BaseEstimator, ClassifierMixin):
         self.mean_X = normalize(X.mean(axis=0))
 
         if self.compute_thresh:
-            self.threshold = self.heuristic_threshold(self.mean_X, X)
+            self.threshold = self.dummy_threshold(self.mean_X, X)
             print("Threshold:", self.threshold)
 
         return self
@@ -116,7 +106,7 @@ class SimRanker(BaseEstimator, ClassifierMixin):
     def ranking(self, X):
         return self.predict_proba(X)
 
-    def heuristic_threshold(self, mean_X, X):
+    def dummy_threshold(self, mean_X, X):
         cos_sim = cosine_similarity(mean_X, X)
         print("Threshold computed as (mean(mean_sim(X, X_mean), min_sim(X, X_mean))")
         return (cos_sim.mean() + cos_sim.min()) / 2
@@ -149,6 +139,7 @@ class BinaryRocchio(BaseEstimator, ClassifierMixin):
         self.proto_n = normalize(self.alpha * normalized_n - self.beta * normalized_p)
 
     def predict_proba(self, X):
+        """returns values in [0, 1]; >0.5 means x is rather positive. Not a proper probability!"""
         sim_p = cosine_similarity(self.proto_p, X)[0]
         sim_n = cosine_similarity(self.proto_n, X)[0]
 

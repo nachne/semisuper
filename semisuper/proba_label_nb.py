@@ -14,25 +14,20 @@ import time
 # general MNB model builder
 # ----------------------------------------------------------------
 
-def build_proba_MNB(X, y, verbose=True, text=True):
+def build_proba_MNB(X, y, verbose=True):
     """build multinomial Naive Bayes classifier that accepts probabilistic labels
 
-    if text is true, preprocess Text with binary encoding"""
+    feature encoding should be binarized"""
     clf = ProbaLabelMNB(alpha=0.1)
 
     # TODO make it work for char n-grams
-    if text:
-        model = Pipeline([
-            ('preprocessor', TokenizePreprocessor()),
-            # TODO ngrams back to 3
-            ('vectorizer',
-             CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 3), analyzer='word')),
-            ('classifier', clf)
-        ])
-    else:
-        model = Pipeline([
-            ('classifier', clf)
-        ])
+    model = Pipeline([
+        ('preprocessor', TokenizePreprocessor()),
+        # TODO ngrams back to 3
+        ('vectorizer',
+         CountVectorizer(binary=True, tokenizer=identity, lowercase=False, ngram_range=(1, 3), analyzer='word')),
+        ('classifier', clf)
+    ])
     model.fit(X, y)
     return model  # equations from "partially supervised classification of text documents"
 

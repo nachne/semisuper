@@ -8,7 +8,7 @@ from numpy import array_equal as equal
 from scipy import sparse
 import pickle
 from semisuper.helpers import identity, num_rows, arrays, partition_pos_neg, pu_measure
-from semisuper.pu_ranking import ranking_cos_sim, rocchio
+from semisuper.pu_cos_roc import ranking_cos_sim, rocchio
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.basic_pipeline import build_classifier, show_most_informative_features
 
@@ -17,7 +17,7 @@ from semisuper.basic_pipeline import build_classifier, show_most_informative_fea
 # COMPLETE 2-STEP METHODS
 # ----------------------------------------------------------------
 
-def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.2, alpha=16, beta=4, text=True, outpath=None):
+def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.2, alpha=16, beta=4, outpath=None):
     """Two-Step technique based on Cosine Similarity, Rocchio and SVM
 
 
@@ -31,18 +31,18 @@ def cr_SVM(P, U, max_neg_ratio=0.05, noise_lvl=0.2, alpha=16, beta=4, text=True,
 
     # step 1
     print("Determining RN using Cosine Similarity threshold and Rocchio\n")
-    U_minus_RN, RN = get_RN_cosine_rocchio(P, U, noise_lvl=noise_lvl, alpha=alpha, beta=beta, text=text)
+    U_minus_RN, RN = get_RN_cosine_rocchio(P, U, noise_lvl=noise_lvl, alpha=alpha, beta=beta)
 
     # step2
     print("\nIterating SVM with P, U-RN, and RN")
-    model = iterate_SVM(P, U_minus_RN, RN, text=text, max_neg_ratio=max_neg_ratio)
+    model = iterate_SVM(P, U_minus_RN, RN, max_neg_ratio=max_neg_ratio)
 
     report_save(model, P, U, outpath)
 
     return model
 
 
-def roc_SVM(P, U, max_neg_ratio=0.05, alpha=16, beta=4, text=True, outpath=None):
+def roc_SVM(P, U, max_neg_ratio=0.05, alpha=16, beta=4, outpath=None):
     """Two-Step technique based on Rocchio and SVM
 
     Step 1: Find Reliable Negative docs using Rocchio (similarity to mean positive/unlabelled vector)
@@ -52,18 +52,18 @@ def roc_SVM(P, U, max_neg_ratio=0.05, alpha=16, beta=4, text=True, outpath=None)
 
     # step 1
     print("Determining RN using Rocchio method\n")
-    U_minus_RN, RN = get_RN_rocchio(P, U, alpha=alpha, beta=beta, text=text)
+    U_minus_RN, RN = get_RN_rocchio(P, U, alpha=alpha, beta=beta)
 
     # step2
     print("\nIterating SVM with P, U-RN, and RN")
-    model = iterate_SVM(P, U_minus_RN, RN, text=text, max_neg_ratio=max_neg_ratio)
+    model = iterate_SVM(P, U_minus_RN, RN, max_neg_ratio=max_neg_ratio)
 
     report_save(model, P, U, outpath)
 
     return model
 
 
-def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=1.0, tolerance=0.1, noise_lvl=0.1, text=True, clf_selection=True,
+def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=1.0, tolerance=0.1, noise_lvl=0.1, clf_selection=True,
          outpath=None):
     """S-EM two-step PU learning as described in \"Partially Supervised Classification...\".
 
@@ -76,12 +76,12 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=1.0, tolerance=0.1, noise_lvl=0.1, t
     # step 1
     print("Determining confidence threshold using Spy Documents and I-EM\n")
     U_minus_RN, RN = get_RN_Spy_Docs(P, U,
-                                     spy_ratio=spy_ratio, tolerance=tolerance, noise_lvl=noise_lvl, text=text)
+                                     spy_ratio=spy_ratio, tolerance=tolerance, noise_lvl=noise_lvl)
 
     # step2
     print("\nIterating I-EM with P, U-RN, and RN")
     model = run_EM_with_RN(P, U_minus_RN, RN,
-                           tolerance=tolerance, max_pos_ratio=max_pos_ratio, text=text,
+                           tolerance=tolerance, max_pos_ratio=max_pos_ratio,
                            clf_selection=clf_selection)
 
     report_save(model, P, U, outpath)
@@ -89,7 +89,7 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=1.0, tolerance=0.1, noise_lvl=0.1, t
     return model
 
 
-def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=1.0, tolerance=0.1, text=True):
+def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=1.0, tolerance=0.1):
     """all-in-one PU method: I-EM algorithm for positive set P and unlabelled set U
 
     iterate NB classifier with updated labels for unlabelled set (initially negative) until convergence
@@ -98,27 +98,24 @@ def i_EM(P, U, outpath=None, max_imbalance=1.5, max_pos_ratio=1.0, tolerance=0.1
     if num_rows(U) > max_imbalance * num_rows(P):
         U = np.array(sample(list(U), int(max_imbalance * num_rows(P))))
 
-    model = iterate_EM(P, U, tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio, clf_selection=False)
+    model = iterate_EM(P, U, tolerance=tolerance, max_pos_ratio=max_pos_ratio, clf_selection=False)
 
     report_save(model, P, U, outpath)
 
     return model
 
 
-# TODO PEBL (1-DNF, SVM)
-
-
 # ----------------------------------------------------------------
 # OTHER COMBINATIONS
 # ----------------------------------------------------------------
 
-def standalone_rocchio(P, U, alpha=16, beta=4, text=True):
+def standalone_rocchio(P, U, alpha=16, beta=4):
     """1-step Rocchio method"""
 
     P, U = arrays([P, U])
 
     print("Building Rocchio model to determine Reliable Negative examples")
-    model = rocchio(P, U, alpha=alpha, beta=beta, text=text)
+    model = rocchio(P, U, alpha=alpha, beta=beta)
 
     y_U = model.predict(U)
 
@@ -128,7 +125,7 @@ def standalone_rocchio(P, U, alpha=16, beta=4, text=True):
     return model
 
 
-def spy_SVM(P, U, spy_ratio=0.1, max_neg_ratio=0.1, tolerance=0.1, noise_lvl=0.1, text=True, outpath=None):
+def spy_SVM(P, U, spy_ratio=0.1, max_neg_ratio=0.1, tolerance=0.1, noise_lvl=0.1, outpath=None):
     """S-EM two-step PU learning as described in \"Partially Supervised Classification...\".
 
     1st step: get Reliable Negative documents using Spy Documents
@@ -140,18 +137,18 @@ def spy_SVM(P, U, spy_ratio=0.1, max_neg_ratio=0.1, tolerance=0.1, noise_lvl=0.1
     # step 1
     print("Determining confidence threshold using Spy Documents and I-EM\n")
     U_minus_RN, RN = get_RN_Spy_Docs(P, U,
-                                     spy_ratio=spy_ratio, tolerance=tolerance, noise_lvl=noise_lvl, text=text)
+                                     spy_ratio=spy_ratio, tolerance=tolerance, noise_lvl=noise_lvl)
 
     # step2
     print("\nIterating SVM with P, U-RN, and RN")
-    model = iterate_SVM(P, U_minus_RN, RN, text=text, max_neg_ratio=max_neg_ratio)
+    model = iterate_SVM(P, U_minus_RN, RN, max_neg_ratio=max_neg_ratio)
 
     report_save(model, P, U, outpath)
 
     return model
 
 
-def roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, text=True, clf_selection=True,
+def roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, clf_selection=True,
            alpha=16, beta=4, outpath=None):
     """S-EM two-step PU learning as described in \"Partially Supervised Classification...\".
 
@@ -163,12 +160,12 @@ def roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, text=True, clf_selection=True
 
     # step 1
     print("Determining RN using Rocchio method\n")
-    U_minus_RN, RN = get_RN_rocchio(P, U, alpha=alpha, beta=beta, text=text)
+    U_minus_RN, RN = get_RN_rocchio(P, U, alpha=alpha, beta=beta)
 
     # step2
     print("\nIterating I-EM with P, U-RN, and RN")
     model = run_EM_with_RN(P, U_minus_RN, RN,
-                           tolerance=tolerance, max_pos_ratio=max_pos_ratio, text=text,
+                           tolerance=tolerance, max_pos_ratio=max_pos_ratio,
                            clf_selection=clf_selection)
 
     report_save(model, P, U, outpath)
@@ -181,30 +178,30 @@ def roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, text=True, clf_selection=True
 # ----------------------------------------------------------------
 
 # TODO shortcut I-EM (should be only a handful of iterations)
-def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise_lvl=0.05, text=True):
+def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise_lvl=0.05):
     """First step technique: Compute reliable negative docs from P using Spy Documents and I-EM"""
 
     P_minus_spies, spies = spy_partition(P, spy_ratio)
     U_plus_spies = np.concatenate((U, spies))
 
-    model = iterate_EM(P_minus_spies, U_plus_spies, tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio,
+    model = iterate_EM(P_minus_spies, U_plus_spies, tolerance=tolerance, max_pos_ratio=max_pos_ratio,
                        clf_selection=False)
 
-    y_spies = model.predict_proba(spies)[:,1]
-    y_U = model.predict_proba(U)[:,1]
+    y_spies = model.predict_proba(spies)[:, 1]
+    y_U = model.predict_proba(U)[:, 1]
 
     U_minus_RN, RN = select_PN_below_score(y_spies, U, y_U, noise_lvl=noise_lvl)
 
     return U_minus_RN, RN
 
 
-def get_RN_rocchio(P, U, alpha=16, beta=4, text=True):
+def get_RN_rocchio(P, U, alpha=16, beta=4):
     """extract Reliable Negative documents using Binary Rocchio algorithm"""
 
     P, U = arrays([P, U])
 
     print("Building Rocchio model to determine Reliable Negative examples")
-    model = rocchio(P, U, alpha=alpha, beta=beta, text=text)
+    model = rocchio(P, U, alpha=alpha, beta=beta)
 
     y_U = model.predict(U)
 
@@ -214,7 +211,7 @@ def get_RN_rocchio(P, U, alpha=16, beta=4, text=True):
     return U_minus_RN, RN
 
 
-def get_RN_cosine_rocchio(P, U, noise_lvl=0.20, alpha=16, beta=4, text=True):
+def get_RN_cosine_rocchio(P, U, noise_lvl=0.20, alpha=16, beta=4):
     """extract Reliable Negative documents using cosine similarity and Binary Rocchio algorithm
 
     similarity is the cosine similarity compared to the mean positive sample.
@@ -225,7 +222,7 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.20, alpha=16, beta=4, text=True):
     P, U = arrays([P, U])
 
     print("Computing ranking (cosine similarity to mean positive example)")
-    mean_p_ranker = ranking_cos_sim(P, text=text)
+    mean_p_ranker = ranking_cos_sim(P)
 
     sims_P = mean_p_ranker.predict_proba(P)
     sims_U = mean_p_ranker.predict_proba(U)
@@ -238,7 +235,7 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.20, alpha=16, beta=4, text=True):
     _, PN = select_PN_below_score(sims_P, U, sims_U, noise_lvl=noise_lvl)
 
     print("Building Rocchio model to determine Reliable Negative examples")
-    model = rocchio(P, PN, alpha=alpha, beta=beta, text=text)
+    model = rocchio(P, PN, alpha=alpha, beta=beta)
 
     y_U = model.predict(U)
 
@@ -248,14 +245,11 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.20, alpha=16, beta=4, text=True):
     return U_minus_RN, RN
 
 
-# TODO 1-DNF for PEBL
-
-
 # ----------------------------------------------------------------
 # SECOND STEP TECHNIQUES
 # ----------------------------------------------------------------
 
-def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, text=True, clf_selection=True):
+def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, clf_selection=True):
     """second step PU method: train NB with P and RN to get probabilistic labels for U, then iterate EM"""
 
     if num_rows(P) > 1.5 * num_rows(RN):
@@ -266,25 +260,25 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, text=True, clf_s
     print("\nBuilding classifier from Positive and Reliable Negative set")
     initial_model = build_proba_MNB(np.concatenate((P_init, RN)),
                                     [1] * num_rows(P_init) + [0] * num_rows(RN),
-                                    verbose=False, text=text)
+                                    verbose=False)
 
     y_P = np.array([1] * num_rows(P))
 
     print("\nCalculating initial probabilistic labels for Reliable Negative and Unlabelled set")
-    ypU = initial_model.predict_proba(U)[:,1]
-    ypN = initial_model.predict_proba(RN)[:,1]
+    ypU = initial_model.predict_proba(U)[:, 1]
+    ypN = initial_model.predict_proba(RN)[:, 1]
 
     print("\nIterating EM algorithm on P, RN and U\n")
     model = iterate_EM(P, np.concatenate((RN, U)),
                        y_P, np.concatenate((ypN, ypU)),
-                       tolerance=tolerance, text=text, max_pos_ratio=max_pos_ratio,
+                       tolerance=tolerance, max_pos_ratio=max_pos_ratio,
                        clf_selection=clf_selection)
 
     return model
 
 
 # TODO yield models in order to be able to choose best one
-def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, text=True, clf_selection=False):
+def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, clf_selection=False):
     """EM algorithm for positive set P and unlabelled set U
 
         iterate NB classifier with updated labels for unlabelled set (with optional initial labels) until convergence"""
@@ -311,11 +305,11 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, text
             old_model = new_model
 
         new_model = build_proba_MNB(np.concatenate((P, U)),
-                                    np.concatenate((y_P, ypU)), text=text)
+                                    np.concatenate((y_P, ypU)))
 
         print("Predicting probabilities for U")
         ypU_old = ypU
-        ypU = new_model.predict_proba(U)[:,1]
+        ypU = new_model.predict_proba(U)[:, 1]
 
         predU = [round(p) for p in ypU]
         pos_ratio = sum(predU) / len(U)
@@ -337,7 +331,7 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, text
     return new_model
 
 
-def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05):
+def iterate_SVM(P, U, RN, max_neg_ratio=0.05):
     """runs an SVM classifier trained on P and RN iteratively, augmenting RN
 
     after each iteration, the documents in U classified as negative are moved to RN until there are none left.
@@ -350,8 +344,7 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05):
     print("Building initial SVM classifier with Positive and Reliable Negative docs")
     initial_model = build_classifier(np.concatenate((P, RN)),
                                      np.concatenate((y_P, y_RN)),
-                                     classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True),
-                                     text=text)
+                                     classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True))
 
     print("Predicting U with initial SVM, adding negatively classified docs to RN for iteration")
     y_U = initial_model.predict(U)
@@ -371,8 +364,7 @@ def iterate_SVM(P, U, RN, text=True, max_neg_ratio=0.05):
 
         model = build_classifier(np.concatenate((P, RN)),
                                  np.concatenate((y_P, y_RN)),
-                                 classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True),
-                                 text=text)
+                                 classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True))
         y_U = model.predict(Q)
         Q, W = partition_pos_neg(Q, y_U)
 
@@ -509,9 +501,8 @@ def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1):
 
 
 def report_save(model, P, N, outpath=None):
-    print("Classification Report:\n")
+    print("Classification Report (on training, not on test data!):\n")
     y_pred = model.predict(np.concatenate((P, N)))
-    print(y_pred[:10], y_pred[-10:])
     print(clsr([1. for _ in P] + [0. for _ in N], y_pred))
 
     if outpath:
