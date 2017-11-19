@@ -57,7 +57,7 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
     def predict_proba(self, X):
         """predicts probabilistic class labels for set of docs."""
 
-        with multi.Pool(multi.cpu_count()) as p:
+        with multi.Pool(min(multi.cpu_count(), 24)) as p:
             log_probas = np.array(p.map(self.log_proba, [x for x in X]))
 
         return np.exp(log_probas)

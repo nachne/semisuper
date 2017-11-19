@@ -141,7 +141,7 @@ def metamaplite(text):
 
 
 def test_metamap():
-    with multi.Pool(multi.cpu_count() * 4) as p:
+    with multi.Pool(min(multi.cpu_count(), 24)) as p:
         mmapped = p.imap_unordered(metamaplite, civic[:120])
 
     for m in mmapped:

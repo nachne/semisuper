@@ -25,7 +25,8 @@ def sentences_civic_abstracts(verbose=False):
         print("No. of PubMed IDs:\t", len(civic["evidence_statement"]))
         print("No. of abstracts:\t", len(abstracts))
 
-    with multi.Pool(processes=multi.cpu_count()) as p:
+    # TODO: check CPU count
+    with multi.Pool(processes=min(multi.cpu_count(), 24)) as p:
         summary_sentences = flatten(p.map(transformers.sentence_tokenize, civic["evidence_statement"]))
         summary_authors2we = [authors2we(s) for s in set(summary_sentences)]
         abstract_sentences = [s for s in flatten(p.map(transformers.sentence_tokenize, abstracts["abstract"]))]

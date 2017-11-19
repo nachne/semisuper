@@ -34,7 +34,7 @@ def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None,
     X = concatenate((P_train, U_train))
     y = concatenate((ones(num_rows(P_train)), zeros(num_rows(U_train))))
 
-    with Pool(processes=cpu_count()) as p:
+    with Pool(processes=min(cpu_count(), 24)) as p:
         score_weights = p.map(partial(eval_params,
                                       X_train=X, y_train=y, P_test=P_test, U_test=U_test,
                                       kernel=kernel),

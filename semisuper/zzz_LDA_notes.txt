@@ -1,0 +1,15 @@
+LDA hyperparameters
+alpha:	doc-topic density
+beta:	topic-word density
+no. of topic terms ???
+no. of iterations
+
+Number of Topics: Kullback Leibler Divergence Score for optimization
+
+Cleaning: e.g. punctuation, stopwords, normalization
+dictionary.doc2bow
+
+frequency filter
+POS tag filter – remove IN, CD, MD?
+batch wise: different batches, different LDA results – use intersection
+
