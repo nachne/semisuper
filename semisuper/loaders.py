@@ -2,7 +2,7 @@ import pandas as pd
 import pickle
 from Bio import Medline, Entrez
 import multiprocessing as multi
-from semisuper import transformers
+import semisuper.transformers as transformers
 from semisuper.helpers import flatten
 import re
 import os.path
