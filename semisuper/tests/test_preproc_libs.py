@@ -1,10 +1,8 @@
-from semisuper import loaders
-import nalaf
-import nala
+import multiprocessing as multi
 import os
 import subprocess
-import pprint
-import multiprocessing as multi
+
+from semisuper import loaders
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 

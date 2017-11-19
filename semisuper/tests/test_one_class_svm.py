@@ -1,10 +1,7 @@
-from semisuper import transformers, basic_pipeline, loaders
-from semisuper.pu_one_class_svm import one_class_svm
-from semisuper.pu_cos_roc import ranking_cos_sim
-import random
 from operator import itemgetter
-import pandas as pd
 
+from semisuper import loaders
+from semisuper.pu_one_class_svm import one_class_svm
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 
@@ -16,8 +13,8 @@ piboso_outcome = loaders.sentences_piboso_outcome()
 
 print("PIBOSO sentences:", len(piboso_other))
 
-pos = civic # random.sample(civic, 2000) + random.sample(piboso_outcome, 0)
-neg = abstracts # random.sample(abstracts, 2000) + random.sample(piboso_other, 0)
+pos = civic  # random.sample(civic, 2000) + random.sample(piboso_outcome, 0)
+neg = abstracts  # random.sample(abstracts, 2000) + random.sample(piboso_other, 0)
 
 X = pos + neg
 y = ["pos"] * len(pos) + ["neg"] * len(neg)

@@ -1,16 +1,14 @@
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import LabelEncoder
-from sklearn.linear_model import SGDClassifier
-from sklearn import svm, naive_bayes
-from sklearn.metrics import classification_report as clsr
-from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.decomposition import TruncatedSVD
-from sklearn.model_selection import train_test_split as tts
+import pickle
 from operator import itemgetter
+
 from semisuper.helpers import identity
 from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
-import pickle
+from sklearn import naive_bayes
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import classification_report as clsr
+from sklearn.model_selection import train_test_split as tts
+from sklearn.pipeline import Pipeline, FeatureUnion
 
 
 def build_classifier(X, y, classifier=None, outpath=None, verbose=False,
@@ -31,33 +29,33 @@ def build_classifier(X, y, classifier=None, outpath=None, verbose=False,
 
         model = Pipeline([
             ('features', FeatureUnion(
-                    n_jobs=3,
-                    transformer_list=[
-                        ("wordgrams", None if not words else
-                        FeatureNamePipeline([
-                            ("preprocessor", TokenizePreprocessor()),
-                            ("word_tfidf", TfidfVectorizer(
-                                    analyzer='word',
-                                    # min_df=5, # TODO find reasonable value (5 <= n << 50)
-                                    tokenizer=identity, preprocessor=None, lowercase=False,
-                                    ngram_range=wordgram_range,
-                                    binary=binary, norm='l2' if not binary else None, use_idf=not binary))
-                        ])),
-                        ("chargrams", None if not chars else
-                        FeatureNamePipeline([
-                            ("char_tfidf", TfidfVectorizer(
-                                    analyzer='char',
-                                    # min_df=5,
-                                    preprocessor=None, lowercase=False,
-                                    ngram_range=chargram_range,
-                                    binary=binary, norm='l2' if not binary else None, use_idf=not binary))
-                        ])),
-                        ("stats", None if binary else
-                        FeatureNamePipeline([
-                            ("stats", TextStats()),
-                            ("vect", DictVectorizer())
-                        ]))
+                n_jobs=3,
+                transformer_list=[
+                    ("wordgrams", None if not words else
+                    FeatureNamePipeline([
+                        ("preprocessor", TokenizePreprocessor()),
+                        ("word_tfidf", TfidfVectorizer(
+                            analyzer='word',
+                            # min_df=5, # TODO find reasonable value (5 <= n << 50)
+                            tokenizer=identity, preprocessor=None, lowercase=False,
+                            ngram_range=wordgram_range,
+                            binary=binary, norm='l2' if not binary else None, use_idf=not binary))
                     ])),
+                    ("chargrams", None if not chars else
+                    FeatureNamePipeline([
+                        ("char_tfidf", TfidfVectorizer(
+                            analyzer='char',
+                            # min_df=5,
+                            preprocessor=None, lowercase=False,
+                            ngram_range=chargram_range,
+                            binary=binary, norm='l2' if not binary else None, use_idf=not binary))
+                    ])),
+                    ("stats", None if binary else
+                    FeatureNamePipeline([
+                        ("stats", TextStats()),
+                        ("vect", DictVectorizer())
+                    ]))
+                ])),
             ('classifier', clf)
         ])
 
@@ -102,9 +100,9 @@ def show_most_informative_features(model: object, text: object = None, n: object
     # Check to make sure that we can perform this computation
     if not hasattr(classifier, 'coef_'):
         raise TypeError(
-                "Cannot compute most informative features on {} model.".format(
-                        classifier.__class__.__name__
-                )
+            "Cannot compute most informative features on {} model.".format(
+                classifier.__class__.__name__
+            )
         )
 
     if text is not None:
@@ -116,8 +114,8 @@ def show_most_informative_features(model: object, text: object = None, n: object
 
     # Zip the feature names with the coefs and sort
     coefs = sorted(
-            zip(tvec[0], features.get_feature_names()),
-            key=itemgetter(0), reverse=True
+        zip(tvec[0], features.get_feature_names()),
+        key=itemgetter(0), reverse=True
     )
 
     topn = zip(coefs[:n], coefs[:-(n + 1):-1])
@@ -134,7 +132,7 @@ def show_most_informative_features(model: object, text: object = None, n: object
     # Create two columns with most negative and most positive features.
     for (cp, fnp), (cn, fnn) in topn:
         output.append(
-                "{:0.4f}{: >15}    {:0.4f}{: >15}".format(cp, fnp, cn, fnn)
+            "{:0.4f}{: >15}    {:0.4f}{: >15}".format(cp, fnp, cn, fnn)
         )
 
     return "\n".join(output)

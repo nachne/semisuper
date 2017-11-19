@@ -1,19 +1,16 @@
-import string
 import re
-from sklearn.pipeline import Pipeline
+import string
+
+from nltk import TreebankWordTokenizer
+from nltk import WordNetLemmatizer
+from nltk import pos_tag
+from nltk import sent_tokenize
+from nltk.corpus import wordnet as wn
+from semisuper.dict_matchers import HypernymMapper
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2, SelectPercentile
-from nltk import TreebankWordTokenizer, WhitespaceTokenizer, RegexpTokenizer, wordpunct_tokenize
-import os.path
-import pickle
-from nltk.tokenize import PunktSentenceTokenizer
-from nltk import sent_tokenize
-from nltk import pos_tag
-from nltk.corpus import wordnet as wn
-from nltk import WordNetLemmatizer
-from semisuper.dict_matchers import HypernymMapper
-import semisuper.loaders
+from sklearn.pipeline import Pipeline
 
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):

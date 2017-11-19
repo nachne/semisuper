@@ -1,8 +1,7 @@
-from semisuper import transformers, loaders, pu_two_step, pu_biased_svm
-from semisuper.helpers import num_rows
-import random
-import pandas as pd
 import time
+
+from semisuper import loaders, pu_two_step, pu_biased_svm
+from semisuper.helpers import num_rows
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()

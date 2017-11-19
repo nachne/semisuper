@@ -1,11 +1,12 @@
-from semisuper.proba_label_nb import ProbaLabelMNB
-from semisuper import pu_two_step
 from random import randint
-from sklearn.model_selection import train_test_split as tts
-from sklearn.metrics import classification_report as clsr
+
 import numpy as np
 from scipy.sparse import csr_matrix
+from semisuper import pu_two_step
+from semisuper.proba_label_nb import ProbaLabelMNB
 from sklearn.datasets import load_breast_cancer
+from sklearn.metrics import classification_report as clsr
+from sklearn.model_selection import train_test_split as tts
 
 print("\nNB test")
 print("-------\n")

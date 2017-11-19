@@ -1,12 +1,13 @@
-import pandas as pd
-import pickle
-from Bio import Medline, Entrez
-import multiprocessing as multi
-import semisuper.transformers as transformers
-from semisuper.helpers import flatten
-import re
-import os.path
 import glob
+import multiprocessing as multi
+import os.path
+import pickle
+import re
+
+import pandas as pd
+from semisuper import transformers
+from Bio import Medline, Entrez
+from semisuper.helpers import flatten
 
 # needed for querying PubMed API
 Entrez.email = 'wackerbm@informatik.hu-berlin.de'

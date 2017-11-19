@@ -1,8 +1,7 @@
-from semisuper import transformers, basic_pipeline, loaders
-from sklearn.linear_model import SGDClassifier
-import random
-import pandas as pd
 import sys
+
+from semisuper import basic_pipeline, loaders
+from sklearn.linear_model import SGDClassifier
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 

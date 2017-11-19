@@ -1,6 +1,6 @@
 import semisuper.tests.load_test_corpora as test_corpus
-from semisuper import pu_two_step, pu_biased_svm, pu_cos_roc, pu_one_class_svm, basic_pipeline
-from numpy import concatenate, arange
+from numpy import concatenate
+from semisuper import pu_two_step, pu_biased_svm, pu_one_class_svm, basic_pipeline
 from sklearn.metrics import classification_report as clsr
 
 

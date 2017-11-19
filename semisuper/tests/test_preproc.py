@@ -1,17 +1,11 @@
-from semisuper import loaders
-import semisuper.transformers as transformers
-from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
-from semisuper.helpers import identity
+import random
 
-from sklearn.pipeline import Pipeline, FeatureUnion
+from semisuper import loaders, transformers
+from semisuper.helpers import identity
+from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-from numpy import concatenate
-
-import pandas as pd
-import random
-import sys
+from sklearn.pipeline import Pipeline, FeatureUnion
 
 # ----------------------------------------------------------------
 # Data
@@ -34,7 +28,7 @@ pp = TokenizePreprocessor()
 pppl = Pipeline([
     ('preprocessor', pp),
     ('vectorizer', FeatureUnion(transformer_list=[("words", TfidfVectorizer(
-            tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
+        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
                                                    ),
                                                   ("stats", FeatureNamePipeline([
                                                       ("stats", TextStats()),
@@ -81,11 +75,11 @@ print("\n----------------------------------------------------------------",
       "\n----------------------------------------------------------------\n")
 
 print(transformers.sentence_tokenize(
-        "He is going to be there, i.e. Dougie is going to be there.I can not "
-        "wait to see how he's RS.123 doing. Conf. fig. 13 for additional "
-        "information. E.g."
-        "if you want to know the time, you should take b. "
-        "Beispieltext ist schön. first. 10. we are going to cowabunga. let there be rainbows."))
+    "He is going to be there, i.e. Dougie is going to be there.I can not "
+    "wait to see how he's RS.123 doing. Conf. fig. 13 for additional "
+    "information. E.g."
+    "if you want to know the time, you should take b. "
+    "Beispieltext ist schön. first. 10. we are going to cowabunga. let there be rainbows."))
 
 [print(x, pp.transform([x])) for x in ['Janus kinase 2 JAK2 tyrosine kinase',
                                        'CLINICALTRIALSGOV: NCT00818441.',

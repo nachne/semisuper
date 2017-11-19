@@ -1,13 +1,12 @@
-from semisuper import loaders, transformers
-from nltk.corpus import stopwords
-from nltk.stem.wordnet import WordNetLemmatizer
-from sklearn.metrics import classification_report as clsr
-from operator import itemgetter
-from collections import Counter
 import string
-import random
+from collections import Counter
+from operator import itemgetter
+
 import gensim
 from gensim import corpora
+from nltk.corpus import stopwords
+from nltk.stem.wordnet import WordNetLemmatizer
+from semisuper import loaders, transformers
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
