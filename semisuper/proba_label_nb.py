@@ -15,7 +15,9 @@ import time
 # general MNB model builder
 # ----------------------------------------------------------------
 
-def build_proba_MNB(X, y, words=True, wordgram_range=(1, 3), chars=False, chargram_range=(1, 3), binary=True):
+def build_proba_MNB(X, y,
+                    words=True, wordgram_range=(1, 3),
+                    chars=True, chargram_range=(3, 6), binary=True):
     """build multinomial Naive Bayes classifier that accepts probabilistic labels
 
     feature encoding should be binarized"""

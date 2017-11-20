@@ -33,7 +33,7 @@ def build_classifier(X, y, classifier=None, outpath=None, verbose=False,
                 transformer_list=[
                     ("wordgrams", None if not words else
                     FeatureNamePipeline([
-                        ("preprocessor", TokenizePreprocessor()),
+                        ("preprocessor", TokenizePreprocessor(rules=False, lemmatize=False)),
                         ("word_tfidf", TfidfVectorizer(
                             analyzer='word',
                             # min_df=5, # TODO find reasonable value (5 <= n << 50)

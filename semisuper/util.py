@@ -266,11 +266,9 @@ class getBestModel:
                             p, r, f, s = precision_recall_fscore_support(y_test, y_predicted, pos_label=None,
                                                                          average='macro')
                             acc = accuracy_score(y_test, y_predicted)
-                            print
-                            '{},{},{}, ngram({},{})'.format(self.names[i], k, max_freq, ngram[0], ngram[1])
-                            print
-                            '\tEVAL:\t\t\t', p, r, f, acc
-                            # print classification_report(y_test, y_predicted)
+                            print('{},{},{}, ngram({},{})'.format(self.names[i], k, max_freq, ngram[0], ngram[1]))
+                            print('\tEVAL:\t\t\t', p, r, f, acc)
+                            # print(classification_report(y_test, y_predicted))
                             results.append([self.names[i],
                                             k,
                                             '({},{})'.format(ngram[0], ngram[1]),
@@ -307,10 +305,8 @@ class getBestModel:
                                                                                  pos_label=relevantClass,
                                                                                  average='binary')
                                 acc = acc * fr
-                                print
-                                '\tTEST ({}):\t'.format(relevantClass), pr, rr, fr, acc
-                                print
-                                '------------------'
+                                print('\tTEST ({}):\t'.format(relevantClass), pr, rr, fr, acc)
+                                print('------------------')
 
                                 resultsRelevant.append([self.names[i],
                                                         k,
@@ -329,8 +325,7 @@ class getBestModel:
                                 bestResult[k]['best_chi2'] = ch2
 
                         except Exception as e:
-                            print
-                            'error:\t', e
+                            print('error:\t', e)
                             traceback.print_exc()
                             sys.exit()
 

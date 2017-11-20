@@ -21,7 +21,8 @@ from semisuper.basic_pipeline import build_classifier
 
 # TODO: compute somewhat more meaningful threshold
 def ranking_cos_sim(X, threshold=0.1, compute_thresh=False,
-            words=True, wordgram_range=(1, 3), chars=True, chargram_range=(1, 3), binary=False):
+                    words=True, wordgram_range=(1, 3),
+                    chars=True, chargram_range=(3, 6), binary=False):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
     predict_proba returns similarity scores.
@@ -37,7 +38,8 @@ def ranking_cos_sim(X, threshold=0.1, compute_thresh=False,
 
 
 def rocchio(P, N, alpha=16, beta=4,
-            words=True, wordgram_range=(1, 3), chars=True, chargram_range=(1, 3), binary=False):
+            words=True, wordgram_range=(1, 3),
+            chars=True, chargram_range=(3, 6), binary=False):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
     predict_proba returns similarity scores.

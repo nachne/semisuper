@@ -20,8 +20,11 @@ falsches mapping: wild-type -> _disease_
 
 HoC als zusätzliche Beispiele (pos/neg)
 
+TODO PU-LEARNING MIT HOC VS CIVIC, UM BESSERE TRAININGSDATEN ZU BEKOMMEN!
+
 
 # TODO Tokenization nur einmal pro Algorithmus, nicht pro Iteration
+# TODO pickles etc.: Ordner müssen vorhanden sein, selbst wenn Dateien erst noch geladen werden!
 
 # TODO char n-grams statt word
 # TODO concat char, word topic
@@ -30,4 +33,3 @@ LIBS/TOOLS
 
 GeniaSS ist schlechter als eigenes sentence splitting
 HoC-Skripte fürs Preprocessing?
-

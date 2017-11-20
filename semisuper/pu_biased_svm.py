@@ -11,12 +11,13 @@ from semisuper.transformers import TokenizePreprocessor, FeatureNamePipeline, Te
 from semisuper.basic_pipeline import build_classifier
 
 
-def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None, kernel='linear',
-                                test_size=0.3):
+def biased_SVM_weight_selection(P, U,
+                                Cs_neg=None, Cs_pos_factors=None, Cs=None, kernel='linear', test_size=0.2,
+                                words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6)):
     """run biased SVMs with combinations of class weight values, choose the one with the best pu_measure"""
 
     # default values
-    # TODO remove C as a parameter, find good range of pos and neg weights
+    # TODO refactor parameters, find good range of pos and neg weights
     if Cs is None:
         Cs = [10 ** x for x in range(1, 5, 1)]
     if Cs_neg is None:
@@ -36,8 +37,9 @@ def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None,
 
     with Pool(processes=min(cpu_count(), 24)) as p:
         score_weights = p.map(partial(eval_params,
-                                      X_train=X, y_train=y, P_test=P_test, U_test=U_test,
-                                      kernel=kernel),
+                                      X_train=X, y_train=y, P_test=P_test, U_test=U_test, kernel=kernel,
+                                      words=words, wordgram_range=wordgram_range,
+                                      chars=chars, chargram_range=chargram_range),
                               Cs)
 
     best_score_params = max(score_weights, key=lambda tup: tup[0])
@@ -53,14 +55,19 @@ def biased_SVM_weight_selection(P, U, Cs_neg=None, Cs_pos_factors=None, Cs=None,
                              C_pos=best_score_params[1]['C_pos'],
                              C_neg=best_score_params[1]['C_neg'],
                              C=best_score_params[1]['C'],
+                             chars=chars, chargram_range=chargram_range,
+                             words=True, wordgram_range=wordgram_range,
                              probability=True, kernel=kernel)
 
     return model
 
 
-def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear'):
+def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear',
+                words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6)):
     C, C_pos, C_neg = Cs
-    model = build_biased_SVM(X_train, y_train, C_pos=C_pos, C_neg=C_neg, C=C, kernel=kernel)
+    model = build_biased_SVM(X_train, y_train, C_pos=C_pos, C_neg=C_neg, C=C, kernel=kernel,
+                             words=words, wordgram_range=wordgram_range,
+                             chars=chars, chargram_range=chargram_range)
 
     y_P = model.predict(P_test)
     y_U = model.predict(U_test)
@@ -76,12 +83,11 @@ def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear'):
 # ----------------------------------------------------------------
 
 def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=False,
-            words=True, wordgram_range=(1, 3), chars=True, chargram_range=(1, 3), binary=False):
+                     words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6), binary=False):
     """build biased-SVM classifier (weighting false positives and false negatives differently)
 
     C_pos is the weight for positive class, or penalty for false negative errors; C_neg analogously.
     C controls how hard the margin is in general."""
-
 
     class_weight = {1.0: C_pos / (C_pos + C_neg), 0.0: C_neg / (C_pos + C_neg)}  # normalizing version
     # print("Building biased-SVM with normalized weights. "
@@ -92,7 +98,6 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
     model = build_classifier(X, y, classifier=clf,
                              words=words, wordgram_range=wordgram_range,
                              chars=chars, chargram_range=chargram_range, binary=binary)
-
 
     model.get_class_weights = clf.get_class_weights
 
