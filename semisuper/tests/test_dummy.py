@@ -31,8 +31,7 @@ print("\n\n"
       "----------------------------------\n")
 
 # comment out for quick testing of existing model
-model = basic_pipeline.build_pipeline(X, y, classifier=SGDClassifier,
-                                      words=True, chars=True, chargram_range=(1,3))
+model = basic_pipeline.train_clf(X, y, classifier=SGDClassifier)
 
 print("Most informative features per class:")
 print(basic_pipeline.show_most_informative_features(model))

@@ -6,9 +6,31 @@ from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNameP
 from sklearn import naive_bayes
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import classification_report as clsr
-from sklearn.model_selection import train_test_split as tts
 from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.preprocessing import Binarizer
+
+
+def train_clf(X_vec, y, classifier=None, binary=False, verbose=False):
+    """build and train classifier on pre-vectorized data"""
+
+    if verbose:
+        print("Training classifier...")
+
+    if not classifier:
+        clf = naive_bayes.MultinomialNB(alpha=0.1, class_prior=None, fit_prior=True)
+    elif isinstance(classifier, type):
+        clf = classifier()
+    else:
+        clf = classifier
+
+    if binary:
+        model = Pipeline([('binarizer', Binarizer()),
+                          ('clf', clf)])
+    else:
+        model = clf
+
+    model.fit(X_vec, y)
+    return model
 
 
 def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
@@ -43,35 +65,38 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
 
     return model
 
-def feature_vectorizer(words=True, wordgram_range=(1,3), chars=False, chargram_range=(3,6), binary=False,
-                       rules=True, lemmatize=True):
-    return FeatureUnion(
-                transformer_list=[
-                    ("wordgrams", None if not words else
-                    FeatureNamePipeline([
-                        ("preprocessor", TokenizePreprocessor(rules=rules, lemmatize=lemmatize)),
-                        ("word_tfidf", TfidfVectorizer(
-                            analyzer='word',
-                            # min_df=5, # TODO find reasonable value (5 <= n << 50)
-                            tokenizer=identity, preprocessor=None, lowercase=False,
-                            ngram_range=wordgram_range,
-                            binary=binary, norm='l2' if not binary else None, use_idf=not binary))
-                    ])),
-                    ("chargrams", None if not chars else
-                    FeatureNamePipeline([
-                        ("char_tfidf", TfidfVectorizer(
-                            analyzer='char',
-                            # min_df=5,
-                            preprocessor=None, lowercase=False,
-                            ngram_range=chargram_range,
-                            binary=binary, norm='l2' if not binary else None, use_idf=not binary))
-                    ])),
-                    ("stats", None if binary else
-                    FeatureNamePipeline([
-                        ("stats", TextStats()),
-                        ("vect", DictVectorizer())
-                    ]))
-                ])
+
+def feature_vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6),
+                       binary=False, rules=True, lemmatize=True):
+    vectorizer = FeatureUnion(
+        transformer_list=[
+            ("wordgrams", None if not words else
+            FeatureNamePipeline([
+                ("preprocessor", TokenizePreprocessor(rules=rules, lemmatize=lemmatize)),
+                ("word_tfidf", TfidfVectorizer(
+                    analyzer='word',
+                    # min_df=5, # TODO find reasonable value (5 <= n << 50)
+                    tokenizer=identity, preprocessor=None, lowercase=False,
+                    ngram_range=wordgram_range,
+                    binary=binary, norm='l2' if not binary else None, use_idf=not binary))
+            ])),
+            ("chargrams", None if not chars else
+            FeatureNamePipeline([
+                ("char_tfidf", TfidfVectorizer(
+                    analyzer='char',
+                    # min_df=5,
+                    preprocessor=None, lowercase=False,
+                    ngram_range=chargram_range,
+                    binary=binary, norm='l2' if not binary else None, use_idf=not binary))
+            ])),
+            ("stats", None if binary else
+            FeatureNamePipeline([
+                ("stats", TextStats()),
+                ("vect", DictVectorizer())
+            ]))
+        ])
+    return vectorizer
+
 
 def show_most_informative_features(model: object, text: object = None, n: object = 40) -> object:
     """

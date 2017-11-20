@@ -1,19 +1,16 @@
-from sklearn.svm import SVC
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.model_selection import train_test_split
-from numpy import concatenate, zeros, ones, arange
-from multiprocessing import Pool, cpu_count
 from functools import partial
-from semisuper.helpers import identity, num_rows, pu_measure
-from semisuper.transformers import TokenizePreprocessor, FeatureNamePipeline, TextStats
-from semisuper.basic_pipeline import build_pipeline
+from multiprocessing import Pool, cpu_count
+
+from numpy import concatenate, zeros, ones
+from semisuper.basic_pipeline import train_clf
+from semisuper.helpers import num_rows, pu_measure
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
 
 
 def biased_SVM_weight_selection(P, U,
-                                Cs_neg=None, Cs_pos_factors=None, Cs=None, kernel='linear', test_size=0.2,
-                                words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6)):
+                                Cs_neg=None, Cs_pos_factors=None, Cs=None,
+                                kernel='linear', test_size=0.2):
     """run biased SVMs with combinations of class weight values, choose the one with the best pu_measure"""
 
     # default values
@@ -37,9 +34,7 @@ def biased_SVM_weight_selection(P, U,
 
     with Pool(processes=min(cpu_count(), 24)) as p:
         score_weights = p.map(partial(eval_params,
-                                      X_train=X, y_train=y, P_test=P_test, U_test=U_test, kernel=kernel,
-                                      words=words, wordgram_range=wordgram_range,
-                                      chars=chars, chargram_range=chargram_range),
+                                      X_train=X, y_train=y, P_test=P_test, U_test=U_test, kernel=kernel),
                               Cs)
 
     best_score_params = max(score_weights, key=lambda tup: tup[0])
@@ -55,19 +50,14 @@ def biased_SVM_weight_selection(P, U,
                              C_pos=best_score_params[1]['C_pos'],
                              C_neg=best_score_params[1]['C_neg'],
                              C=best_score_params[1]['C'],
-                             chars=chars, chargram_range=chargram_range,
-                             words=True, wordgram_range=wordgram_range,
                              probability=True, kernel=kernel)
 
     return model
 
 
-def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear',
-                words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6)):
+def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear'):
     C, C_pos, C_neg = Cs
-    model = build_biased_SVM(X_train, y_train, C_pos=C_pos, C_neg=C_neg, C=C, kernel=kernel,
-                             words=words, wordgram_range=wordgram_range,
-                             chars=chars, chargram_range=chargram_range)
+    model = build_biased_SVM(X_train, y_train, C_pos=C_pos, C_neg=C_neg, C=C, kernel=kernel)
 
     y_P = model.predict(P_test)
     y_U = model.predict(U_test)
@@ -82,8 +72,7 @@ def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear',
 # BIASED SVM BUILDERS AND CLASSES
 # ----------------------------------------------------------------
 
-def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=False,
-                     words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6), binary=False):
+def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=False):
     """build biased-SVM classifier (weighting false positives and false negatives differently)
 
     C_pos is the weight for positive class, or penalty for false negative errors; C_neg analogously.
@@ -95,9 +84,7 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
 
     clf = BiasedSVM(C=C, class_weight=class_weight, kernel=kernel, probability=probability)
 
-    model = build_pipeline(X, y, classifier=clf,
-                           words=words, wordgram_range=wordgram_range,
-                           chars=chars, chargram_range=chargram_range, binary=binary)
+    model = train_clf(X, y, classifier=clf)
 
     model.get_class_weights = clf.get_class_weights
 

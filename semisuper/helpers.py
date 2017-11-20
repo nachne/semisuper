@@ -35,7 +35,9 @@ def positive(x):
 
 def num_rows(a):
     """returns length of array or vector, number of rows for 2-dimensional arrays"""
-    return itemgetter(0)(shape(a))
+    if issparse(a):
+        return shape(a)[0]
+    return len(a)
 
 
 def arrays(args):

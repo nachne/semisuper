@@ -158,6 +158,7 @@ def sentence_tokenize(text):
 
     return sent_tokenize(prenormalize(text))
 
+
 def prenormalize(text):
     """normalize common abbreviations and symbols known to mess with sentence boundary disambiguation"""
     for regex, repl in prenormalize_dict:
@@ -222,26 +223,24 @@ class TextStats(BaseEstimator, TransformerMixin):
         return list(self.key_dict.keys())
 
 
-
 # TODO steal from Jurica
 def prepareTrainTest(self, ngramRange, trainData, testData, trainLabels, max_df_freq, analyzerLevel='char',
-                         featureSelect=False, vocab=None):
+                     featureSelect=False, vocab=None):
+    tfidfVect = TfidfVectorizer(ngram_range=ngramRange, analyzer=analyzerLevel, norm='l2', decode_error='replace',
+                                max_df=max_df_freq, sublinear_tf=True,
+                                lowercase=True, strip_accents='unicode', token_pattern=u'\S+[^.,!?\s]',
+                                vocabulary=vocab)
+    transformedTrainData = tfidfVect.fit_transform(trainData)
+    transformedTestData = tfidfVect.transform(testData)
 
-        tfidfVect = TfidfVectorizer(ngram_range=ngramRange, analyzer=analyzerLevel, norm='l2', decode_error='replace',
-                                    max_df=max_df_freq, sublinear_tf=True,
-                                    lowercase=True, strip_accents='unicode', token_pattern=u'\S+[^.,!?\s]',
-                                    vocabulary=vocab)
-        transformedTrainData = tfidfVect.fit_transform(trainData)
-        transformedTestData = tfidfVect.transform(testData)
+    # def featureSelection(self, trainData, trainLabels, testData):
+    ch2 = None
+    if featureSelect:
+        print()
+        "Selecting best features"
+        ch2 = SelectPercentile(chi2, 20)
+        transformedTrainData = ch2.fit_transform(transformedTrainData, trainLabels)
+        transformedTestData = ch2.transform(transformedTestData)
 
-        # def featureSelection(self, trainData, trainLabels, testData):
-        ch2 = None
-        if featureSelect:
-            print()
-            "Selecting best features"
-            ch2 = SelectPercentile(chi2, 20)
-            transformedTrainData = ch2.fit_transform(transformedTrainData, trainLabels)
-            transformedTestData = ch2.transform(transformedTestData)
-
-        # print 'Transformed train data set feature space size:\tTrain {}\t\t Test{}'.format(transformedTrainData.shape, transformedTestData.shape)
-        return transformedTrainData, transformedTestData, tfidfVect, ch2
+    # print 'Transformed train data set feature space size:\tTrain {}\t\t Test{}'.format(transformedTrainData.shape, transformedTestData.shape)
+    return transformedTrainData, transformedTestData, tfidfVect, ch2

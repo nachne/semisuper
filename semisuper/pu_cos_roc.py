@@ -1,17 +1,11 @@
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import LabelEncoder, Normalizer, normalize
-from sklearn.linear_model import SGDClassifier
-from sklearn import svm, naive_bayes
-from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.metrics import classification_report as clsr
-from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.model_selection import train_test_split as tts
 from numpy import concatenate, ones, zeros
-from semisuper.helpers import identity, partition_pos_neg, num_rows, label2num, unsparsify
-from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
-from semisuper.basic_pipeline import build_pipeline
+from scipy import vstack
+from semisuper.basic_pipeline import train_clf
+from semisuper.helpers import partition_pos_neg, num_rows, label2num
+from semisuper.helpers import unsparsify
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import normalize
 
 
 # ----------------------------------------------------------------
@@ -20,9 +14,7 @@ from semisuper.basic_pipeline import build_pipeline
 
 
 # TODO: compute somewhat more meaningful threshold
-def ranking_cos_sim(X, threshold=0.1, compute_thresh=False,
-                    words=True, wordgram_range=(1, 3),
-                    chars=True, chargram_range=(3, 6), binary=False):
+def ranking_cos_sim(X, threshold=0.1, compute_thresh=False, binary=False):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
     predict_proba returns similarity scores.
@@ -31,15 +23,11 @@ def ranking_cos_sim(X, threshold=0.1, compute_thresh=False,
 
     clf = SimRanker(threshold, compute_thresh)
 
-    model = build_pipeline(X, [1] * num_rows(X), classifier=clf,
-                           words=words, wordgram_range=wordgram_range,
-                           chars=chars, chargram_range=chargram_range, binary=binary)
+    model = train_clf(X, ones(num_rows(X)), classifier=clf, binary=binary)
     return model
 
 
-def rocchio(P, N, alpha=16, beta=4,
-            words=True, wordgram_range=(1, 3),
-            chars=True, chargram_range=(3, 6), binary=False):
+def rocchio(P, N, alpha=16, beta=4, binary=False):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
     predict_proba returns similarity scores.
@@ -49,11 +37,9 @@ def rocchio(P, N, alpha=16, beta=4,
     clf = BinaryRocchio(alpha=alpha, beta=beta)
 
     X = concatenate((P, N))
-    y = [1] * num_rows(P) + [0] * num_rows(N)
+    y = concatenate((ones(num_rows(P)), zeros(num_rows(N))))
 
-    model = build_pipeline(X, y, classifier=clf,
-                           words=words, wordgram_range=wordgram_range,
-                           chars=chars, chargram_range=chargram_range, binary=binary)
+    model = train_clf(X, y, classifier=clf, binary=binary)
     return model
 
 

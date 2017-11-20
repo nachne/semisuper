@@ -1,8 +1,9 @@
-import time
 import random
+import time
 
-from semisuper import loaders, pu_two_step, pu_biased_svm
-from semisuper.helpers import num_rows
+import numpy as np
+from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline
+from semisuper.helpers import num_rows, unsparsify
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -16,35 +17,48 @@ print("HoC negative sentences:", len(hocneg))
 print("PIBOSO outcome sentences:", len(piboso_outcome))
 print("PIBOSO other sentences:", len(piboso_other))
 
-# P = civic
-# U = abstracts
+# P_raw = civic
+# U_raw = abstracts
 
 # print("\n\nTRAINING ON CIVIC AND ABSTRACTS\n\n")
 
-P = hocpos + civic
-U = hocneg + abstracts
+show_sentences = False
 
-print("\n\nTRAINING ON HOC CORPUS"
-      , "CIVIC"
-      , "AND ABSTRACTS"
+P_raw = random.sample(hocpos + civic, 400)
+U_raw = random.sample(hocneg + abstracts, 400)
+
+print("\nTRAINING ON HOC CORPUS"
+      , ", CIVIC"
+      , ", AND ABSTRACTS"
       )
 
-words, wordgram_range = [True, (1, 3)]
-chars, chargram_range = [True, (3, 6)]
+words, wordgram_range = [True, (1, 1)]  # TODO change back to True, (1,3)
+chars, chargram_range = [True, (1, 1)]  # TODO change back to True, (3,6)
+rules, lemmatize = [True, True]
+
+print("Fitting vectorizer")
+vectorizer = basic_pipeline.feature_vectorizer(words=words, wordgram_range=wordgram_range,
+                                               chars=chars, chargram_range=chargram_range,
+                                               rules=rules, lemmatize=lemmatize)
+vectorizer.fit(np.concatenate((P_raw, U_raw)))
+P = unsparsify(vectorizer.transform(P_raw))
+U = unsparsify(vectorizer.transform(U_raw))
+
+print("P:", num_rows(P), "\tU:", num_rows(U))
 
 
 # ------------------
 # model testers
 # ------------------
 
-def test_all():
+def test_all(P, U):
+    test_biased_svm(P, U)
     test_i_em(P, U)
     test_s_em(P, U)
-    test_cr_svm(P, U)
     test_roc_svm(P, U)
+    test_cr_svm(P, U)
     test_roc_em(P, U)
     test_spy_svm(P, U)
-    test_biased_svm(P, U)
     return
 
 
@@ -56,9 +70,7 @@ def test_s_em(P, U):
 
     start_time = time.time()
 
-    model = pu_two_step.s_EM(P, U, spy_ratio=0.15, tolerance=0.15, noise_lvl=0.1,
-                             words=words, wordgram_range=wordgram_range,
-                             chars=chars, chargram_range=chargram_range)
+    model = pu_two_step.s_EM(P, U, spy_ratio=0.15, tolerance=0.15, noise_lvl=0.1)
     print("\nTraining S-EM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "S-EM")
@@ -73,9 +85,7 @@ def test_i_em(P, U):
 
     start_time = time.time()
 
-    model = pu_two_step.i_EM(P, U, max_pos_ratio=0.5, max_imbalance=100.0, tolerance=0.15,
-                             words=words, wordgram_range=wordgram_range,
-                             chars=chars, chargram_range=chargram_range)
+    model = pu_two_step.i_EM(P, U, max_pos_ratio=0.5, max_imbalance=100.0, tolerance=0.15)
     print("\nTraining I-EM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "I-EM")
@@ -89,9 +99,7 @@ def test_roc_svm(P, U):
           "------------\n")
 
     start_time = time.time()
-    model = pu_two_step.roc_SVM(P, U, max_neg_ratio=0.1,
-                                words=words, wordgram_range=wordgram_range,
-                                chars=chars, chargram_range=chargram_range)
+    model = pu_two_step.roc_SVM(P, U, max_neg_ratio=0.1)
     print("\nTraining ROC-SVM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "ROC-SVM")
@@ -105,9 +113,7 @@ def test_cr_svm(P, U):
           "-----------\n")
 
     start_time = time.time()
-    model = pu_two_step.cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.5,
-                               words=words, wordgram_range=wordgram_range,
-                               chars=chars, chargram_range=chargram_range)
+    model = pu_two_step.cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.5)
     print("\nTraining CR-SVM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "CR-SVM")
@@ -121,9 +127,7 @@ def test_spy_svm(P, U):
           "------------\n")
 
     start_time = time.time()
-    model = pu_two_step.spy_SVM(P, U, spy_ratio=0.15, max_neg_ratio=0.1, tolerance=0.15, noise_lvl=0.2,
-                                words=words, wordgram_range=wordgram_range,
-                                chars=chars, chargram_range=chargram_range)
+    model = pu_two_step.spy_SVM(P, U, spy_ratio=0.15, max_neg_ratio=0.1, tolerance=0.15, noise_lvl=0.2)
     print("\nTraining SPY-SVM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "SPY-SVM")
@@ -137,9 +141,7 @@ def test_roc_em(P, U):
           "-----------\n")
 
     start_time = time.time()
-    model = pu_two_step.roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, clf_selection=True,
-                               words=words, wordgram_range=wordgram_range,
-                               chars=chars, chargram_range=chargram_range)
+    model = pu_two_step.roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, clf_selection=True)
     print("\nTraining ROC-EM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "ROC-EM")
@@ -156,9 +158,7 @@ def test_biased_svm(P, U):
     model = pu_biased_svm.biased_SVM_weight_selection(P, U,
                                                       Cs=[10 ** x for x in range(1, 5, 1)],
                                                       Cs_neg=[1],
-                                                      Cs_pos_factors=range(1, 1100, 200),
-                                                      words=words, wordgram_range=wordgram_range,
-                                                      chars=chars, chargram_range=chargram_range)
+                                                      Cs_pos_factors=range(1, 1100, 200))
     print("\nTraining Biased-SVM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "BIASED-SVM")
@@ -170,15 +170,18 @@ def test_biased_svm(P, U):
 # ------------------
 
 def print_sentences(model, modelname=""):
+    if not show_sentences:
+        return
+
     print("\n\n"
           "----------------\n"
           "{} SENTENCES\n"
           "----------------\n".format(modelname))
 
-    start_time = time.time()
-
     def sort_model(sentences):
-        return sorted(zip(model.predict_proba(sentences),
+        sent_features = unsparsify(vectorizer.transform(sentences))
+
+        return sorted(zip(model.predict_proba(sent_features),
                           sentences),
                       key=lambda x: x[0][1],
                       reverse=True)
@@ -219,22 +222,16 @@ def print_sentences(model, modelname=""):
 
 # ------------------
 
-def sample_PU(P, U, lenP, lenU):
-    print("sampling", lenP, "(", lenP/num_rows(P), ") of P",
-          "and", lenU, "(", lenU/num_rows(U), ") of U")
-    return random.sample(P, lenP), random.sample(U, lenU)
-
-
 def print_params():
     print("words:", words, "\tword n-gram range:", wordgram_range,
-          "\nchars:", chars, "\tchar n-gram range:", chargram_range)
+          "\nchars:", chars, "\tchar n-gram range:", chargram_range,
+          "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
+    return
 
 
 # ------------------
 # execute
 # ------------------
 
-P, U = sample_PU(P, U, 1000, 2000)
 print_params()
-
-test_all()
+test_all(P, U)
