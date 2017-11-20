@@ -10,7 +10,7 @@ import pickle
 from semisuper.helpers import identity, num_rows, arrays, partition_pos_neg, pu_measure
 from semisuper.pu_cos_roc import ranking_cos_sim, rocchio
 from semisuper.proba_label_nb import build_proba_MNB
-from semisuper.basic_pipeline import build_classifier, show_most_informative_features
+from semisuper.basic_pipeline import build_pipeline, show_most_informative_features
 
 
 # ----------------------------------------------------------------
@@ -390,11 +390,11 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.05,
     y_RN = np.zeros(num_rows(RN))
 
     print("Building initial SVM classifier with Positive and Reliable Negative docs")
-    initial_model = build_classifier(np.concatenate((P, RN)),
-                                     np.concatenate((y_P, y_RN)),
-                                     classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True),
-                                     words=words, wordgram_range=wordgram_range,
-                                     chars=chars, chargram_range=chargram_range)
+    initial_model = build_pipeline(np.concatenate((P, RN)),
+                                   np.concatenate((y_P, y_RN)),
+                                   classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True),
+                                   words=words, wordgram_range=wordgram_range,
+                                   chars=chars, chargram_range=chargram_range)
 
     print("Predicting U with initial SVM, adding negatively classified docs to RN for iteration")
     y_U = initial_model.predict(U)
@@ -412,9 +412,9 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.05,
 
         print("Reliable negative examples:", num_rows(RN))
 
-        model = build_classifier(np.concatenate((P, RN)),
-                                 np.concatenate((y_P, y_RN)),
-                                 classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True))
+        model = build_pipeline(np.concatenate((P, RN)),
+                               np.concatenate((y_P, y_RN)),
+                               classifier=svm.SVC(kernel='linear', class_weight='balanced', probability=True))
         y_U = model.predict(Q)
         Q, W = partition_pos_neg(Q, y_U)
 

@@ -8,7 +8,7 @@ from multiprocessing import Pool, cpu_count
 from functools import partial
 from semisuper.helpers import identity, num_rows, pu_measure
 from semisuper.transformers import TokenizePreprocessor, FeatureNamePipeline, TextStats
-from semisuper.basic_pipeline import build_classifier
+from semisuper.basic_pipeline import build_pipeline
 
 
 def biased_SVM_weight_selection(P, U,
@@ -95,9 +95,9 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
 
     clf = BiasedSVM(C=C, class_weight=class_weight, kernel=kernel, probability=probability)
 
-    model = build_classifier(X, y, classifier=clf,
-                             words=words, wordgram_range=wordgram_range,
-                             chars=chars, chargram_range=chargram_range, binary=binary)
+    model = build_pipeline(X, y, classifier=clf,
+                           words=words, wordgram_range=wordgram_range,
+                           chars=chars, chargram_range=chargram_range, binary=binary)
 
     model.get_class_weights = clf.get_class_weights
 

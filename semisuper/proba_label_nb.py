@@ -1,6 +1,6 @@
 from semisuper.helpers import num_rows, label2num, unsparsify, identity
 from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
-from semisuper.basic_pipeline import build_classifier
+from semisuper.basic_pipeline import build_pipeline
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
@@ -22,9 +22,9 @@ def build_proba_MNB(X, y,
 
     feature encoding should be binarized"""
     clf = ProbaLabelMNB(alpha=0.1)
-    model = build_classifier(X, y, classifier=clf,
-                             words=words, wordgram_range=wordgram_range,
-                             chars=chars, chargram_range=chargram_range, binary=binary)
+    model = build_pipeline(X, y, classifier=clf,
+                           words=words, wordgram_range=wordgram_range,
+                           chars=chars, chargram_range=chargram_range, binary=binary)
 
     return model  # equations from "partially supervised classification of text documents"
 

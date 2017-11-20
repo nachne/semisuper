@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split as tts
 from numpy import concatenate, ones, zeros
 from semisuper.helpers import identity, partition_pos_neg, num_rows, label2num, unsparsify
 from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
-from semisuper.basic_pipeline import build_classifier
+from semisuper.basic_pipeline import build_pipeline
 
 
 # ----------------------------------------------------------------
@@ -31,9 +31,9 @@ def ranking_cos_sim(X, threshold=0.1, compute_thresh=False,
 
     clf = SimRanker(threshold, compute_thresh)
 
-    model = build_classifier(X, [1] * num_rows(X), classifier=clf,
-                             words=words, wordgram_range=wordgram_range,
-                             chars=chars, chargram_range=chargram_range, binary=binary)
+    model = build_pipeline(X, [1] * num_rows(X), classifier=clf,
+                           words=words, wordgram_range=wordgram_range,
+                           chars=chars, chargram_range=chargram_range, binary=binary)
     return model
 
 
@@ -51,9 +51,9 @@ def rocchio(P, N, alpha=16, beta=4,
     X = concatenate((P, N))
     y = [1] * num_rows(P) + [0] * num_rows(N)
 
-    model = build_classifier(X, y, classifier=clf,
-                             words=words, wordgram_range=wordgram_range,
-                             chars=chars, chargram_range=chargram_range, binary=binary)
+    model = build_pipeline(X, y, classifier=clf,
+                           words=words, wordgram_range=wordgram_range,
+                           chars=chars, chargram_range=chargram_range, binary=binary)
     return model
 
 

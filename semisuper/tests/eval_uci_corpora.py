@@ -38,7 +38,7 @@ def train_test_all_clfs(data_tuple):
     print("\n\n---------------------------")
     print("Training dummy classifier")
     print("---------------------------\n")
-    dummy = basic_pipeline.build_classifier(X, y)
+    dummy = basic_pipeline.build_pipeline(X, y)
 
     print("\n\n---------------------------")
     print("Training one-class SVM")
