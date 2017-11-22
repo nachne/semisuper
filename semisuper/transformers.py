@@ -210,37 +210,16 @@ class TextStats(BaseEstimator, TransformerMixin):
     inverse_length: 1/(number of tokens)
     """
 
-    key_dict = {'inverse_length': 'inverse_length'}
+    key_dict = {'inverse_token_count': 'inverse_token_count',
+                'inverse_length': 'inverse_length'}
 
     def fit(self, X=None, y=None):
         return self
 
-    def transform(self, token_lists):
-        for tl in token_lists:
-            yield {'inverse_length': (1.0 / len(tl) if tl else 1.0)}
+    def transform(self, sentences):
+        for sentence in sentences:
+            yield {'inverse_length': (1.0 / len(sentence) if sentence else 1.0),
+                   'inverse_token_count': (1.0 / len(re.split("\s+", sentence)))}
 
     def get_feature_names(self):
         return list(self.key_dict.keys())
-
-
-# TODO steal from Jurica
-def prepareTrainTest(self, ngramRange, trainData, testData, trainLabels, max_df_freq, analyzerLevel='char',
-                     featureSelect=False, vocab=None):
-    tfidfVect = TfidfVectorizer(ngram_range=ngramRange, analyzer=analyzerLevel, norm='l2', decode_error='replace',
-                                max_df=max_df_freq, sublinear_tf=True,
-                                lowercase=True, strip_accents='unicode', token_pattern=u'\S+[^.,!?\s]',
-                                vocabulary=vocab)
-    transformedTrainData = tfidfVect.fit_transform(trainData)
-    transformedTestData = tfidfVect.transform(testData)
-
-    # def featureSelection(self, trainData, trainLabels, testData):
-    ch2 = None
-    if featureSelect:
-        print()
-        "Selecting best features"
-        ch2 = SelectPercentile(chi2, 20)
-        transformedTrainData = ch2.fit_transform(transformedTrainData, trainLabels)
-        transformedTestData = ch2.transform(transformedTestData)
-
-    # print 'Transformed train data set feature space size:\tTrain {}\t\t Test{}'.format(transformedTrainData.shape, transformedTestData.shape)
-    return transformedTrainData, transformedTestData, tfidfVect, ch2

@@ -1,0 +1,29 @@
+bagging SVM / bagging PU learning
+http://members.cbio.mines-paristech.fr/~jvert/svn/bibli/local/Mordelet2013bagging.pdf
+for biased SVM: C+n+ = C-n- (Gesamtgewichte der Klassen gleich), C=C+ + C- wird optimiert
+in their experiments, this choice was never significantly outperformed
+
+----
+
+lecture http://pages.cs.wisc.edu/~jerryzhu/pub/AERFAI06ssl.pdf
+Self-training
+
+Co-training: classifiers on different views teach each other
+	classify U with f1, f2 separately
+	add f1s k-most confident predictions to f2s labeled data
+	vice versa
+	repeat
+Co-EM: add all, weighted with P(y|x)
+Single-view: agreement/majority voting
+
+Generative probabilistic models
+	maximizing different likelihood
+	EM
+	LDA
+	HMM
+
+clustering?
+
+graph: unweighted k-NN graph
+	
+----

@@ -1,0 +1,263 @@
+Last login: Tue Nov 21 16:05:00 on ttys001
+~(*.*)~
+Martins-MBP:semisuper martin$ py
+pyami_sendmail                   python-config
+pydoc                            python2.7
+pydoc2.7                         python2.7-config
+pydoc3                           python3
+pydoc3.6                         python3-config
+pyenv                            python3.6
+pyenv-install                    python3.6-config
+pyenv-sh-virtualenvwrapper       python3.6m
+pyenv-sh-virtualenvwrapper_lazy  python3.6m-config
+pyenv-uninstall                  pythonw
+pyenv-virtualenvwrapper          pythonw2.7
+pyenv-virtualenvwrapper_lazy     pyvenv
+python                           pyvenv-3.6
+python-build                     
+Martins-MBP:semisuper martin$ python3 semisuper/tests/PNU_tests.py 
+CIViC sentences: 5114
+Abstract sentences: 12605
+HoC positive sentences: 4430
+HoC negative sentences: 8909
+PIBOSO outcome sentences: 3563
+PIBOSO other sentences: 2712
+
+TRAINING SEMI-SUPERVISED	P: HOC POS, CIVIC 	N: HOC NEG ,	U: ABSTRACTS
+Fitting vectorizer
+P: 1000 	N: 1000 	U: 2000
+Features before selection: 65387
+Features after selection: 13077
+words: False 	word n-gram range: (1, 3) 
+chars: True 	char n-gram range: (2, 4) 
+rule-based preprocessing: True 	lemmatization: True
+
+
+---------
+SVM TEST
+---------
+
+Building initial SVM classifier with Positive and Reliable Negative docs
+Predicting U with initial SVM, adding negatively classified docs to RN for iteration
+Iteration # 1
+Reliable negative examples: 1451
+Iteration # 2
+Reliable negative examples: 2030
+Iteration # 3
+Reliable negative examples: 2385
+Iteration # 4
+Reliable negative examples: 2587
+Iteration # 5
+Reliable negative examples: 2681
+Iteration # 6
+Reliable negative examples: 2708
+Iteration # 7
+Reliable negative examples: 2722
+Iteration # 8
+Reliable negative examples: 2723
+Iterative SVM converged. Reliable negative examples: 2723
+Ratio of positive examples misclassified as negative by initial SVM: 0.164
+Ratio of positive examples misclassified as negative by final SVM: 0.091
+Returning final classifier
+
+Iterating SVM took 6784.000993013382 seconds
+
+
+
+----------------
+iterativeSVM SENTENCES
+----------------
+
+
+iterativeSVM civic prediction 2883 / 5114 ( 0.5637465780211185 )
+
+iterativeSVM civic top 12 (sentences with highest ranking)
+
+(array([ 0.00335166,  0.99664834]), 'Ectopic expression of engineered cDNA in 293H cells showed that trametinib led to reduced ERK1/2 phosphorylation in fusion positive cells whereas vemurafenib was not effective.')
+(array([ 0.00337082,  0.99662918]), '1 patient had a deletion of I843.')
+(array([ 0.00345174,  0.99654826]), 'Cells expressing the EML4-ALK variant 3 with G1202R ALK mutation were more resistant to brigatinib treatment (IC50 325 nM) than cells expressing wildtype EML4-ALK variant 3 (IC50 6 nM).')
+(array([ 0.00352727,  0.99647273]), 'In patients with stage IV melanoma, NRAS mutation was associated with reduced median survival compared to patients with wildtype NRAS.')
+(array([ 0.00354395,  0.99645605]), 'In Ba/F3 cells with ectopic EML4-ALK variant 1 G1269A, IC50 of 84 nM was reported with alectinib, which was a 6 fold increase over IC50 for EML4-ALK wild type.')
+(array([ 0.00369962,  0.99630038]), 'Parallel erlotinib incubations of cells with wildtype EGFR induced recompartmentalization of ectopic EGFR protien only at high concentration (10uM).')
+(array([ 0.00394924,  0.99605076]), 'This nonsense mutation was found in a German, VHL type 1 patient with retinal angiomas, hemangioblastomas of the central nervous system, and pancreatic cysts (family VHL 30).')
+(array([ 0.00396472,  0.99603528]), 'Crizotinib did not lead to a reduction in tumor volume of two cell lines in vivo but reduced the formation of macrometastases (luciferase activity, p=0.03).')
+(array([ 0.0040226,  0.9959774]), 'This missense mutation was found in a German, VHL type 1 patient with retinal angiomas (family VHL 59).')
+(array([ 0.00403597,  0.99596403]), 'Following rapamycin treatment of mice with KrasG12D-induced lung tumors, mice with Tsc1 deletion (exon17/18 deletion resulting in frameshift) in the lung exhibit increased overall survival, increased apoptosis, reduced proliferation and reduced tumor burden compared to Tsc1 wildtype mice.')
+(array([ 0.00415445,  0.99584555]), 'Patients with EGFR deletions in exon 19 or L858R mutations were associated with an improved response to erlotinib or gefitinib with partial or complete response (74.1% vs. 16.5%, P<0.001) when compared to wildtype EGFR patients.')
+(array([ 0.00433238,  0.99566762]), 'There is no statistical difference in progression free survival between lung cancer patients treated with gefitinib or erlotinib with EGFR L858R mutations (N=72/242; univariate: P=0.283; multivariate: P=0.250) compared to patients with Exon 19 mutations (N=170).')
+
+iterativeSVM civic bottom 12 (sentences with lowest ranking)
+
+(array([ 0.99587923,  0.00412077]), 'Pretreatment biopsies and post-treatment surgical samples were obtained, and microarray performed.')
+(array([ 0.99629691,  0.00370309]), 'Median PFS among patients randomized to chemotherapy was 7 weeks (95% CI, 4.3-8.4 weeks; median treatment duration, 8 weeks; interquartile range [IQR], 4.3-16 weeks) vs. 15.9 weeks with selumetinib (95% CI, 8.4-21.1 weeks; median treatment duration, 16.1 weeks; IQR, 8.1-25.3 weeks) (hazard ratio, 0.46; 95% CI, 0.30-0.71; P\u2009<\u20090.001).')
+(array([ 0.99629981,  0.00370019]), 'In patients classified as intermediate-risk via cytogenetics, TET2 mutations have been shown to be correlated with poor prognosis.')
+(array([ 0.99651926,  0.00348074]), 'A meta-analysis of EGFR gene copy number as a predictive biomarker for patients receiving tyrosine kinase inhibitor treatment was performed.')
+(array([ 0.99689858,  0.00310142]), 'The studies included ER positive and negative cases, and the MIB-1 antibody was used in the large majority of studies.')
+(array([ 0.99689949,  0.00310051]), 'Progression-free survival was not significant (P = 0.21), however, overall survival remained significant (P = 0.03) under multivariate analysis.')
+(array([ 0.99772808,  0.00227192]), 'The investigators conclude there is promise in trastuzumab-based therapies in advanced endometrial cancers, including USPC.')
+(array([ 0.99801456,  0.00198544]), '(PFS: P = 0.0015, OS: P = 0.0384).')
+(array([ 0.99827314,  0.00172686]), '16 SNPs were significantly associated with the clinical outcomes after chemotherapy with paclitaxel-cisplatin: ETS2 SNP: OR = 1.34, 95% CI = 1.00–1.81, P = 0.05; aHR = 0.80, 95% CI = 0.69–0.94, P = 0.006, under additive model.')
+(array([ 0.99837441,  0.00162559]), 'The current study investigated potential genomic markers associated with "hyper-progression".')
+(array([ 0.99842946,  0.00157054]), 'Researchers examined the prognostic role of miR-218 expression in CRC tumor samples when receiving 5-FU based treatment.')
+(array([ 0.99844999,  0.00155001]), 'The majority of patients were smokers (97%).')
+
+iterativeSVM abstracts prediction 1199 / 12605 ( 0.09512098373661246 )
+
+iterativeSVM abstracts top 12 (sentences with highest ranking)
+
+(array([ 0.00689512,  0.99310488]), 'SPHK1 expression was significantly associated with tumor size, invasion depth, FIGO stage, lymph node metastasis, and lymphovascular invasion.')
+(array([ 0.00780377,  0.99219623]), 'Furthermore, we showed that inhibition of the NOTCH pathway reduced proliferation and induced apoptosis in 2 MCL cell lines.')
+(array([ 0.00786739,  0.99213261]), 'Knockdown of MyD88 reduced the proliferation, migration, and invasion of MCF-7 cells and increased the sensitivity of MCF-7 cells to paclitaxel treatment through the inhibition of activation of NF-kappaB via PI3K/Akt.')
+(array([ 0.01133447,  0.98866553]), 'This degradation leads to a potent inhibition of downstream signaling pathways and to the induction of growth arrest and apoptosis in cells carrying the EML4-ALK fusion.')
+(array([ 0.01338492,  0.98661508]), 'High expression of HEF1 correlated with higher advanced tumor, node, metastasis (TNM) stage and vascular invasion (P<0.05).')
+(array([ 0.01419429,  0.98580571]), 'PIK3CA wild type cells exhibited reduced proliferation in vitro and in vivo.')
+(array([ 0.01489655,  0.98510345]), 'Patients with exon 19 deletion or L858R mutations were identified.')
+(array([ 0.01530352,  0.98469648]), 'T-DM1 efficiently inhibited proliferation with arrest in G2-M phase and induced cell death by apoptosis in cells with a significant level of surface expression of HER-2.')
+(array([ 0.01614869,  0.98385131]), 'In contrast, only 1 of the 6 patients with only KIT amplification or overexpression alone had a partial response.')
+(array([ 0.01676355,  0.98323645]), 'Here we show that a new ALK inhibitor AZD3463 effectively suppressed the proliferation of NB cell lines with wild type ALK (WT) as well as ALK activating mutations (F1174L and D1091N) by blocking the ALK-mediated PI3K/AKT/mTOR pathway and ultimately induced apoptosis and autophagy.')
+(array([ 0.01789072,  0.98210928]), 'This was associated with cell cycle arrest, reduced proliferative capacity in both 2D and 3D culture systems, and induction of apoptosis.')
+(array([ 0.01994344,  0.98005656]), 'Combinatorial treatment induced apoptosis only in cell lines sensitive to AKTi.')
+
+iterativeSVM abstracts bottom 12 (sentences with lowest ranking)
+
+(array([  9.99732694e-01,   2.67306378e-04]), 'CONCLUSIONS: These results show the feasibility and potential clinical use of next-generation sequencing for evaluating predictive biomarkers.')
+(array([  9.99746249e-01,   2.53750766e-04]), 'In multivariable analyses, NPM1 mutations remained independent predictors for higher CR rates (P < .001) and longer DFS (P = .004) and OS (P < .001), after adjustment for other prognostic clinical and molecular variables.')
+(array([  9.99772142e-01,   2.27858001e-04]), 'METHODS: Using direct sequencing and real-time quantitative PCR, we examined PIK3CA mutations and amplification, and their association with clinicopathological characteristics and clinical outcome of gastric cancer patients.')
+(array([  9.99773453e-01,   2.26546688e-04]), 'However, the results of studies examining its mutation frequency and predictive value are inconsistent, and several studies have investigated the association between TERT gene polymorphisms and gliomagenesis.')
+(array([  9.99776739e-01,   2.23260855e-04]), 'METHODS: To identify potential genetic drivers in these disorders, we used an integrated approach of deep sequencing coupled with the screening of primary leukemia cells obtained from patients with CNL or atypical CML against panels of tyrosine kinase-specific small interfering RNAs or small-molecule kinase inhibitors.')
+(array([  9.99814212e-01,   1.85787797e-04]), 'PURPOSE: Activating mutations in the phosphoinositide-3-kinase (PI3K)/AKT/mTOR pathway are present in the majority of breast cancers and therefore are a major focus of drug development and clinical trials.')
+(array([  9.99821377e-01,   1.78622984e-04]), 'METHODS: Immunohistochemical staining was performed in tissue arrays constructed from core tissue specimens taken before treatment and from operative specimens from 112 patients who received 5-FU based pre-operative CRT and surgery.')
+(array([  9.99827828e-01,   1.72172238e-04]), 'PATIENTS AND METHODS: In the three arms, chemotherapy consisted of weekly paclitaxel (80 mg/m(2)) for 12 weeks followed by fluorouracil, epirubicin, and cyclophosphamide for four courses every 3 weeks.')
+(array([  9.99866364e-01,   1.33635816e-04]), 'Furthermore, multivariate analysis, including baseline clinical variables, treatment, and adverse prognostic factors demonstrated that although TP53 alterations remained the most informative marker of dismal survival in this cohort, NOTCH1 (HR 1.58, P = .03) and SF3B1 (HR 1.52, P = .01) mutations have added independent prognostic value.')
+(array([  9.99874292e-01,   1.25708050e-04]), 'As a preplanned analysis, we prospectively analyzed available tumor biopsies to investigate the relationship between biomarkers and clinical outcomes.')
+(array([  9.99886468e-01,   1.13532256e-04]), 'PATIENTS AND METHODS: The EGFR gene copy numbers in 134 HNSCC tumors were determined using quantitative real-time polymerase chain reaction.')
+(array([  9.99904353e-01,   9.56470094e-05]), 'BACKGROUND: Since head and neck cancer is characterized by poor survival rates, there is a demand for novel therapeutic targets and prognostic biomarkers.')
+
+iterativeSVM HoC-pos prediction 2655 / 4430 ( 0.5993227990970654 )
+
+iterativeSVM HoC-pos top 12 (sentences with highest ranking)
+
+(array([  3.62326572e-06,   9.99996377e-01]), 'Furthermore , the combination of lovastatin with gefitinib induced a potent apoptotic response without significant induction of autophagy that is often induced during metabolic stress inhibiting cell death .')
+(array([  4.37186695e-06,   9.99995628e-01]), 'The cell line HCC827 , harboring an exon 19 deletion mutation , was more than 10-fold more sensitive to TKI proliferation inhibition and apoptosis induction than any of the other cell lines .')
+(array([  6.54885657e-06,   9.99993451e-01]), 'It was lower in patients with lymph node metastasis and distant metastasis compared to patients without metastatic disease ( p&lt;0.05 ) .')
+(array([  7.92027447e-06,   9.99992080e-01]), 'PX-866 did not induce any apoptosis in glioma cells ; however , an increase in autophagy was observed .')
+(array([  1.06575730e-05,   9.99989342e-01]), '( 3 ) ZVAD inhibited apoptosis and autophagy in both cells , 3MA inhibit apoptosis in SKOV3 , and promote apoptosis in SKVCR , together with inhibition of autophagy .')
+(array([  1.25347159e-05,   9.99987465e-01]), 'PQIP did not induce apoptosis , but rather , PQIP treatment was associated with an increase in autophagy .')
+(array([  1.45257333e-05,   9.99985474e-01]), 'In spheroid confrontation assays U87MG cells showed only limited invasion of the glial population , but reduction of Nm23-H1 expression in U87MG cells abrogated CIL resulting in invasion .')
+(array([  1.52966271e-05,   9.99984703e-01]), 'We found that genistein regulated the expression of genes that are critically involved in the regulation of cell growth , cell cycle , apoptosis , cell signaling transduction , angiogenesis , tumor cell invasion and metastasis .')
+(array([  1.77650691e-05,   9.99982235e-01]), 'Thus , glucocorticoid receptor activation resulted in promotion of cell proliferation via inhibiting apoptosis yet repression of cell invasion and metastasis .')
+(array([  1.79955194e-05,   9.99982004e-01]), 'One patient had lymph node metastasis and 3 patients died of the disease .')
+(array([ 0.00253855,  0.99746145]), 'Higher levels of PGG induced more caspase-mediated apoptosis in MCF-7 , in strong association with induction of P53 Ser(15) phosphorylation , than in MDA-MB-231 cells .')
+(array([ 0.00267435,  0.99732565]), 'Mafosfamide induced down-regulation of IL-10 production and IL-10R expression on metastatic cells and , concomitantly , inhibited metastatic cell proliferation .')
+
+iterativeSVM HoC-pos bottom 12 (sentences with lowest ranking)
+
+(array([ 0.98947378,  0.01052622]), 'Structural , mutational and functional analyses support a single-metal ion catalytic mechanism for the exonuclease-endonuclease-phosphatase ( EEP ) nuclease superfamily and establish a molecular framework for targeted small-molecule blockade of Tdp2-mediated resistance to anticancer topoisomerase drugs .')
+(array([ 0.99056723,  0.00943277]), 'Nuclear Msx2 correlated with low-grade tumours ( P = 0.015 ) , estrogen receptor positivity ( P = 0.038 ) , low Ki67 ( P = 0.005 ) and high cyclin D1 expression ( P = 0.037 ) .')
+(array([ 0.99138467,  0.00861533]), 'Further flow cytometry-based examination of neutrophils round in PDT-treated tumours revealed that these cells express MHC class II molecules , which suggests their engagement as antigen-presenting cells and involvement in the development of antitumour immune response .')
+(array([ 0.99226467,  0.00773533]), 'FLT3-ITD mutations predicted a shorter event-free survival ( P = .002 ) and shorter overall survival ( P &lt ; .001 ) .')
+(array([ 0.99316329,  0.00683671]), 'This study displays additional mechanisms involved in osteoclast/MMC interaction and suggests using CCR2 and/or insulin growth factor-1 targeting strategies to block this interaction and prevent drug resistance .')
+(array([ 0.99416083,  0.00583917]), 'Cdc37 potentiated Vav3 coactivation of AR transcriptional activity and Vav3 enhancement of AR amino-carboxyl terminal ( N-C ) interaction , which is essential for optimal receptor transcriptional activity .')
+(array([ 0.9944725,  0.0055275]), 'Better understanding of the mechanisms involved in this tumour stroma cell interaction may provide novel targets for the development of treatment strategies for oestrogen receptor positive , hormone-independent , and endocrine-resistant breast carcinoma .')
+(array([ 0.99518534,  0.00481466]), 'RESULTS All breast tumor and normal tissue specimens expressed A1 and A3 adenosine receptor transcripts .')
+(array([ 0.99520208,  0.00479792]), 'Better understanding of the molecular mechanisms underlying nitrative and oxidative DNA damage may provide clues to molecular targets for new approaches of NPC prevention .')
+(array([ 0.99557888,  0.00442112]), 'This finding has important implications for the development of targeted therapeutics for a number of EGFR-addicted cancers .')
+(array([ 0.99725281,  0.00274719]), 'The excellent pharmacokinetic profiles of 19a in mice and rats led us to further investigation of a novel therapeutic agent for HER-2-targeting treatment of solid tumors , especially HER-2-positive breast/gastric cancer and HER-2-mutated lung cancer .')
+(array([ 0.99815906,  0.00184094]), 'CONCLUSIONS Today , IGF-1R targeting appears a promising approach , more than two dozen compounds have been developed and clinical trials are underway .')
+
+iterativeSVM HoC-neg prediction 1727 / 8909 ( 0.1938489168256819 )
+
+iterativeSVM HoC-neg top 12 (sentences with highest ranking)
+
+(array([ 0.00362612,  0.99637388]), 'CCL1 plays a role not only in inflammation but also in apoptosis , angiogenesis and tumor biology .')
+(array([ 0.00717626,  0.99282374]), 'Using a mouse model of metastasis , we found that reduction of OGT expression blocked bone metastasis .')
+(array([ 0.00807682,  0.99192318]), 'It has been said that Necl-5 plays a role in not only cell-cell adhesion , but also cell migration , proliferation , and metastasis .')
+(array([ 0.00886356,  0.99113644]), 'The process of angiogenesis is an important step for tumor growth and metastasis , as is inflammation .')
+(array([ 0.00922112,  0.99077888]), 'In BT474 cells , none of the single agents except 4-HPR induced apoptosis , but again combinations of each retinoid with trastuzumab did induce apoptosis .')
+(array([ 0.00967902,  0.99032098]), 'The results showed that p120ctn knockdown led to significantly down-regulated E-cadherin and a reduced cell-to-cell adhesion ability in PANC-1 cells. shRNA-mediated knockdown of p120ctn reduced invasion and migration capacity of PANC-1 cells , inhibited cell growth , caused a significant decrease in the percentage of cells in G(1) , an increase in S , and promoted apoptosis of PANC-1 cells .')
+(array([ 0.01037285,  0.98962715]), 'Direct UVB damage to skin cell DNA as well as UV-induced chronic skin inflammation , accelerated keratinocyte proliferation , inhibited apoptosis , and immunosuppression seem to underlie the UV-induced carcinogenesis .')
+(array([ 0.0116072,  0.9883928]), 'The decrease in tumor mass was associated with inhibition of cell proliferation , induction of apoptosis and decrease in NF-ÎºB levels in vivo .')
+(array([ 0.01262453,  0.98737547]), 'The tumor suppressor p53 participates not only in regulation of apoptosis , but also in autophagy mechanism .')
+(array([ 0.0132605,  0.9867395]), 'Breast tumor cells that overexpress MAP17 show an increased tumoral phenotype with enhanced proliferative capabilities both in the presence or the absence of contact inhibition , decreased apoptotic sensitivity , and increased migration .')
+(array([ 0.01336792,  0.98663208]), 'Obesity is an inflammatory state , and chronic colonic inflammation induces CRC .')
+(array([ 0.01379445,  0.98620555]), 'In addition , immortalized cyclin D1(KE/KE) MECs retain high rates of autophagy and reduced ErbB2-mediated transformation in vitro .')
+
+iterativeSVM HoC-neg bottom 12 (sentences with lowest ranking)
+
+(array([  9.99393874e-01,   6.06125634e-04]), 'We therefore investigated interstitial tumour illumination as a means of selective PDT .')
+(array([  9.99477024e-01,   5.22976207e-04]), 'Furthermore , we aimed to investigate the molecular mechanisms underlying these effects .')
+(array([  9.99488130e-01,   5.11870179e-04]), 'The mechanisms by which BMS inhibits HR were examined by microarray analysis and quantitative reverse transcription PCR .')
+(array([  9.99528949e-01,   4.71050673e-04]), 'The alterations in gene expression were examined using the real-time based PCR array .')
+(array([  9.99529658e-01,   4.70341873e-04]), 'However , more feasible and reliable diagnostic markers such as molecular genetical and biochemical markers remain to be developed to predict the malignant potential of the superficial bladder cancer .')
+(array([  9.99569416e-01,   4.30584119e-04]), 'However , the molecular mechanisms of the anti-cancer properties of Nigella sativa phytochemical extracts have not been completely understood .')
+(array([  9.99580153e-01,   4.19847041e-04]), 'METHODS In the current study , we screened 81 NSCLC samples using Illumina whole-genome gene expression microarrays in an effort to identify differentially expressed genes and new NSCLC biomarkers .')
+(array([  9.99585961e-01,   4.14039226e-04]), 'The aims of this study were to investigate the potential clinical value of Msx2 as a breast cancer biomarker and to clarify its functional role in vitro .')
+(array([  9.99685114e-01,   3.14886083e-04]), 'We have then focused on genetic risk factors .')
+(array([  9.99798686e-01,   2.01313542e-04]), 'New therapeutic approaches are needed .')
+(array([  9.99816265e-01,   1.83734946e-04]), 'METHODS Ninety-six paraffin-embedded specimens of non-small cell lung cancer patients were examined .')
+(array([  9.99846813e-01,   1.53187499e-04]), 'There is an urgent need to identify new molecular targets for the development of novel therapeutic approaches .')
+
+iterativeSVM piboso-outcome prediction 274 / 3563 ( 0.07690148751052484 )
+
+iterativeSVM piboso-outcome top 12 (sentences with highest ranking)
+
+(array([ 0.00284435,  0.99715565]), 'In control animals without paw inflammation, B9858 had no effect.')
+(array([ 0.04013472,  0.95986528]), 'In addition, HPV 16 DNA was found in a concurrent invasive squamous-cell carcinoma of the cervix from one ovarian cancer patient, indicating that the PCR was able to detect HPV in the lower genital tract of this individual.')
+(array([ 0.05615678,  0.94384322]), 'Of the 15 studies in older people, none demonstrated a reduction in injuries due to hazard reduction, although two demonstrated a reduction in falls that could be due to hazard reduction.')
+(array([ 0.05838179,  0.94161821]), 'While traffic-related TBI had decreased, falls and assaults had increased in 2001.')
+(array([ 0.0636933,  0.9363067]), 'Specifically, cells that exhibited increased membrane permeability did not fire random action potentials, in contrast to neighboring cells that had intact plasma membranes.')
+(array([ 0.07000826,  0.92999174]), 'Based on our meta-analysis, PegIFN + RBV reduced cases without SVR by 17 percent compared with INF + RBV.')
+(array([ 0.07115289,  0.92884711]), 'MHD is frequent in this population with HIV infection and is associated with increased healthcare utilization but not with reduced survival.')
+(array([ 0.0716381,  0.9283619]), 'After 18 months follow-up, pain relief was &gt; 75% and limb salvage was achieved in 26 patients.')
+(array([ 0.11183075,  0.88816925]), 'TNF alpha was not elevated after mild injury.')
+(array([ 0.12045977,  0.87954023]), 'Mini-open lumbar fusion may significantly contribute to the reduction of muscle injury and systemic inflammatory reactions during the acute postoperative period.')
+(array([ 0.12386804,  0.87613196]), 'In contrast, only 50% of patients with asthma tolerated carvedilol.')
+(array([ 0.12660407,  0.87339593]), 'No effect of histology or metastatic site treated was found.')
+
+iterativeSVM piboso-outcome bottom 12 (sentences with lowest ranking)
+
+(array([ 0.99869036,  0.00130964]), 'The examination of these children might be a helpful approach in the investigation of the relationship between obesity and its contributing psychological and behavioural factors.')
+(array([ 0.99871903,  0.00128097]), 'Various aspects of the study are discussed, including: (1) the decision to focus study design on sustained disability; (2) the rationale for the treatment regimen; (3) measures taken to assure the reliability of the primary outcome measure; and (4) a desc')
+(array([ 0.99881082,  0.00118918]), 'However, heterogeneity in patient assessment, CBT protocols, and outcome indicators made determination of the relative efficacy and clinical utility of the therapy difficult.')
+(array([ 0.99887615,  0.00112385]), 'The use of risk factors for selective screening has not been evaluated, and a list of specific risk factors to guide primary care physicians has not been developed or tested.')
+(array([ 0.99894598,  0.00105402]), 'The studies included were diverse in terms of study design and quality, target population, theoretical underpinning of intervention approach, and outcome measures.')
+(array([  9.99028037e-01,   9.71962653e-04]), 'Apart from being 50 years of age and over, p = .000, risk factors were more severe intellectual disability, p = .0001, and Down syndrome, p = .001.')
+(array([  9.99038898e-01,   9.61102489e-04]), 'The study medications were generally well tolerated with the majority of adverse events, including intoxication type reactions, being mild to moderate in severity and resolving spontaneously.')
+(array([  9.99082730e-01,   9.17269920e-04]), 'There were significantly more adverse events in patients receiving D-penicillamine (P = 0.013).')
+(array([  9.99150791e-01,   8.49208545e-04]), 'The major predictors of death were pre-existing cardiac failure (P = 0.0035) and renal disease (P = 0.026).')
+(array([  9.99411252e-01,   5.88748465e-04]), 'The most important prognostic factor was early diagnosis.')
+(array([  9.99462968e-01,   5.37031609e-04]), 'Peginterferon plus ribavirin is the most effective and efficient treatment among the examined options.')
+(array([  9.99555361e-01,   4.44639066e-04]), 'To investigate its clinical utility, four patients underwent virtual walking every weekday for 3 weeks.')
+
+iterativeSVM piboso-other prediction 18 / 2712 ( 0.00663716814159292 )
+
+iterativeSVM piboso-other top 12 (sentences with highest ranking)
+
+(array([ 0.20245896,  0.79754104]), 'A total of 746 patients with heads injury were seen in the PED, and 161 patients with closed-head injury were admitted during the study period.')
+(array([ 0.21778549,  0.78221451]), 'We observed enhanced production of IFN-gamma and TNF-alpha in CD8(+), CD3(+), and CD56(+) blood cells, as well as an increase in the number of CCR5(+) cells in patients suffering from SA compared to those with NP.')
+(array([ 0.21870222,  0.78129778]), 'Two had severe basivertebral occlusive disease and one had bilateral carotid occlusive disease.')
+(array([ 0.28909312,  0.71090688]), 'We did not identify any trial that assessed (cardiovascular) mortality or morbidity.')
+(array([ 0.30289527,  0.69710473]), 'Twenty-seven patients were subsequently considered to have apparently isolated cancer metastases to the liver.')
+(array([ 0.31665315,  0.68334685]), 'Of the patients 63% (34) were male and 37% (23) were female, with 74% (46) African-American and 26% (16) Caucasian.')
+(array([ 0.34967374,  0.65032626]), 'Groups 1 and 2 consisted of 10 individuals with laryngectomy less than one year and 10 individuals greater than one year, respectively.')
+(array([ 0.35454544,  0.64545456]), 'Of 740 consecutive patients with sCAD, 11 (1.5%) had three, and one had four (0.1%) sCAD.')
+(array([ 0.35856121,  0.64143879]), 'Eighty-four patients with one or more TPF were identified-47 with iTPF and 37 with aTPF.')
+(array([ 0.37995974,  0.62004026]), 'All patients had hemorrhoids in stages ranging between II and IV.')
+(array([ 0.43196586,  0.56803414]), 'Patients were matched on age, sex and level of education, with control subjects.')
+(array([ 0.43635277,  0.56364723]), 'MWM training was initiated 12 days post-injury.')
+
+iterativeSVM piboso-other bottom 12 (sentences with lowest ranking)
+
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+(array([  9.99731235e-01,   2.68764630e-04]), 'METHODS')
+Martins-MBP:semisuper martin$ 

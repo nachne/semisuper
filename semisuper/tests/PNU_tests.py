@@ -2,7 +2,7 @@ import random
 import time
 
 import numpy as np
-from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline
+from semisuper import loaders, basic_pipeline, ss_techniques
 from semisuper.helpers import num_rows, unsparsify
 
 civic, abstracts = loaders.sentences_civic_abstracts()
@@ -17,23 +17,23 @@ print("HoC negative sentences:", len(hocneg))
 print("PIBOSO outcome sentences:", len(piboso_outcome))
 print("PIBOSO other sentences:", len(piboso_other))
 
-# P_raw = civic
-# U_raw = abstracts
-
 # print("\n\nTRAINING ON CIVIC AND ABSTRACTS\n\n")
 
 show_sentences = True
 
-P_raw = random.sample(hocpos + civic, 400)
-U_raw = random.sample(hocneg + abstracts, 400)
+P_raw = random.sample(hocpos + civic, 1000)
+N_raw = random.sample(hocneg, 1000)
+U_raw = random.sample(abstracts, 2000)
 
-print("\nTRAINING ON HOC CORPUS"
-      , ", CIVIC"
-      , ", AND ABSTRACTS"
+print("\nTRAINING SEMI-SUPERVISED"
+      "\tP: HOC POS"
+      ", CIVIC"
+      , "\tN: HOC NEG"
+      , ",\tU: ABSTRACTS"
       )
 
-words, wordgram_range = [True, (1, 3)]  # TODO change back to True, (1,3)
-chars, chargram_range = [True, (3, 6)]  # TODO change back to True, (3,6)
+words, wordgram_range = [False, (1, 3)]  # TODO change back to True, (1,3)
+chars, chargram_range = [True, (2, 4)]  # TODO change back to True, (3,6)
 rules, lemmatize = [True, True]
 
 print("Fitting vectorizer")
@@ -41,135 +41,64 @@ vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_rang
                                        chars=chars, chargram_range=chargram_range,
                                        rules=rules, lemmatize=lemmatize)
 vectorizer.fit(np.concatenate((P_raw, U_raw)))
+
 P = unsparsify(vectorizer.transform(P_raw))
+N = unsparsify(vectorizer.transform(N_raw))
 U = unsparsify(vectorizer.transform(U_raw))
 
-print("P:", num_rows(P), "\tU:", num_rows(U))
+print("P:", num_rows(P), "\tN:", num_rows(N), "\tU:", num_rows(U))
 print("Features before selection:", np.shape(P)[1])
 
 selector = basic_pipeline.selector()
-selector.fit(np.concatenate((P, U)),
-             np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U)))))
+selector.fit(np.concatenate((P, N, U)),
+             np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)), np.zeros(num_rows(U)))))
 P = unsparsify(selector.transform(P))
+N = unsparsify(selector.transform(N))
 U = unsparsify(selector.transform(U))
 
 print("Features after selection:", np.shape(P)[1])
+
 
 # ------------------
 # model testers
 # ------------------
 
-def test_all(P, U):
-    test_i_em(P, U)
-    test_s_em(P, U)
-    test_roc_svm(P, U)
-    test_cr_svm(P, U)
-    test_roc_em(P, U)
-    test_spy_svm(P, U)
-    test_biased_svm(P, U)
+def test_all(P, N, U):
+    test_svm(P, N, U)
+    # test_em(P, N, U)
+
     return
 
 
-def test_s_em(P, U):
+def test_svm(P, N, U):
     print("\n\n"
           "---------\n"
-          "S-EM TEST\n"
+          "SVM TEST\n"
           "---------\n")
 
     start_time = time.time()
 
-    model = pu_two_step.s_EM(P, U, spy_ratio=0.15, tolerance=0.15, noise_lvl=0.1)
-    print("\nTraining S-EM took %s seconds\n" % (time.time() - start_time))
+    model = ss_techniques.iterate_SVM(P, N, U)
 
-    print_sentences(model, "S-EM")
+    print("\nIterating SVM took %s seconds\n" % (time.time() - start_time))
+
+    print_sentences(model, "iterativeSVM")
     return
 
 
-def test_i_em(P, U):
+def test_em(P, N, U):
     print("\n\n"
           "---------\n"
-          "I-EM TEST\n"
+          "EM TEST\n"
           "---------\n")
 
     start_time = time.time()
 
-    model = pu_two_step.i_EM(P, U, max_pos_ratio=0.5, max_imbalance=100.0, tolerance=0.15)
-    print("\nTraining I-EM took %s seconds\n" % (time.time() - start_time))
+    model = ss_techniques.EM(P, N, U)
 
-    print_sentences(model, "I-EM")
-    return
+    print("\nTraining EM took %s seconds\n" % (time.time() - start_time))
 
-
-def test_roc_svm(P, U):
-    print("\n\n"
-          "------------\n"
-          "ROC-SVM TEST\n"
-          "------------\n")
-
-    start_time = time.time()
-    model = pu_two_step.roc_SVM(P, U, max_neg_ratio=0.1)
-    print("\nTraining ROC-SVM took %s seconds\n" % (time.time() - start_time))
-
-    print_sentences(model, "ROC-SVM")
-    return
-
-
-def test_cr_svm(P, U):
-    print("\n\n"
-          "-----------\n"
-          "CR-SVM TEST\n"
-          "-----------\n")
-
-    start_time = time.time()
-    model = pu_two_step.cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.5)
-    print("\nTraining CR-SVM took %s seconds\n" % (time.time() - start_time))
-
-    print_sentences(model, "CR-SVM")
-    return
-
-
-def test_spy_svm(P, U):
-    print("\n\n"
-          "------------\n"
-          "SPY-SVM TEST\n"
-          "------------\n")
-
-    start_time = time.time()
-    model = pu_two_step.spy_SVM(P, U, spy_ratio=0.15, max_neg_ratio=0.1, tolerance=0.15, noise_lvl=0.2)
-    print("\nTraining SPY-SVM took %s seconds\n" % (time.time() - start_time))
-
-    print_sentences(model, "SPY-SVM")
-    return
-
-
-def test_roc_em(P, U):
-    print("\n\n"
-          "-----------\n"
-          "ROC-EM TEST\n"
-          "-----------\n")
-
-    start_time = time.time()
-    model = pu_two_step.roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, clf_selection=True)
-    print("\nTraining ROC-EM took %s seconds\n" % (time.time() - start_time))
-
-    print_sentences(model, "ROC-EM")
-    return
-
-
-def test_biased_svm(P, U):
-    print("\n\n"
-          "---------------\n"
-          "BIASED-SVM TEST\n"
-          "---------------\n")
-
-    start_time = time.time()
-    model = pu_biased_svm.biased_SVM_weight_selection(P, U,
-                                                      Cs=[10 ** x for x in range(1, 5, 1)],
-                                                      Cs_neg=[1],
-                                                      Cs_pos_factors=range(1, 1100, 200))
-    print("\nTraining Biased-SVM took %s seconds\n" % (time.time() - start_time))
-
-    print_sentences(model, "BIASED-SVM")
+    print_sentences(model, "EM")
     return
 
 
@@ -242,4 +171,4 @@ def print_params():
 # ------------------
 
 print_params()
-test_all(P, U)
+test_all(P, N, U)

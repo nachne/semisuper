@@ -1,0 +1,533 @@
+CIViC sentences: 5114
+Abstract sentences: 12605
+HoC positive sentences: 4430
+HoC negative sentences: 8909
+PIBOSO outcome sentences: 3563
+PIBOSO other sentences: 2712
+
+TRAINING SEMI-SUPERVISED	P: HOC POS, CIVIC 	N: HOC NEG ,	U: ABSTRACTS
+Fitting vectorizer
+P: 4000 	N: 4000 	U: 8000
+Features before selection: 118291
+Features after selection: 23658
+words: False 	word n-gram range: (1, 3) 
+chars: True 	char n-gram range: (2, 4) 
+rule-based preprocessing: True 	lemmatization: True
+
+
+---------
+EM TEST
+---------
+
+
+Building classifier from Positive and Reliable Negative set
+Class distribution: [ 0.5  0.5]
+Computing attribute probabilities for 23658 attributes
+
+Calculating initial probabilistic labels for Unlabelled set
+
+Iterating EM algorithm on P, N, and U
+
+Iteration # 1
+Building new model using probabilistic labels
+Class distribution: [ 0.60351929  0.39648071]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 5289.0 / 8000 ( 66.1125 %)
+
+Iteration # 2
+Building new model using probabilistic labels
+Class distribution: [ 0.58007137  0.41992863]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 4974.0 / 8000 ( 62.175 %)
+
+Iteration # 3
+Building new model using probabilistic labels
+Class distribution: [ 0.56080456  0.43919544]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 4740.0 / 8000 ( 59.25 %)
+
+Iteration # 4
+Building new model using probabilistic labels
+Class distribution: [ 0.54557981  0.45442019]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 4565.0 / 8000 ( 57.0625 %)
+
+Iteration # 5
+Building new model using probabilistic labels
+Class distribution: [ 0.5351194  0.4648806]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 4438.0 / 8000 ( 55.475 %)
+
+Iteration # 6
+Building new model using probabilistic labels
+Class distribution: [ 0.52697098  0.47302902]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 4329.0 / 8000 ( 54.1125 %)
+
+Iteration # 7
+Building new model using probabilistic labels
+Class distribution: [ 0.51974772  0.48025228]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 4217.0 / 8000 ( 52.7125 %)
+
+Iteration # 8
+Building new model using probabilistic labels
+Class distribution: [ 0.51308526  0.48691474]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 4104.0 / 8000 ( 51.3 %)
+
+Iteration # 9
+Building new model using probabilistic labels
+Class distribution: [ 0.5065855  0.4934145]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 4003.0 / 8000 ( 50.0375 %)
+
+Iteration # 10
+Building new model using probabilistic labels
+Class distribution: [ 0.49974496  0.50025504]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3916.0 / 8000 ( 48.95 %)
+
+Iteration # 11
+Building new model using probabilistic labels
+Class distribution: [ 0.49475276  0.50524724]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3844.0 / 8000 ( 48.05 %)
+
+Iteration # 12
+Building new model using probabilistic labels
+Class distribution: [ 0.49047707  0.50952293]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3792.0 / 8000 ( 47.4 %)
+
+Iteration # 13
+Building new model using probabilistic labels
+Class distribution: [ 0.48681235  0.51318765]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3745.0 / 8000 ( 46.8125 %)
+
+Iteration # 14
+Building new model using probabilistic labels
+Class distribution: [ 0.48382137  0.51617863]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3707.0 / 8000 ( 46.3375 %)
+
+Iteration # 15
+Building new model using probabilistic labels
+Class distribution: [ 0.48146284  0.51853716]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3687.0 / 8000 ( 46.0875 %)
+
+Iteration # 16
+Building new model using probabilistic labels
+Class distribution: [ 0.47973268  0.52026732]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3658.0 / 8000 ( 45.725 %)
+
+Iteration # 17
+Building new model using probabilistic labels
+Class distribution: [ 0.47821996  0.52178004]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3628.0 / 8000 ( 45.35 %)
+
+Iteration # 18
+Building new model using probabilistic labels
+Class distribution: [ 0.47666378  0.52333622]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3603.0 / 8000 ( 45.0375 %)
+
+Iteration # 19
+Building new model using probabilistic labels
+Class distribution: [ 0.47508  0.52492]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3580.0 / 8000 ( 44.75 %)
+
+Iteration # 20
+Building new model using probabilistic labels
+Class distribution: [ 0.47349339  0.52650661]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3552.0 / 8000 ( 44.4 %)
+
+Iteration # 21
+Building new model using probabilistic labels
+Class distribution: [ 0.47177271  0.52822729]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3525.0 / 8000 ( 44.0625 %)
+
+Iteration # 22
+Building new model using probabilistic labels
+Class distribution: [ 0.47011983  0.52988017]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3495.0 / 8000 ( 43.6875 %)
+
+Iteration # 23
+Building new model using probabilistic labels
+Class distribution: [ 0.46855303  0.53144697]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3464.0 / 8000 ( 43.3 %)
+
+Iteration # 24
+Building new model using probabilistic labels
+Class distribution: [ 0.46676567  0.53323433]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3440.0 / 8000 ( 43.0 %)
+
+Iteration # 25
+Building new model using probabilistic labels
+Class distribution: [ 0.46500307  0.53499693]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3418.0 / 8000 ( 42.725 %)
+
+Iteration # 26
+Building new model using probabilistic labels
+Class distribution: [ 0.4635756  0.5364244]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3402.0 / 8000 ( 42.525 %)
+
+Iteration # 27
+Building new model using probabilistic labels
+Class distribution: [ 0.46258412  0.53741588]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3391.0 / 8000 ( 42.3875 %)
+
+Iteration # 28
+Building new model using probabilistic labels
+Class distribution: [ 0.46179397  0.53820603]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3383.0 / 8000 ( 42.2875 %)
+
+Iteration # 29
+Building new model using probabilistic labels
+Class distribution: [ 0.46108342  0.53891658]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3364.0 / 8000 ( 42.05 %)
+
+Iteration # 30
+Building new model using probabilistic labels
+Class distribution: [ 0.46033307  0.53966693]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3354.0 / 8000 ( 41.925 %)
+
+Iteration # 31
+Building new model using probabilistic labels
+Class distribution: [ 0.45979834  0.54020166]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3355.0 / 8000 ( 41.9375 %)
+
+Iteration # 32
+Building new model using probabilistic labels
+Class distribution: [ 0.45950562  0.54049438]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3350.0 / 8000 ( 41.875 %)
+
+Iteration # 33
+Building new model using probabilistic labels
+Class distribution: [ 0.45939383  0.54060617]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3348.0 / 8000 ( 41.85 %)
+
+Iteration # 34
+Building new model using probabilistic labels
+Class distribution: [ 0.45935029  0.54064971]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3348.0 / 8000 ( 41.85 %)
+
+Iteration # 35
+Building new model using probabilistic labels
+Class distribution: [ 0.45926614  0.54073386]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3346.0 / 8000 ( 41.825 %)
+
+Iteration # 36
+Building new model using probabilistic labels
+Class distribution: [ 0.4591616  0.5408384]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3346.0 / 8000 ( 41.825 %)
+
+Iteration # 37
+Building new model using probabilistic labels
+Class distribution: [ 0.45907534  0.54092466]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3346.0 / 8000 ( 41.825 %)
+
+Iteration # 38
+Building new model using probabilistic labels
+Class distribution: [ 0.45899776  0.54100224]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3343.0 / 8000 ( 41.7875 %)
+
+Iteration # 39
+Building new model using probabilistic labels
+Class distribution: [ 0.45893325  0.54106675]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3343.0 / 8000 ( 41.7875 %)
+
+Iteration # 40
+Building new model using probabilistic labels
+Class distribution: [ 0.45886805  0.54113195]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3342.0 / 8000 ( 41.775 %)
+
+Iteration # 41
+Building new model using probabilistic labels
+Class distribution: [ 0.4588193  0.5411807]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3341.0 / 8000 ( 41.7625 %)
+
+Iteration # 42
+Building new model using probabilistic labels
+Class distribution: [ 0.45878784  0.54121216]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3340.0 / 8000 ( 41.75 %)
+
+Iteration # 43
+Building new model using probabilistic labels
+Class distribution: [ 0.45876704  0.54123296]
+Computing attribute probabilities for 23658 attributes
+Predicting probabilities for U
+Unlabelled instances classified as positive: 3340.0 / 8000 ( 41.75 %)
+
+Returning final model after 43 iterations
+
+Training EM took 3278.97696685791 seconds
+
+
+
+----------------
+EM SENTENCES
+----------------
+
+
+EM civic prediction 4546 / 5114 ( 0.8889323425889715 )
+
+EM civic top 12 (sentences with highest ranking)
+
+(array([  1.53381423e-45,   1.00000000e+00]), 'Noticeable side effects in the combination therapy group included neutropenia (54%) leucopenia (19%), fatigue (4%) back pain (2%), diarrhea (2%) and pulmonary embolism (4%).')
+(array([  1.23709704e-28,   1.00000000e+00]), 'Cell-lines with a PAPSS1-BRAF fusion were resistant to treatment with Vemurafenib but sensitive to treatment with Trametinib.')
+(array([  2.31033783e-58,   1.00000000e+00]), 'Only moderate evidence of pathogenicity since the protein length changes as a result of a stop-loss variants (ACMG code: PM4).')
+(array([  2.42337260e-37,   1.00000000e+00]), 'This study contains supporting evidence of pathogenicity due to cosegregation with disease in multiple affected family members in a gene definitively known to cause the disease (ACMG code: PP1).')
+(array([  1.14234898e-14,   1.00000000e+00]), 'NPM1 mutation was associated with increased overall, event-free and relapse-free survival and remission after induction therapy in the entire cohort and in the cytogenetically normal subset of patients.')
+(array([  6.77314113e-15,   1.00000000e+00]), 'Mutation was recurrent (K700E in 74% or K666Q or K666E in another 9% of tumors).')
+(array([  1.10311305e-85,   1.00000000e+00]), 'For 277 patients, CALR mutated, ASXL1 wildtype patients (median survival, 10.4 years, N=46); CALR wildtype, ASXL1 mutant patients (2.3 years; HR, 5.9; 95% CI, 3.5–10.0, N=62); and either CALR/ASXL1wildtype or CALR/ASXL1 mutant patients (5.8 years; HR, 2.5; 95% CI, 1.5–4.0, N=169).')
+(array([  2.05246554e-47,   1.00000000e+00]), 'High B4GALT1 expression was associated with poor overall survival (P<0.001 and P<0.001 in training and validation cohort) and identified as an independent adverse prognostic factor for survival (P=0.007 and P=0.002).')
+(array([  1.65743407e-41,   1.00000000e+00]), 'In a study, 1 participant with stage IV lung adenocarcinoma was sequenced at EGFR exons 18 to 21 and was found to have L838P mutation, and was treated with the 1st generation TKI gefitinib.')
+(array([  8.75081311e-28,   1.00000000e+00]), 'HPO terms: hemangioblastoma, papillary cystadenomas of the broad ligament.')
+(array([  1.29293481e-55,   1.00000000e+00]), 'There were statistically significant improvements between the personalized therapy group versus the standard therapy group in disease control rate (82.9% vs 55.3%, P=0.004), and progression-free survival (median: 5.5 months vs 3.0 months, P=0.005).')
+(array([  3.04431091e-41,   1.00000000e+00]), 'In a multivariate analysis of 774 CLL patients, SF3B1 mutations were significantly correlated with shorter time to first treatment (HR=1.644; 95% CI=1.134-2.383).')
+
+EM civic bottom 12 (sentences with lowest ranking)
+
+(array([  1.00000000e+00,   1.10638760e-26]), 'Evidence of the DNAJB1-PRKACA fusion was found in all fibrolamellar cases but not in other tumor types for both methods indicating that detection of DNAJB1-PRKACA is a very sensitive and specific finding in support of the diagnosis of fibrolamellar carcinoma.')
+(array([  1.00000000e+00,   2.15227357e-27]), 'A meta-analysis of EGFR gene copy number as a predictive biomarker for patients receiving tyrosine kinase inhibitor treatment was performed.')
+(array([  1.00000000e+00,   1.51701686e-27]), 'The 2016 World Health Organization guidelines for the classification of myeloid malignancies and acute leukemia describes a new class of disease defined by myeloid or lymphoid neoplasms associated with eosinophilia and rearrangement of PDGFRA, PDGFRB, or FGFR1 or with PCM1-JAK2.')
+(array([  1.00000000e+00,   8.40007381e-28]), 'Immunohistochemical methods were used to evaluate the expression levels of ETV4 in prostate cancer (PCa) tumor samples.')
+(array([  1.00000000e+00,   8.17556491e-28]), 'HER2 status was determined using immunohistochemistry and silver in situ hybridization and correlated with cetuximab efficacy.')
+(array([  1.00000000e+00,   4.64138059e-28]), 'The fusion has clear diagnostic value, though we caution that it is not perfectly specific to synovial sarcomas, and suggest that demonstration of t(X;18) in a spindle cell neoplasm should be integrated with the morphology, immunoprofile, and clinical setting of the tumour.')
+(array([  1.00000000e+00,   1.93390608e-28]), 'Eighty SNPs in miRNA binding sites of cancer related genes selected from 18,500 miRNA:target bindings in crosslinking, ligation, and sequencing of hybrids (CLASH) data were investigated in 379 advanced NSCLC patients using a sequenom mass spectrometry-based genotype assay.')
+(array([  1.00000000e+00,   9.28037283e-29]), 'The methylation status of MLH1 was analyzed in a study of 53 paraffin-embedded gastric cancer samples.')
+(array([  1.00000000e+00,   2.04467918e-32]), 'Afatinib, an irreversible inhibitor of the ErbB family of tyrosine kinases has been approved in the US for the first-line treatment of patients with metastatic non-small-cell lung cancer (NSCLC) who have tumours with EGFR exon 19 deletions or exon 21 (L858R) substitution mutations as detected by a US FDA-approved test')
+(array([  1.00000000e+00,   2.35236310e-39]), 'Study of a large kindred with von Hippel-Lindau disease (VHLD) and pheochromocytoma (spread over four generations).')
+(array([  1.00000000e+00,   3.51302289e-48]), '43 Italian patients were molecularly analyzed for Von Hippel-Lindau disease based on clinical suspicion.')
+(array([  1.00000000e+00,   1.13910900e-48]), 'Epidermal growth factor receptor (EGFR) expression and activation were evaluated by immunohistochemistry and/or phospho-arrays, real-time polimerase chain reaction, fluorescence immunostaining.')
+
+EM abstracts prediction 5345 / 12605 ( 0.4240380801269338 )
+
+EM abstracts top 12 (sentences with highest ranking)
+
+(array([  9.00756867e-43,   1.00000000e+00]), 'RESULTS: PD-1 and PD-L1 expression in cancer cells, CD3+, PD-1+, and PD-L1+ TILs densities as well as PD-1 and PD-L1 mRNA levels were positive prognostic factors for progression-free (PFS) and overall survival (OS), with all factors being significant for PFS (p < 0.035 each), and most being significant for OS.')
+(array([  9.89973838e-18,   1.00000000e+00]), 'The significant positive prognostic impact of PD-1 and PD-L1 mRNA expression could be reproduced in the TCGA gene expression datasets (p = 0.02 and p < 0.0001, respectively).')
+(array([  3.45797778e-14,   1.00000000e+00]), 'In a cohort of 55 breast cancer patients, activation of the PI3K pathway, as judged by the presence of oncogenic PIK3CA mutations or low PTEN expression, was associated with poor prognosis after trastuzumab therapy, and the combined analysis of PTEN and PIK3CA identified twice as many patients at increased risk for progression compared to PTEN alone.')
+(array([  1.01188351e-35,   1.00000000e+00]), 'Targeted resequencing showed that 24 of 31 tumors with disomy 3 (77%) had mutations in either EIF1AX (15; 48%) or SF3B1 (9; 29%).')
+(array([  2.29782107e-30,   1.00000000e+00]), 'Resequencing of 13 uveal melanomas with partial monosomy 3 identified 8 tumors with a mutation in either SF3B1 (7; 54%) or EIF1AX (1; 8%).')
+(array([  4.83394940e-14,   1.00000000e+00]), 'All EIF1AX mutations caused in-frame changes affecting the N terminus of the protein, whereas 17 of 19 SF3B1 mutations encoded an alteration of Arg625.')
+(array([  6.98098615e-51,   1.00000000e+00]), 'RESULTS: The 5-year overall survival was 36% (95% CI, 34%-38%) for noncarriers, 44% (95% CI, 40%-48%) for BRCA1 carriers, and 52% (95% CI, 46%-58%) for BRCA2 carriers.')
+(array([  2.17340982e-71,   1.00000000e+00]), 'After adjusting for study and year of diagnosis, BRCA1 and BRCA2 mutation carriers showed a more favorable survival than noncarriers (for BRCA1: hazard ratio [HR], 0.78; 95% CI, 0.68-0.89; P < .001; and for BRCA2: HR, 0.61; 95% CI, 0.50-0.76; P < .001).')
+(array([  1.73628165e-40,   1.00000000e+00]), 'These survival differences remained after additional adjustment for stage, grade, histology, and age at diagnosis (for BRCA1: HR, 0.73; 95% CI, 0.64-0.84; P < .001; and for BRCA2: HR, 0.49; 95% CI, 0.39-0.61; P < .001).')
+(array([  2.41624582e-19,   1.00000000e+00]), 'The BRCA1 HR estimate was significantly different from the HR estimated in the adjusted model (P for heterogeneity = .003).')
+(array([  3.50066891e-20,   1.00000000e+00]), '177 chemotherapy-naive patients aged 75 years or younger and diagnosed with stage IIIB/IV non-small-cell lung cancer or postoperative recurrence harbouring EGFR mutations (either the exon 19 deletion or L858R point mutation) were randomly assigned, using a minimisation technique, to receive either gefitinib (250 mg/day orally; n=88) or cisplatin (80 mg/m(2), intravenously) plus docetaxel (60 mg/m(2), intravenously; n=89), administered every 21 days for three to six cycles.')
+(array([  1.68213820e-17,   1.00000000e+00]), 'The primary endpoint was progression-free survival.')
+
+EM abstracts bottom 12 (sentences with lowest ranking)
+
+(array([  1.00000000e+000,   3.45994014e-133]), 'INTRODUCTION: We conducted a systematic review and meta-analysis to assess epidermal growth factor receptor (EGFR) gene copy number as a potential biomarker of survival for patients with advanced non-small-cell lung cancer (NSCLC) receiving single-agent treatment with EGFR tyrosine kinase inhibitors (TKIs).')
+(array([  1.00000000e+000,   1.73098061e-134]), 'BACKGROUND: The aim of this study was to investigate the patterns of epidermal growth factor receptor (EGFR) overexpression, EGFR gene amplification, and the presence of activating mutations in the tyrosine kinase domain of this gene in squamous cell carcinomas and adenocarcinomas/adenosquamous carcinomas of the uterine cervix.')
+(array([  1.00000000e+000,   6.83232366e-136]), 'MATERIALS AND METHODS: We reviewed the records of patients with von Hippel-Lindau syndrome treated with partial adrenalectomy for pheochromocytoma at the National Cancer Institute.')
+(array([  1.00000000e+000,   2.74516450e-136]), 'BACKGROUND: Chromosomal rearrangements of the gene encoding ROS1 proto-oncogene receptor tyrosine kinase (ROS1) define a distinct molecular subgroup of non-small-cell lung cancers (NSCLCs) that may be susceptible to therapeutic ROS1 kinase inhibition.')
+(array([  1.00000000e+000,   8.73900356e-137]), 'BACKGROUND: The response to cytotoxic chemotherapy varies greatly in patients with advanced non-small cell lung cancer (NSCLC), and molecular markers may be useful in determining a preferable therapeutic approach for individual patients.')
+(array([  1.00000000e+000,   8.58470069e-137]), 'PATIENTS AND METHODS: EGFR status was analyzed in 86 tumor samples from 82 HNSCC patients by fluorescent in situ hybridization (FISH) to determine EGFR gene copy number, by polymerase chain reaction and direct sequencing for activating mutations, and by DNA microarray and immunohistochemistry for RNA and protein expression.')
+(array([  1.00000000e+000,   2.67757919e-138]), 'EXPERIMENTAL DESIGN: We used a large panel of breast cancer cell lines and in vivo xenograft models to identify candidate predictive biomarkers for a selective inhibitor of class I PI3K that is currently in clinical development.')
+(array([  1.00000000e+000,   9.00975761e-140]), 'BACKGROUND: The insulin-like growth factor-1 receptor (IGF-1R) pathway is known to play a role in the acquisition of resistance to epidermal growth factor receptor (EGFR)-specific tyrosine kinase inhibitors (TKIs) in non-small cell lung cancer (NSCLC).')
+(array([  1.00000000e+000,   6.89037197e-141]), 'EXPERIMENTAL DESIGN: EGFR mRNA expression was measured by real-time quantitative reverse transcription-PCR in 64 patients, and EGFR gene dosage was analyzed by real-time quantitative PCR in 82 patients from paraffin-embedded specimens.')
+(array([  1.00000000e+000,   5.38235392e-144]), 'BACKGROUND: Tyrosine kinase inhibitors (TKIs) targeting epidermal growth factor receptor (EGFR) represent novel, effective tools in the management of advanced-stage non-small cell lung cancer (NSCLC).')
+(array([  1.00000000e+000,   2.68382819e-148]), 'BACKGROUND AND OBJECTIVE: Epidermal growth factor receptor (EGFR)-activating mutation predicts excellent response to EGFR tyrosine kinase inhibitors (TKIs).')
+(array([  1.00000000e+000,   1.31478821e-151]), 'PATIENTS AND METHODS: Mandatory diagnostic tumor specimens were collected before initiating first-line chemotherapy and were tested for epidermal growth factor receptor (EGFR) protein expression by using immunohistochemistry (IHC), EGFR gene copy number by using fluorescent in situ hybridization (FISH), and EGFR and KRAS mutations by using DNA sequencing.')
+
+EM HoC-pos prediction 2381 / 4430 ( 0.5374717832957111 )
+
+EM HoC-pos top 12 (sentences with highest ranking)
+
+(array([  7.53888944e-22,   1.00000000e+00]), 'Flow cytometry revealed that NK cell numbers were increased among hepatic mononuclear cells in malignancy compared to histologically normal livers ( mean : 38% vs 27% ; P=0.03 ) , but CD56(+) T cell numbers were not ( 28% vs 27% ) .')
+(array([  5.17282909e-66,   1.00000000e+00]), 'The expression of CD94 and the KIR isotypes CD158a , CD158b and KIR3DL1 by CD56(+) T cells and NK cells was significantly and consistently reduced in tumour-bearing livers compared to healthy livers ( P&lt;0.05 in all cases ) .')
+(array([  2.50315887e-28,   1.00000000e+00]), 'Simultaneous ligation of CD158a , CD158b and KIR3DL1 caused an overall partial inhibition of CD56(+) T cell cytotoxic activity , suggesting that the observed reductions in KIR(+) cell numbers in malignancy are likely to lead to enhanced cytotoxicity .')
+(array([  5.88146384e-18,   1.00000000e+00]), 'Antiestrogens at 1 nM also induced phosphorylation of the MAPK/ERK and activated the Cyclin D1 promoter activity through the Src/EGFR/STAT5 pathways but not at 5 ï¿½M .')
+(array([  1.95110757e-37,   1.00000000e+00]), 'The results indicated that both agents showed concentration-dependent and time-dependent inhibition of cell proliferation. 5-Aza-CdR and CDAII induced apoptosis and cell differentiation with G(2) and G(0)/G(1) arrest respectively .')
+(array([  4.82584164e-18,   1.00000000e+00]), 'Periplocin inhibited the growth of lung cancer cells and induced their apoptosis in time- and dose-dependent manners by cell cycle arrest in G0/G1 phase .')
+(array([  4.74854147e-14,   1.00000000e+00]), 'Moreover , periplocin induced apoptosis by downregulating Bcl-2 and upregulating Bax , leading to activation of caspase-3 and caspase-9 .')
+(array([  5.06024931e-17,   1.00000000e+00]), 'RESULTS Leptin rapidly induced activation of JAK2 , STAT3 , and MAPK ( ERK1/2 ) signaling cascades ; it may also induce HER2 transactivation via leptin-induced phospho-JAK2 .')
+(array([  1.82701201e-16,   1.00000000e+00]), 'The selected compound ( 19a ) showed excellent inhibitory activity toward HER-1/HER-2 tyrosine kinases with selectivity over 20 other kinases and inhibited the proliferation of both cancer cell types : lapatinib-sensitive cell lines ( SK-Br3 , MDA-MB-175 , and N87 ) and lapatinib-resistant cell lines ( MDA-MB-453 , H1781 , and H1975 ) .')
+(array([  1.44642937e-16,   1.00000000e+00]), 'In cord blood , we found significantly ( P &lt ; 0.01 ) higher levels of estradiol ( 44.2% ) , testosterone ( 54.5% ) , IGF-2 ( 22.7% ) and strikingly SHBG ( 104.6% ) in Shanghai women , whereas the opposite was true for IGF-1 ( -36.8% ) .')
+(array([  1.73085538e-19,   1.00000000e+00]), 'RESULTS The mean IGF-1 concentrations were significantly different among the control , CIN , and cervical cancer groups ; the levels were higher in the CIN group compared to the controls .')
+(array([  2.36609023e-24,   1.00000000e+00]), 'According to the quartile category , the plasma IGF-1 level was significantly higher ( p=0.0015 ) in the CIN group than in the controls .')
+
+EM HoC-pos bottom 12 (sentences with lowest ranking)
+
+(array([  1.00000000e+00,   1.47038291e-42]), 'CONCLUSION This work demonstrates the feasibility of determining the genotoxic potential of nanofibers derived from plant cellulose to obtain information vital both for the future usage of these materials in agribusiness and for an understanding of their environmental impacts .')
+(array([  1.00000000e+00,   1.51738215e-43]), 'Expression profiling from paraffin-embedded tumor tissues was performed on an ad hoc set of genes involved in drug metabolism and resistance , DNA repair , cell cycle regulation and growth factors signalling .')
+(array([  1.00000000e+00,   1.31942554e-43]), 'The excellent pharmacokinetic profiles of 19a in mice and rats led us to further investigation of a novel therapeutic agent for HER-2-targeting treatment of solid tumors , especially HER-2-positive breast/gastric cancer and HER-2-mutated lung cancer .')
+(array([  1.00000000e+00,   5.65337510e-44]), 'CONCLUSION VEGF seems to be an important , clinically relevant inducer of angiogenesis and angiogenesis assessed by the MVD may be a useful marker for predicting metastasis in gastric cancer .')
+(array([  1.00000000e+00,   1.02157959e-44]), 'We propose that our newly derived cancer models will be useful tools to dissect the sequential steps of genome mutations during malignant transformation , and also to identify cancer-specific genes , signaling pathways , and the role of chromosomal instability in this process .')
+(array([  1.00000000e+00,   7.92012995e-45]), 'CONCLUSION TKTL1 is a novel candidate oncogene that is epigenetically activated by aberrant hypomethlation and contributes to a malignant phenotype through altered glycolytic metabolism and HIF1alpha accumulation .')
+(array([  1.00000000e+00,   7.64367633e-46]), 'An immunofluorescent staining method was employed to determine the levels of gamma-H2AX ( phosphorylated H2AX , a variant of the H2A protein family , which is a component of the histone octomer in nucleosomes and is phosphorylated by kinases like ATM and ATR in the PI3K pathway , as the first step in recruiting and localizing DNA repair proteins ) as a molecular biomarker of DNA double strand breaks ( DSBs ) in cells treated with TLC388 +/-radiation , or radiation alone .')
+(array([  1.00000000e+00,   3.78586551e-46]), 'These antibody-based methods provide useful tools for the studies of Acr-dG as a cancer biomarker and of the molecular mechanisms by which cells respond to Acr-dG as a ubiquitous DNA lesion .')
+(array([  1.00000000e+00,   1.89098584e-46]), 'Results indicate that PCNA labeling with PC10 is a simple method for assessing the proliferative activity in formalin-fixed , paraffin-embedded tissue of NSCLC and correlates well with Ki-67 labeling and S-phase fraction of the cell cycle .')
+(array([  1.00000000e+00,   4.64820980e-48]), 'CONCLUSIONS Our study suggests that serum angiopoietin-2 is a useful marker for the diagnosis of NSCLC by ELIZA technique .')
+(array([  1.00000000e+00,   7.83196549e-51]), 'CONCLUSION Plasma levels of IGF-1 and the IGF-1/IGFBP-3 molar ratio might be useful for the development early detection of cervical lesions and used as an adjuvant diagnostic tool for cervical neoplasia after more larger scale research .')
+(array([  1.00000000e+00,   1.57264155e-52]), 'CONCLUSION These findings suggest that therapeutic modalities should be chosen according to the clinical features of each individual , including the size of the metastatic tumor , whether there is invasion into the IVC , the function of the remaining liver , and the existence of intra- and/or nonadrenal extrahepatic lesions .')
+
+EM HoC-neg prediction 1993 / 8909 ( 0.22370636435065663 )
+
+EM HoC-neg top 12 (sentences with highest ranking)
+
+(array([  2.35551047e-23,   1.00000000e+00]), 'The serum concentrations of sIL-2R and the production of IL-10 were reduced ( p &lt ; 0.05 ) after 2 months of treatment .')
+(array([  1.01422629e-16,   1.00000000e+00]), 'More importantly , p.o. administration of CT52923 to nude mice caused a significant 61% reduction ( P &lt ; 0.006 ) in tumor growth of NIH/3T3 cells transformed by PDGF , whereas tumor formation by cells expressing v-fms was unaffected .')
+(array([  2.98325365e-17,   1.00000000e+00]), 'Expression of FAK and Palm-PTK6-YF in Fak-/- MEFs synergistically activates AKT and protects cells against anoikis .')
+(array([  1.65331319e-18,   1.00000000e+00]), 'However , expression of Palm-PTK6-YF in Akt1/2-/- MEFs fails to protect cells from anoikis , indicating AKT is critical in PTK6 and FAK-mediated survival signaling .')
+(array([  2.72588247e-26,   1.00000000e+00]), 'RESULTS The median OS for the whole cohort was 19 months ( 95% CI , 14.3 to 23.6 months ) .')
+(array([  4.96431185e-16,   1.00000000e+00]), 'This increase in Cdc42 was concomitant with its increased interaction with scaffold protein IQGAP-1 .')
+(array([  2.73581172e-29,   1.00000000e+00]), 'Median time to reach 100 CD4(+) cells was 8 months vs 4 months ( P = 0.03 ) .')
+(array([  5.90938508e-25,   1.00000000e+00]), 'Median time to normal CD19(+) cells was 16 months vs 8 months ( P = 0.01 ) .')
+(array([  4.21999829e-18,   1.00000000e+00]), 'In high grade control carcinoma cells , the expression of Ki67 increased by 37% ( non-significantly ) in comparison with control low grade carcinomas .')
+(array([  2.00152891e-16,   1.00000000e+00]), 'Median follow-up was 193 months .')
+(array([  5.90801205e-19,   1.00000000e+00]), 'RESULTS Treatment with UC-MSCs led to potent proliferation-inhibition of HL60 and K562 cells without inducing apoptosis .')
+(array([  4.92881551e-18,   1.00000000e+00]), 'In univariate regression analysis , early FIGO stage , low tumor grade and a large tumor size were significantly associated with the presence of cysts ( OR ( 95% CI)=5.312 ( 1.81-15.57 ) , 6.906 ( 2.31-20.66 ) and 1.169 ( 1.08-1.27 ) , respectively ) .')
+
+EM HoC-neg bottom 12 (sentences with lowest ranking)
+
+(array([  1.00000000e+00,   7.89793770e-95]), 'DESIGN AND METHODS We analyzed and compared microarray-based expression profiles of chronic lymphocytic leukemia cells before and after three different survival-inducing culture conditions : ( i ) stromal cell co-culture , ( ii ) stromal cell conditioned medium and ( iii ) high cell density cultures of unsorted peripheral blood mononuclear cells .')
+(array([  1.00000000e+00,   1.32898900e-95]), 'MATERIALS AND METHODS DLL4 expression and microvessel density ( MVD ) were detected by immunohistochemistry in 51 human high-grade malignant glioma tissue samples .')
+(array([  1.00000000e+00,   5.82962133e-98]), 'PURPOSE AND METHODS To test this hypothesis , we isolated rat ovarian surface epithelial cells from 10 adult female Fisher rats , initiated two mixed-population and seven clonal cell lines , and repeatedly subcultured these cells in vitro for more than 20 passages .')
+(array([  1.00000000e+00,   2.64296260e-98]), 'METHODS AND MATERIALS We used a quantitative reverse transcriptase PCR-based approach to measure messenger RNA levels of 20 selected DNA repair genes in tumor samples from 97 breast cancer patients enrolled in a phase III trial ( Centre RenÃ© Huguenin cohort ) .')
+(array([  1.00000000e+00,   1.44740312e-98]), 'MATERIALS AND METHODS Patients with suspected hereditary kidney cancer were enrolled on a National Cancer Institute institutional review board approved protocol to study inherited forms of kidney cancer .')
+(array([  1.00000000e+00,   1.15369994e-99]), 'EXPERIMENTAL DESIGN Primary lung tumors and normal lung tissue were analyzed for expression and localization of estrogen receptor Î± and Î²-1 ( ERÎ± and ERÎ² ) , aromatase , progesterone receptor ( PR ) , and epidermal growth factor receptor ( EGFR ) .')
+(array([  1.00000000e+000,   6.95522329e-100]), 'EXPERIMENTAL DESIGN To investigate the potential of STI571 as therapy for osteosarcoma , we studied its effects on PDGF-mediated cell growth in vitro and in an in vivo mouse model .')
+(array([  1.00000000e+000,   2.85246385e-109]), 'MATERIALS AND METHODS In this case-control study 120 colorectal cancer patients and 100 controls were genotyped using polymerase chain reaction-restriction fragment length polymorphism ( PCR-RFLP ) on the genomic deoxyribonucleic acid ( DNA ) .')
+(array([  1.00000000e+000,   2.78742313e-120]), 'EXPERIMENTAL DESIGN We have obtained quantitative measurements of radiation-induced apoptosis and radiation-induced ATM autophosphorylation in purified CLL cells from 158 and 140 patients , respectively , and have used multivariate analysis to identify independent contributions of various biological variables on genomic complexity in CLL .')
+(array([  1.00000000e+000,   2.05811515e-125]), 'PURPOSE AND METHODS Contributing to these developments , the present work involved a genotoxicological study of different nanofibers , employing chromosomal aberration and comet assays , as well as cytogenetic and molecular analyses , to obtain preliminary information concerning nanofiber safety .')
+(array([  1.00000000e+000,   6.27581281e-131]), 'MATERIALS AND METHODS Formalin-fixed , paraffin-embedded specimens from 97 patients with CRC were immunostained for TYMP , vascular endothelial growth factor ( VEGF ) , microvascular density ( CD34 ) , proliferation marker ( Ki-67 ) , proliferating cell nuclear antigen ( PCNA ) , p53 oncoprotein and extracellular matrix components ( collagen type IV , fibronectin , tenascin and laminin ) .')
+(array([  1.00000000e+000,   5.98082627e-132]), 'MATERIAL AND METHODS The expression pattern of the ASPP family consisting of ASPP1 , ASPP2 , and iASPP was examined by immunohistochemistry in 45 formalin-fixed and paraffin-embedded endometrial endometrioid adenocarcinoma ( EEA ) specimens and 26 normal endometrial tissue ( NET ) samples .')
+
+EM piboso-outcome prediction 1490 / 3563 ( 0.41818692113387596 )
+
+EM piboso-outcome top 12 (sentences with highest ranking)
+
+(array([  5.85880944e-43,   1.00000000e+00]), 'Complete urinary continence was achieved in 37/44 men (84. 1%) after 6 months and in 43/44 patients (97.7%) 1 year after surgery.')
+(array([  1.22526417e-17,   1.00000000e+00]), 'Seven patients demonstrated a moderate incontinence 4 months after radical prostatectomy and 1/7 was still incontinent after 1 year.')
+(array([  3.11950371e-18,   1.00000000e+00]), 'Static exercise resulted in a significant increase in mean blood pressure (p&lt;.05) in both SCI subjects (pre-exercise. 74.7+/-2.2 mm Hg; static exercise, 81.9+/-4.1 mm Hg) and control subjects (pre-exercise, 101.0+/-4.2 mm Hg; static exercise, 117.0+/-4')
+(array([  1.20651367e-17,   1.00000000e+00]), 'TNF alpha levels increased significantly in the injured cortex at 1 and 4, but not at 12, 24 or 72 h after severe lateral fluid-percussion trauma (2.6-2.7 atm).')
+(array([  3.08853792e-52,   1.00000000e+00]), 'Total response rate was 19.2% (95% confidence interval: 4.5-34.3%) with one clinical complete response (3.8%) and 4 partial responses (15.4%).')
+(array([  2.96777980e-18,   1.00000000e+00]), 'Median response duration was 5 months.')
+(array([  1.27795810e-20,   1.00000000e+00]), 'Median survival for the whole group and for responders was 6 and 8 months, respectively.')
+(array([  6.92573401e-16,   1.00000000e+00]), 'Future SIDS victims had significantly more obstructive apneas (p = 0.001) and mixed apneas (p = 0.005) than control infants.')
+(array([  1.34612666e-25,   1.00000000e+00]), 'Compared with preapnea values, low-frequency to high-frequency power ratios significantly decreased after obstructive apneas in control infants (p &lt; 0.001) but not in the future SIDS victims.')
+(array([  4.96084699e-31,   1.00000000e+00]), 'After 18 months follow-up, pain relief was &gt; 75% and limb salvage was achieved in 26 patients.')
+(array([  2.85695016e-24,   1.00000000e+00]), 'In 9 patients, a partial success with pain relief &gt; 50% and limb salvage was obtained for at least 6 months.')
+(array([  9.52425100e-35,   1.00000000e+00]), 'Limb salvage was achieved in those patients who presented significant TcPO2 increase within the first 2 weeks of the testing period (from 21.6 mmHg to 29.5 mmHg in the patients with rest pain, P = 0.035, from 15.2 mmHg to 21.1 mmHg, P = 0.035 in those wit')
+
+EM piboso-outcome bottom 12 (sentences with lowest ranking)
+
+(array([  1.00000000e+00,   2.45502468e-38]), 'The decisions made by the various treating physicians underscore the many areas of disagreement regarding the treatment of BPI, including the diagnostic approach to defining the injury, timing of and indications for surgical intervention in birth-related ')
+(array([  1.00000000e+00,   5.07455975e-39]), 'Although many therapeutic agents show potential promise in animal models, only methylprednisolone has been shown in large, randomized, double-blinded human studies to enhance the functional recovery of neural elements after acute SCI.')
+(array([  1.00000000e+00,   2.26709684e-40]), 'Thus, the pharmacology and distribution of EMs provide new avenues both for therapeutic development and for understanding the neurobiology of opioids.')
+(array([  1.00000000e+00,   1.78816204e-40]), 'However, heterogeneity in patient assessment, CBT protocols, and outcome indicators made determination of the relative efficacy and clinical utility of the therapy difficult.')
+(array([  1.00000000e+00,   6.46993071e-41]), 'The purpose of combining the perineal and laparoscopic approaches is to minimize the skin incision, while retaining a rate of cure and safety equivalent to those of conventional rectal amputation, by using the advantages of laparoscopic procedures, and to')
+(array([  1.00000000e+00,   1.70540662e-42]), 'Hopefully, as work continues in this area, investigators will be able to develop a better understanding of the mechanisms underlying this modality and be able to further refine the technique of MCS.')
+(array([  1.00000000e+00,   7.59587990e-45]), 'The evidence for a variety of definite features of motor control elicited by volitional effort for the performance of a present or even clinically absent motor task suggests that we can benefit from animal experimental neurobiologic studies while we are p')
+(array([  1.00000000e+00,   1.99639702e-45]), 'The relationship between cognitive outcome and therapeutic interventions used to optimize cerebral perfusion pressure is unclear and requires further evaluation in a large prospective study.')
+(array([  1.00000000e+00,   7.33340260e-47]), 'We believe that this assay should be very helpful for characterizing autologous cell cancer vaccines and may also represent a useful alternative to immunohistochemistry for cancer diagnosis.')
+(array([  1.00000000e+00,   7.19622456e-48]), 'Given obvious clinical and methodological interstudy heterogeneity, efforts should be intensified in the future to perform high quality RCTs of complex surgical interventions on the basis of well defined outcome parameters.')
+(array([  1.00000000e+00,   2.66616066e-61]), 'The examination of these children might be a helpful approach in the investigation of the relationship between obesity and its contributing psychological and behavioural factors.')
+(array([  1.00000000e+00,   2.54424511e-62]), 'This report characterizes insights obtained from a laboratory investigation in search of fundamental mechanisms that contribute to the development of spasticity and provides a vantage point for understanding therapeutic strategies for treatment of spastic')
+
+EM piboso-other prediction 535 / 2712 ( 0.19727138643067846 )
+
+EM piboso-other top 12 (sentences with highest ranking)
+
+(array([  4.65203445e-14,   1.00000000e+00]), 'Patients were divided into 4 groups based on the rate of change of beta-hCG values over a 48-hour interval (increase by >66%, increase by &lt;66%, decrease by &lt;50%, decrease by >50%).')
+(array([  1.18093576e-22,   1.00000000e+00]), 'Patients were followed up for at least 12 months after surgery; the mean follow-up period was 15.6 months and the maximum period was 30 months.')
+(array([  6.87000285e-22,   1.00000000e+00]), 'The four types of hypertension were strictly defined 864 women (44.4%) had gestational hypertension, 459 (23.6%) isolated chronic hypertension, 501 (25.7%) isolated preeclampsia, and 124 (6.4%) chronic hypertension with superimposed preeclampsia.')
+(array([  4.29258522e-16,   1.00000000e+00]), 'We observed enhanced production of IFN-gamma and TNF-alpha in CD8(+), CD3(+), and CD56(+) blood cells, as well as an increase in the number of CCR5(+) cells in patients suffering from SA compared to those with NP.')
+(array([  2.47027303e-14,   1.00000000e+00]), 'Main complaints were rectal bleeding (83%), difficulties in evacuation (38%) and discomfort or pain (28%).')
+(array([  6.94584577e-26,   1.00000000e+00]), 'Forty-three (9%) had COPD (n = 31) or asthma (n = 12).')
+(array([  7.91093034e-30,   1.00000000e+00]), 'The comparison group had to be placebo or no treatment or the same co intervention (ACTH or steroids) The main outcome criteria were  progression of disability (defined as an increase of 0.5 point in Kurtzke Extended Disability Status Scale (EDSS) for patients with baseline EDSS > or = 6 and 1 for EDSS &lt; or = 5.5), differences of disability between treatment-control groups and the number of patients with side effects.')
+(array([  1.77576918e-18,   1.00000000e+00]), 'After approximately 30 months, 208 patients continued in an open label study 101 continued on GA and 107 switched from placebo to active drug.')
+(array([  6.60569247e-30,   1.00000000e+00]), 'The C allele was commoner in the obese group (OR = 1.72 [95% CI, 1.13-2.64], P = 0.008).')
+(array([  7.57791719e-17,   1.00000000e+00]), 'Thirty-six of the 42 GPs responded on each occasion (a response rate of 86%).')
+(array([  1.67003302e-15,   1.00000000e+00]), 'The scale was completed pre-operatively, then 6 weeks, 4 and 12 months post-operatively.')
+(array([  9.50683292e-18,   1.00000000e+00]), 'The mean follow up was 32 (18-55) months.')
+
+EM piboso-other bottom 12 (sentences with lowest ranking)
+
+(array([  1.00000000e+00,   2.89257045e-71]), 'MATERIALS AND METHODS')
+(array([  1.00000000e+00,   2.89257045e-71]), 'MATERIALS AND METHODS')
+(array([  1.00000000e+00,   2.89257045e-71]), 'MATERIALS AND METHODS')
+(array([  1.00000000e+00,   2.89257045e-71]), 'MATERIALS AND METHODS')
+(array([  1.00000000e+00,   2.89257045e-71]), 'MATERIALS AND METHODS')
+(array([  1.00000000e+00,   3.67995928e-79]), 'PATIENTS AND METHODS')
+(array([  1.00000000e+00,   3.67995928e-79]), 'PATIENTS AND METHODS')
+(array([  1.00000000e+00,   2.86705467e-92]), 'BACKGROUND/OBJECTIVE')
+(array([  1.00000000e+00,   2.86705467e-92]), 'BACKGROUND/OBJECTIVE')
+(array([  1.00000000e+00,   3.71871375e-95]), 'BACKGROUND AND PURPOSE')
+(array([  1.00000000e+00,   3.71871375e-95]), 'BACKGROUND AND PURPOSE')
+(array([  1.00000000e+00,   3.71871375e-95]), 'BACKGROUND AND PURPOSE')

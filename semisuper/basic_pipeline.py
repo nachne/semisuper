@@ -6,6 +6,7 @@ from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNameP
 from sklearn import naive_bayes
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_selection import SelectPercentile, chi2
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import Binarizer
 
@@ -36,7 +37,8 @@ def train_clf(X_vec, y, classifier=None, binary=False, verbose=False):
 def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
                    words=True, wordgram_range=(1, 3),
                    chars=True, chargram_range=(3, 6),
-                   binary=False):
+                   binary=False,
+                   selection=True, score_func=chi2, percentile=20):
     """build complete pipeline"""
 
     if verbose:
@@ -50,9 +52,11 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
         clf = classifier
 
     model = Pipeline([
-        ('features', feature_vectorizer(words=words, wordgram_range=wordgram_range,
-                                        chars=chars, chargram_range=chargram_range,
-                                        binary=binary)),
+        ('features', vectorizer(words=words, wordgram_range=wordgram_range,
+                                chars=chars, chargram_range=chargram_range,
+                                binary=binary)),
+        ('selector', None if not selection else
+        selector(score_func=score_func, percentile=percentile)),
         ('classifier', clf)
     ])
 
@@ -66,9 +70,9 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
     return model
 
 
-def feature_vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6),
-                       binary=False, rules=True, lemmatize=True):
-    vectorizer = FeatureUnion(
+def vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6),
+               binary=False, rules=True, lemmatize=True, min_df=1, max_df=1.0):
+    return FeatureUnion(
         transformer_list=[
             ("wordgrams", None if not words else
             FeatureNamePipeline([
@@ -77,7 +81,7 @@ def feature_vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_r
                     analyzer='word',
                     # min_df=5, # TODO find reasonable value (5 <= n << 50)
                     tokenizer=identity, preprocessor=None, lowercase=False,
-                    ngram_range=wordgram_range,
+                    ngram_range=wordgram_range, min_df=min_df, max_df=max_df,
                     binary=binary, norm='l2' if not binary else None, use_idf=not binary))
             ])),
             ("chargrams", None if not chars else
@@ -86,7 +90,7 @@ def feature_vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_r
                     analyzer='char',
                     # min_df=5,
                     preprocessor=None, lowercase=False,
-                    ngram_range=chargram_range,
+                    ngram_range=chargram_range, min_df=min_df, max_df=max_df,
                     binary=binary, norm='l2' if not binary else None, use_idf=not binary))
             ])),
             ("stats", None if binary else
@@ -95,7 +99,11 @@ def feature_vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_r
                 ("vect", DictVectorizer())
             ]))
         ])
-    return vectorizer
+
+
+# TODO not feasible with >> 100,000 features / >> 16,000 examples
+def selector(score_func=chi2, percentile=20):
+    return SelectPercentile(score_func=score_func, percentile=percentile)
 
 
 def show_most_informative_features(model: object, text: object = None, n: object = 40) -> object:

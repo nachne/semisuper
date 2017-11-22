@@ -1,0 +1,79 @@
+import random
+
+import numpy as np
+from semisuper.helpers import num_rows
+from semisuper.proba_label_nb import build_proba_MNB
+from semisuper.pu_two_step import almost_equal
+from semisuper import pu_two_step
+
+
+def iterate_SVM(P, N, U):
+    """run SVM iteratively until labels for U converge"""
+    return pu_two_step.iterate_SVM(P=P, U=U, RN=N, max_neg_ratio=0.1)
+
+
+def EM(P, N, U, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1.5):
+    """Train NB with P and N to get probabilistic labels for U, then iterate EM until estimates for U converge"""
+
+    # TODO balance P and N better
+    if num_rows(P) > max_imbalance_P_N * num_rows(N):
+        P_init = np.array(random.sample(list(P), int(max_imbalance_P_N * num_rows(N))))
+    else:
+        P_init = P
+
+    print("\nBuilding classifier from Positive and Reliable Negative set")
+    initial_model = build_proba_MNB(np.concatenate((P_init, N)),
+                                    [1] * num_rows(P) + [0] * num_rows(N))
+
+    print("\nCalculating initial probabilistic labels for Unlabelled set")
+    ypU = initial_model.predict_proba(U)[:, 1]
+
+    print("\nIterating EM algorithm on P, N, and U\n")
+    model = iterate_EM_PNU(P=P, N=N, U=U, ypU=ypU, tolerance=tolerance, max_pos_ratio=max_pos_ratio)
+
+    return model
+
+
+def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0):
+    """EM algorithm for positive set P and unlabelled set U
+
+        iterate NB classifier with updated labels for unlabelled set (with optional initial labels) until convergence"""
+
+    if y_P is None:
+        y_P = ([1.] * num_rows(P))
+    if y_N is None:
+        y_N = ([0.] * num_rows(N))
+    if ypU is None:
+        ypU = ([0.] * num_rows(U))
+
+    ypU_old = [-999]
+
+    iterations = 0
+    new_model = None
+
+    while not almost_equal(ypU_old, ypU, tolerance):
+
+        iterations += 1
+
+        print("Iteration #", iterations)
+        print("Building new model using probabilistic labels")
+
+        new_model = build_proba_MNB(np.concatenate((P, N, U)),
+                                    np.concatenate((y_P, y_N, ypU)))
+
+        print("Predicting probabilities for U")
+        ypU_old = ypU
+        ypU = new_model.predict_proba(U)[:, 1]
+
+        predU = [round(p) for p in ypU]
+        pos_ratio = sum(predU) / len(U)
+
+        print("Unlabelled instances classified as positive:", sum(predU), "/", len(U),
+              "(", pos_ratio * 100, "%)\n")
+
+        if pos_ratio >= max_pos_ratio:
+            print("Acceptable ratio of positively labelled sentences in U is reached.")
+            break
+
+    print("Returning final model after", iterations, "iterations")
+    return new_model

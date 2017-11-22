@@ -268,7 +268,7 @@ class getBestModel:
                             acc = accuracy_score(y_test, y_predicted)
                             print('{},{},{}, ngram({},{})'.format(self.names[i], k, max_freq, ngram[0], ngram[1]))
                             print('\tEVAL:\t\t\t', p, r, f, acc)
-                            # print(classification_report(y_test, y_predicted))
+                            # print(classification_report(y_test, y_predicted)
                             results.append([self.names[i],
                                             k,
                                             '({},{})'.format(ngram[0], ngram[1]),
