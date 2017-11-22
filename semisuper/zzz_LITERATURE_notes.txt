@@ -27,3 +27,5 @@ clustering?
 graph: unweighted k-NN graph
 	
 ----
+
+Label Propagation, Label Spreading: sklearn

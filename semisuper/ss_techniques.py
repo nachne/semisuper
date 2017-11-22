@@ -1,10 +1,23 @@
 import random
 
 import numpy as np
+import sklearn.semi_supervised as ss
+from semisuper import pu_two_step
 from semisuper.helpers import num_rows
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_two_step import almost_equal
-from semisuper import pu_two_step
+
+ss.LabelPropagation
+ss.LabelSpreading
+
+def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-1):
+    X = np.concatenate((P, N, U))
+    y_init = np.concatenate((np.ones(num_rows(P)),
+                             -np.ones(num_rows(N)),
+                             np.zeros(num_rows(U))))
+    propagation = ss.LabelPropagation(kernel=kernel, n_neighbors=n_neighbors, max_iter=max_iter, n_jobs=n_jobs)
+    propagation.fit(X, y_init)
+    return propagation
 
 
 def iterate_SVM(P, N, U):

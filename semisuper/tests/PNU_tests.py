@@ -64,11 +64,27 @@ print("Features after selection:", np.shape(P)[1])
 # ------------------
 
 def test_all(P, N, U):
-    test_svm(P, N, U)
+    test_label_propagation(P, N, U)
+    # test_svm(P, N, U)
     # test_em(P, N, U)
 
     return
 
+
+def test_label_propagation(P, N, U):
+    print("\n\n"
+          "---------\n"
+          "LABEL PROPAGATION TEST\n"
+          "---------\n")
+
+    start_time = time.time()
+
+    model = ss_techniques.propagate_labels(P, N, U)
+
+    print("\nTraining Label Propagation took %s seconds\n" % (time.time() - start_time))
+
+    print_sentences(model, "Label Propagation")
+    return
 
 def test_svm(P, N, U):
     print("\n\n"
