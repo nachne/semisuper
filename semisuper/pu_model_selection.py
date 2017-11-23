@@ -10,30 +10,30 @@ from semisuper.helpers import num_rows, unsparsify
 from sklearn.feature_selection import SelectPercentile, chi2
 from sklearn.metrics import classification_report, precision_recall_fscore_support, accuracy_score
 from sklearn.model_selection import train_test_split
+import multiprocessing as multi
+from functools import partial
+import time
+from copy import deepcopy
 
 
-def getBestModel(P, U, X_test=None, y_test=None):
-    """evaluate parameter combinations, save results and return pipeline with best model"""
+def getBestModel(P_train, U_train, X_test, y_test):
+    """Evaluate parameter combinations, save results and return pipeline with best model"""
 
-    print("\nEvaluating parameters for preprocessor and classifiers\n")
+    print("\nEvaluating parameter ranges for preprocessor and classifiers")
 
-    # TODO not really applicable for PU!
-    P_train, P_dev = train_test_split(P)
-    U_train, U_dev = train_test_split(U)
+    # splitting test set (should have true labels) in test and dev set
+    X_test, X_dev, y_test, y_dev = train_test_split(X_test, y_test, test_size=0.3)
 
     X_train = np.concatenate((P_train, U_train), 0)
     y_train = np.concatenate((np.ones(num_rows(P_train)), np.zeros(num_rows(U_train))))
 
-    X_dev = np.concatenate((P_dev, U_dev), 0)
-    y_dev = np.concatenate((np.ones(num_rows(P_dev)), np.zeros(num_rows(U_dev))))
-
-    results = {'best': {'f1': -1}, 'all': []}
+    results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
     preproc_params = {
-        'df_min': [1],
-        'df_max': [1.0],
-        'rules': [True],
-        'lemmatize': [False],
+        'df_min'        : [1],
+        'df_max'        : [1.0],
+        'rules'         : [True],
+        'lemmatize'     : [False],
         'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 4), (2, 5), (2, 6)]
     }
@@ -44,10 +44,10 @@ def getBestModel(P, U, X_test=None, y_test=None):
                 for l in preproc_params['lemmatize']:
 
                     print("\n----------------------------------------------------------------",
-                          "\n----------------------------------------------------------------",
-                          "\nwords:", wordgram, "chars:", chargram, "\n",
-                          "\n----------------------------------------------------------------",
+                          "\nwords:", wordgram, "chars:", chargram,
                           "\n----------------------------------------------------------------\n")
+
+                    start_time = time.time()
 
                     X_train_, X_dev_, vectorizer, selector = prepareTrainTest(trainData=X_train, trainLabels=y_train,
                                                                               testData=X_dev,
@@ -65,52 +65,58 @@ def getBestModel(P, U, X_test=None, y_test=None):
                     X_train_ = unsparsify(X_train_)
                     X_dev_ = unsparsify(X_dev_)
 
-                    iteration = {
-                        'models': [
-                            {'name': 'i-em', 'model': two_step.i_EM(P_train_, U_train_)},
-                            {'name': 's-em spy=0.1',
-                             'model': two_step.s_EM(P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
-                            {'name': 's-em spy=0.2',
-                             'model': two_step.s_EM(P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
-                            {'name': 'roc-svm', 'model': two_step.roc_SVM(P_train_, U_train_)},
-                            {'name': 'cr_svm noise=0.1', 'model': two_step.cr_SVM(P_train_, U_train_, noise_lvl=0.1)},
-                            {'name': 'cr_svm noise=0.2', 'model': two_step.cr_SVM(P_train_, U_train_, noise_lvl=0.2)},
-                            {'name': 'roc_em', 'model': two_step.roc_EM(P_train_, U_train_)},
-                            {'name': 'spy_svm spy=0.1',
-                             'model': two_step.spy_SVM(P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
-                            {'name': 'spy_svm spy=0.2',
-                             'model': two_step.spy_SVM(P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
-                            {'name': 'biased-svm',
-                             'model': biased_svm.biased_SVM_weight_selection(P_train_, U_train_)}
-                        ]
-                    }
-                    # TODO parallel
-                    for m in iteration['models']:
-                        y_pred = m['model'].predict(X_dev_)
+                    pp = {'word': wordgram, 'char': chargram}
 
-                        m['p'], m['r'], m['f1'], _ = precision_recall_fscore_support(y_dev, y_pred, average='macro')
-                        m['clsr'] = classification_report(y_dev, y_pred)
+                    # fit models
+                    iteration = [
+                        {'name': 'i-em', 'model': two_step.i_EM(P_train_, U_train_)},
+                        {'name' : 's-em spy=0.1',
+                         'model': two_step.s_EM(P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
+                        {'name' : 's-em spy=0.2',
+                         'model': two_step.s_EM(P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
+                        {'name': 'roc-svm', 'model': two_step.roc_SVM(P_train_, U_train_)},
+                        {'name': 'cr_svm noise=0.1', 'model': two_step.cr_SVM(P_train_, U_train_, noise_lvl=0.1)},
+                        {'name': 'cr_svm noise=0.2', 'model': two_step.cr_SVM(P_train_, U_train_, noise_lvl=0.2)},
+                        {'name': 'roc_em', 'model': two_step.roc_EM(P_train_, U_train_)},
+                        {'name' : 'spy_svm spy=0.1',
+                         'model': two_step.spy_SVM(P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
+                        {'name' : 'spy_svm spy=0.2',
+                         'model': two_step.spy_SVM(P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
+                        {'name' : 'biased-svm',
+                         'model': biased_svm.biased_SVM_weight_selection(P_train_, U_train_)},
+                        {'name' : 'bagging-svm',
+                         'model': biased_svm.biased_SVM_grid_search(P_train_, U_train_)}
+                    ]
 
-                        m['preprocessing'] = {'word': wordgram, 'char': chargram,
-                                              'vectorizer': vectorizer, 'selector': selector}
+                    # eval models
+                    with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
+                        iter_stats = p.map(partial(model_eval_record, X_dev_, y_dev), iteration)
 
-                        m.pop('model')
+                    # finalize records: remove memory-heavy model, add n-gram stats, update best
+                    for m in iter_stats:
+                        m['n-grams'] = pp
+                        if m['acc'] > results['best']['acc']:
+                            results['best'] = deepcopy(m)
+                            results['best']['vectorizer'] = vectorizer
+                            results['best']['selector'] = selector
+                        m.pop('model', None)
 
-                        if m['f1'] > results['best']['f1']:
-                            results['best'] = m
+                    print("Evaluated words:", wordgram, "chars:", chargram,
+                          "in %s seconds\n" % (time.time() - start_time))
+                    results['all'].append(iter_stats)
 
-                        results['all'].append(iteration)
+    print_results(results)
 
     with open(file_path("./pickles/model_eval{}.pickle".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))),
               "wb") as f:
-        print('saving all models to disk')
+        print('saving model stats to disk\n')
         pickle.dump(results, f)
 
-        print(results)
-
-    best_model = results['best']
-
     if X_test:
+        best_model = results['best']['model']
+        selector = results['best']['selector']
+        vectorizer = results['best']['vectorizer']
+
         if selector:
             transformedTestData = unsparsify(selector.transform(vectorizer.transform(X_test)))
         else:
@@ -121,32 +127,29 @@ def getBestModel(P, U, X_test=None, y_test=None):
         p, r, f, s = precision_recall_fscore_support(y_test, y_pred_test, average='macro')
         acc = accuracy_score(y_test, y_pred_test)
 
-        print('\tTEST:\t\t\t', p, r, f, acc)
-        print(results['best'])
+        print("TEST:", results['best']['name'], results['best']['n-grams'], "\n",
+              'p={}\tr={}\tf1={}\tacc={}'.format(p, r, f, acc))
 
         # ===============================================================
         # CREATE MODEL BASED ON BEST
         # ===============================================================
-        print('Fitting best model on complete data')
-
-        vectorizer = best_model['preprocessing']['vectorizer']
-        selector = best_model['preprocessing']['selector']
-        model = best_model['model']
+        print('\nFitting best model on complete data')
 
         if selector:
             transformedData = unsparsify(selector.fit_transform(vectorizer.fit_transform(
-                np.concatenate((P_train, U_train), 0)),
-                [1] * num_rows(P_train) + [0] * num_rows(U_train)))
-            transformedTestData = unsparsify(selector.transform(vectorizer.transform(X_test), y_test))
+                    np.concatenate((P_train, U_train), 0)),
+                    [1] * num_rows(P_train) + [0] * num_rows(U_train)))
+            transformedTestData = unsparsify(selector.transform(vectorizer.transform(X_test)))
         else:
             transformedData = unsparsify(vectorizer.fit_transform(np.concatenate((P_train, U_train), 0)))
             transformedTestData = unsparsify(vectorizer.transform(X_train))
 
-        classModel = model.fit(transformedData, [1] * num_rows(P_train) + [0] * num_rows(U_train))
+        classModel = best_model.fit(transformedData, [1] * num_rows(P_train) + [0] * num_rows(U_train))
 
         # ===============================================================
         # PERFORMANCE OF MODEL ON TEST DATA
         # ===============================================================
+
         y_predicted_test = classModel.predict(transformedTestData)
         print(classification_report(y_test, y_predicted_test))
 
@@ -172,12 +175,43 @@ def prepareTrainTest(trainData, testData, trainLabels, featureSelect=True, min_d
     if featureSelect:
         selector = SelectPercentile(chi2, 20)
         selector.fit(transformedTrainData, trainLabels)
-        transformedTrainData = selector.transform(transformedTrainData, trainLabels)
+        transformedTrainData = selector.transform(transformedTrainData)
         transformedTestData = selector.transform(transformedTestData)
 
         print("No. of features after reduction:", transformedTrainData.shape[1], "\n")
 
     return transformedTrainData, transformedTestData, vectorizer, selector
+
+
+def model_eval_record(X, y, m):
+    model = m['model']
+    name = m['name']
+
+    y_pred = model.predict(X)
+
+    p, r, f1, _ = precision_recall_fscore_support(y, y_pred, average='macro')
+    acc = accuracy_score(y, y_pred)
+    clsr = classification_report(y, y_pred)
+
+    print('Classification report for', name, '\n', clsr)
+
+    return {'name': name, 'p': p, 'r': r, 'f1': f1, 'acc': acc, 'clsr': clsr, 'model': model}
+
+
+def print_results(results):
+    best = results['best']
+
+    print("Best:")
+    print(best['name'], best['n-grams'],
+          "\tstats: p={}\tr={}\tf1={}\tacc={}\t".format(best['p'], best['r'], best['f1'], best['acc']), "\n")
+
+    print("All stats:")
+    for i in results['all']:
+        print(i[0]['n-grams'])
+        for m in i:
+            print("\t", m['name'], "\n\t\t",
+                  "stats: p={}\tr={}\tf1={}\tacc={}\t".format(best['p'], best['r'], best['f1'], best['acc']))
+    return
 
 
 def file_path(file_relative):

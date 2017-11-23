@@ -40,6 +40,7 @@ def rocchio(P, N, alpha=16, beta=4, binary=False):
     y = concatenate((ones(num_rows(P)), zeros(num_rows(N))))
 
     model = train_clf(X, y, classifier=clf, binary=binary)
+
     return model
 
 
@@ -52,18 +53,19 @@ class SimRanker(BaseEstimator, ClassifierMixin):
 
     predict_proba returns scores, predict returns 1 if they are above a given (or calculated) threshold, else 0 """
 
-    def __init__(self, threshold, compute_thresh):
+    def __init__(self, threshold, compute_thresh, verbose=False):
         self.threshold = threshold
         self.compute_thresh = compute_thresh
         self.mean_X = None
+        self.verbose=verbose
         return
 
     def fit(self, X, y=None):
-        self.mean_X = normalize(X.mean(axis=0))
+        self.mean_X = normalize([X.mean(axis=0)])
 
         if self.compute_thresh:
             self.threshold = self.dummy_threshold(self.mean_X, X)
-            print("Threshold:", self.threshold)
+            if self.verbose: print("Threshold:", self.threshold)
 
         return self
 
@@ -80,7 +82,6 @@ class SimRanker(BaseEstimator, ClassifierMixin):
 
     def dummy_threshold(self, mean_X, X):
         cos_sim = cosine_similarity(mean_X, X)
-        print("Threshold computed as (mean(mean_sim(X, X_mean), min_sim(X, X_mean))")
         return (cos_sim.mean() + cos_sim.min()) / 2
 
 
@@ -104,14 +105,15 @@ class BinaryRocchio(BaseEstimator, ClassifierMixin):
 
         P, N = partition_pos_neg(X, y)
 
-        normalized_p = normalize(P.mean(axis=0))
-        normalized_n = normalize(N.mean(axis=0))
+        normalized_p = normalize([P.mean(axis=0)])
+        normalized_n = normalize([N.mean(axis=0)])
 
         self.proto_p = normalize(self.alpha * normalized_p - self.beta * normalized_n)
         self.proto_n = normalize(self.alpha * normalized_n - self.beta * normalized_p)
 
     def predict_proba(self, X):
         """returns values in [0, 1]; >0.5 means x is rather positive. Not a proper probability!"""
+
         sim_p = cosine_similarity(self.proto_p, X)[0]
         sim_n = cosine_similarity(self.proto_n, X)[0]
 

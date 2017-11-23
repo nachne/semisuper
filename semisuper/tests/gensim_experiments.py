@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import MDS
 import gensim
 from gensim import corpora
+from gensim.models.ldamulticore import LdaMulticore
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 from semisuper import loaders, transformers
@@ -46,12 +47,10 @@ dictionary = corpora.Dictionary(corp_tokenized)
 doc_term_matrix = [dictionary.doc2bow(doc) for doc in corp_tokenized]
 
 # Creating the object for LDA model using gensim library
-Lda = gensim.models.ldamodel.LdaModel
-
 # Running and Trainign LDA model on the document term matrix.
-ldamodel = Lda(doc_term_matrix, num_topics=12, id2word=dictionary, passes=50)
+lda = LdaMulticore(doc_term_matrix, num_topics=12, id2word=dictionary, passes=50)
 
-[print(x) for x in ldamodel.print_topics(num_topics=-1, num_words=20)]
+[print(x) for x in lda.print_topics(num_topics=-1, num_words=20)]
 
 
 # --------------------------------
@@ -68,29 +67,23 @@ def label_dist(corpus, dict, ldamodel):
     return [(lbl, freqs[lbl], freqs[lbl] / len(corpus)) for lbl in sorted(freqs)]
 
 
-print("CIViC:")
-[print(x, end="\t") for x in (label_dist(pp.transform(civic), dictionary, ldamodel))]
-print()
+print("\nCIViC:")
+[print(x, end="\t") for x in (label_dist(pp.transform(civic), dictionary, lda))]
 
-print("Abstracts:")
-[print(x, end="\t") for x in (label_dist(pp.transform(abstracts), dictionary, ldamodel))]
-print()
+print("\nAbstracts:")
+[print(x, end="\t") for x in (label_dist(pp.transform(abstracts), dictionary, lda))]
 
-print("HoC pos:")
-[print(x, end="\t") for x in (label_dist(pp.transform(hocpos), dictionary, ldamodel))]
-print()
+print("\nHoC pos:")
+[print(x, end="\t") for x in (label_dist(pp.transform(hocpos), dictionary, lda))]
 
-print("HoC neg:")
-[print(x, end="\t") for x in (label_dist(pp.transform(hocneg), dictionary, ldamodel))]
-print()
+print("\nHoC neg:")
+[print(x, end="\t") for x in (label_dist(pp.transform(hocneg), dictionary, lda))]
 
-print("PIBOSO outcome:")
-[print(x, end="\t") for x in (label_dist(pp.transform(piboso_outcome), dictionary, ldamodel))]
-print()
+print("\nPIBOSO outcome:")
+[print(x, end="\t") for x in (label_dist(pp.transform(piboso_outcome), dictionary, lda))]
 
-print("PIBOSO other:")
-[print(x, end="\t") for x in (label_dist(pp.transform(piboso_other), dictionary, ldamodel))]
-print()
+print("\nPIBOSO other:")
+[print(x, end="\t") for x in (label_dist(pp.transform(piboso_other), dictionary, lda))]
 
 # --------------------------------
 # obsolete tutorial stuff

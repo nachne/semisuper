@@ -3,14 +3,51 @@ from multiprocessing import Pool, cpu_count
 
 from numpy import concatenate, zeros, ones
 from semisuper.basic_pipeline import train_clf
-from semisuper.helpers import num_rows, pu_measure
+from semisuper.helpers import num_rows, pu_measure, partition_pos_neg, train_report
+from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+from sklearn.ensemble import BaggingClassifier
+from multiprocessing import cpu_count
+
+
+def biased_SVM_grid_search(P, U, Cs=None, kernel='linear', n_estimators=24, verbose=False):
+    if Cs is None:
+        Cs = [10 ** x for x in range(-12, 4, 2)]
+
+    print("Running Biased-SVM with balanced class weights and grid search over", len(Cs), "C values")
+
+    model = BaggingClassifier(SVC())
+
+    grid_search = GridSearchCV(model,
+                               param_grid={'base_estimator__C'           : Cs,
+                                           'base_estimator__class_weight': ['balanced'],
+                                           'base_estimator__kernel'      : ['linear'],
+                                           # 'base_estimator__cache_size'  : [8000],
+                                           'base_estimator__probability' : [True],
+                                           'bootstrap'                   : [True],
+                                           'n_estimators'                : [n_estimators]},
+                               n_jobs=min(24, cpu_count()),
+                               pre_dispatch='n_jobs',
+                               cv=3,
+                               scoring=pu_scorer,
+                               verbose=0)
+
+    if verbose:
+        print("Grid searching parameters for biased-SVM")
+
+    grid_search.fit(concatenate((P, U)), concatenate((ones(num_rows(P)), zeros(num_rows(U)))))
+
+    if verbose: train_report(grid_search.best_estimator_, P, U)
+    print("Biased-SVM parameters:", grid_search.best_params_, "\tPU score:", grid_search.best_score_)
+
+    return grid_search.best_estimator_
 
 
 def biased_SVM_weight_selection(P, U,
                                 Cs_neg=None, Cs_pos_factors=None, Cs=None,
-                                kernel='linear', test_size=0.2):
+                                kernel='linear', test_size=0.2,
+                                verbose=False):
     """run biased SVMs with combinations of class weight values, choose the one with the best pu_measure"""
 
     # default values
@@ -25,7 +62,8 @@ def biased_SVM_weight_selection(P, U,
     Cs = [(C, C_neg * j, C_neg)
           for C in Cs for C_neg in Cs_neg for j in Cs_pos_factors]
 
-    print("There are", num_rows(Cs), "parameter combinations to be evaluated.")
+    print("Running Biased-SVM with range of C and positive class weight factors.",
+          num_rows(Cs), "parameter combinations.")
 
     P_train, P_test = train_test_split(P, test_size=test_size)
     U_train, U_test = train_test_split(U, test_size=test_size)
@@ -39,11 +77,12 @@ def biased_SVM_weight_selection(P, U,
 
     best_score_params = max(score_weights, key=lambda tup: tup[0])
 
-    print()
-    [print(s) for s in score_weights]
+    if verbose:
+        print()
+        [print(s) for s in score_weights]
 
-    print("\nBest model has parameters", best_score_params[1], "and PU-score", best_score_params[0])
-    print("Building final classifier")
+        print("\nBest model has parameters", best_score_params[1], "and PU-score", best_score_params[0])
+        print("Building final classifier")
 
     model = build_biased_SVM(concatenate((P, U)),
                              concatenate((ones(num_rows(P)), zeros(num_rows(U)))),
@@ -52,6 +91,8 @@ def biased_SVM_weight_selection(P, U,
                              C=best_score_params[1]['C'],
                              probability=True, kernel=kernel)
 
+    if verbose: train_report(model, P, U)
+    print("Returning Biased-SVM with parameters", best_score_params[1], "and PU-score", best_score_params[0])
     return model
 
 
@@ -96,7 +137,7 @@ class BiasedSVM(SVC):
 
     def __init__(self, C=1.0, kernel='linear', degree=3, gamma='auto',
                  coef0=0.0, shrinking=True, probability=False,
-                 tol=1e-3, cache_size=200, class_weight=None,
+                 tol=1e-3, cache_size=200, class_weight=[1, 1],
                  verbose=False, max_iter=-1, decision_function_shape=None,
                  random_state=None):
         self.param_class_weight = {'C_pos': class_weight[1], 'C_neg': class_weight[0], 'C': C}
@@ -110,3 +151,9 @@ class BiasedSVM(SVC):
 
     def get_class_weights(self):
         return self.param_class_weight
+
+
+def pu_scorer(estimator, X, y):
+    y_pred = estimator.predict(X)
+    y_P, y_U = partition_pos_neg(y_pred, y)
+    return pu_measure(y_P, y_U)

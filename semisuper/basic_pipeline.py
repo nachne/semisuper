@@ -71,26 +71,28 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
 
 
 def vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6),
-               binary=False, rules=True, lemmatize=True, min_df=1, max_df=1.0):
-    return FeatureUnion(
+               binary=False, rules=True, lemmatize=True, min_df=10, max_df=0.99):
+    return FeatureUnion(n_jobs=2,
         transformer_list=[
             ("wordgrams", None if not words else
             FeatureNamePipeline([
                 ("preprocessor", TokenizePreprocessor(rules=rules, lemmatize=lemmatize)),
                 ("word_tfidf", TfidfVectorizer(
                     analyzer='word',
-                    # min_df=5, # TODO find reasonable value (5 <= n << 50)
+                    min_df=min_df, # TODO find reasonable value (5 <= n << 50)
+                    max_df=max_df,
                     tokenizer=identity, preprocessor=None, lowercase=False,
-                    ngram_range=wordgram_range, min_df=min_df, max_df=max_df,
+                    ngram_range=wordgram_range,
                     binary=binary, norm='l2' if not binary else None, use_idf=not binary))
             ])),
             ("chargrams", None if not chars else
             FeatureNamePipeline([
                 ("char_tfidf", TfidfVectorizer(
                     analyzer='char',
-                    # min_df=5,
+                    min_df=min_df,
+                    max_df=max_df,
                     preprocessor=None, lowercase=False,
-                    ngram_range=chargram_range, min_df=min_df, max_df=max_df,
+                    ngram_range=chargram_range,
                     binary=binary, norm='l2' if not binary else None, use_idf=not binary))
             ])),
             ("stats", None if binary else

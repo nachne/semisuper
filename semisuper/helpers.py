@@ -1,8 +1,9 @@
 from itertools import islice
 from functools import reduce
 from operator import itemgetter, mul
-from numpy import shape, array, nonzero, ones, sum, round
+import numpy as np
 from scipy.sparse import issparse
+from sklearn.metrics import classification_report as clsr
 from sklearn.utils import check_array
 import os.path
 
@@ -36,19 +37,19 @@ def positive(x):
 def num_rows(a):
     """returns length of array or vector, number of rows for 2-dimensional arrays"""
     if issparse(a):
-        return shape(a)[0]
+        return np.shape(a)[0]
     return len(a)
 
 
 def arrays(args):
     """make numpy arrays from args list"""
-    return [array(a) for a in args]
+    return [np.array(a) for a in args]
 
 
 def partition_pos_neg(X, y):
     """partitions X into elements where corresponding y element is nonzero VS zero"""
-    pos_idx = nonzero(y)
-    neg_idx = ones(num_rows(y), dtype=bool)
+    pos_idx = np.nonzero(y)
+    neg_idx = np.ones(num_rows(y), dtype=bool)
     neg_idx[pos_idx] = False
     return X[pos_idx], X[neg_idx]
 
@@ -67,7 +68,7 @@ def unsparsify(X):
     if issparse(X):
         return X.todense()
     else:
-        return array(X)
+        return np.array(X)
 
 
 def pu_measure(y_P, y_U):
@@ -75,13 +76,19 @@ def pu_measure(y_P, y_U):
 
     requires validation set to be partitioned into P and U before classification, labels to be 1 and 0"""
 
-    if sum(round(y_U)) == num_rows(y_U) or sum(round(y_P)) == 0:
+    if np.sum(np.round(y_U)) == num_rows(y_U) or np.sum(np.round(y_P)) == 0:
         return 0
 
-    r_sq = (sum(round(y_P)) / num_rows(y_P)) ** 2
-    Pr_fx_1 = (sum(round(y_P)) + sum(round(y_U))) / (num_rows(y_P) + num_rows(y_U))
+    r_sq = (np.sum(np.round(y_P)) / num_rows(y_P)) ** 2
+    Pr_fx_1 = (np.sum(np.round(y_P)) + np.sum(np.round(y_U))) / (num_rows(y_P) + num_rows(y_U))
 
     return r_sq / Pr_fx_1
+
+def train_report(model, P, N):
+    print("Classification Report (on training, not on test data!):\n")
+    y_pred = model.predict(np.concatenate((P, N)))
+    print(clsr([1. for _ in P] + [0. for _ in N], y_pred))
+    return
 
 
 def file_path(file_relative):

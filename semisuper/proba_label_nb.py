@@ -15,11 +15,11 @@ import time
 # general MNB model builder
 # ----------------------------------------------------------------
 
-def build_proba_MNB(X, y, binary=True):
+def build_proba_MNB(X, y, binary=True, verbose=False):
     """build multinomial Naive Bayes classifier that accepts probabilistic labels
 
     feature encoding should be binarized"""
-    model = train_clf(X, y, classifier=ProbaLabelMNB(alpha=0.1), binary=binary)
+    model = train_clf(X, y, classifier=ProbaLabelMNB(alpha=0.1), binary=binary, verbose=False)
 
     return model  # equations from "partially supervised classification of text documents"
 
@@ -27,11 +27,12 @@ def build_proba_MNB(X, y, binary=True):
 class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
     """multinomial Naive Bayes classifier that accepts probabilistic labels"""
 
-    def __init__(self, alpha=0.1):
+    def __init__(self, alpha=0.1, verbose=False):
         self.alpha = alpha
         self.pr_c = None
         self.log_pr_c = None
         self.log_pr_w = None
+        self.verbose = verbose
         return
 
     def fit(self, X, y):
@@ -42,10 +43,8 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
 
         self.pr_c = np.array(self.proba_c(yp))
         self.log_pr_c = np.log(self.pr_c)
-        print("Class distribution:", self.pr_c)
-
-        print("Computing attribute probabilities",
-              "for", np.shape(npX)[1], "attributes")
+        if self.verbose: print("Class distribution:", self.pr_c, "Computing attribute probabilities",
+                               "for", np.shape(npX)[1], "attributes")
         self.log_pr_w = np.log(np.array([self.pr_w_given_c(npX, yp, cls=0),
                                          self.pr_w_given_c(npX, yp, cls=1)]))
 
@@ -54,8 +53,7 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
     def predict_proba(self, X):
         """predicts probabilistic class labels for set of docs."""
 
-        with multi.Pool(min(multi.cpu_count(), 24)) as p:
-            log_probas = np.array(p.map(self.log_proba, [x for x in X]))
+        log_probas = np.array([self.log_proba(x) for x in X])
 
         return np.exp(log_probas)
 

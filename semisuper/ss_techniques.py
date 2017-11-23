@@ -7,9 +7,47 @@ from semisuper.helpers import num_rows
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_two_step import almost_equal
 
-ss.LabelPropagation
-ss.LabelSpreading
 
+
+
+def iterate_SVM(P, N, U, verbose=True):
+    """run SVM iteratively until labels for U converge"""
+
+    print("Running iterative SVM")
+
+    return pu_two_step.iterate_SVM(P=P, U=U, RN=N, max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
+
+
+def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1.5, verbose=True):
+    """Iterate EM until estimates for U converge.
+
+    Train NB with P and N to get probabilistic labels for U, or use assumed priors if passed as parameter"""
+
+    print("Running EM")
+
+    # TODO balance P and N better
+    if num_rows(P) > max_imbalance_P_N * num_rows(N):
+        P_init = np.array(random.sample(list(P), int(max_imbalance_P_N * num_rows(N))))
+    else:
+        P_init = P
+
+    if ypU is None:
+        if verbose: print("\nBuilding classifier from Positive and Reliable Negative set")
+        initial_model = build_proba_MNB(np.concatenate((P_init, N)),
+                                        [1] * num_rows(P) + [0] * num_rows(N))
+
+        if verbose: print("\nCalculating initial probabilistic labels for Unlabelled set")
+        ypU = initial_model.predict_proba(U)[:, 1]
+    else:
+        print("Using assumed probabilities/weights for initial probabilistic labels of Unlabelled set")
+
+    if verbose: print("\nIterating EM algorithm on P, N, and U\n")
+    model = iterate_EM_PNU(P=P, N=N, U=U, ypU=ypU, tolerance=tolerance, max_pos_ratio=max_pos_ratio, verbose=verbose)
+
+    return model
+
+
+# horrible results!
 def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-1):
     X = np.concatenate((P, N, U))
     y_init = np.concatenate((np.ones(num_rows(P)),
@@ -20,34 +58,8 @@ def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-
     return propagation
 
 
-def iterate_SVM(P, N, U):
-    """run SVM iteratively until labels for U converge"""
-    return pu_two_step.iterate_SVM(P=P, U=U, RN=N, max_neg_ratio=0.1)
 
-
-def EM(P, N, U, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1.5):
-    """Train NB with P and N to get probabilistic labels for U, then iterate EM until estimates for U converge"""
-
-    # TODO balance P and N better
-    if num_rows(P) > max_imbalance_P_N * num_rows(N):
-        P_init = np.array(random.sample(list(P), int(max_imbalance_P_N * num_rows(N))))
-    else:
-        P_init = P
-
-    print("\nBuilding classifier from Positive and Reliable Negative set")
-    initial_model = build_proba_MNB(np.concatenate((P_init, N)),
-                                    [1] * num_rows(P) + [0] * num_rows(N))
-
-    print("\nCalculating initial probabilistic labels for Unlabelled set")
-    ypU = initial_model.predict_proba(U)[:, 1]
-
-    print("\nIterating EM algorithm on P, N, and U\n")
-    model = iterate_EM_PNU(P=P, N=N, U=U, ypU=ypU, tolerance=tolerance, max_pos_ratio=max_pos_ratio)
-
-    return model
-
-
-def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0):
+def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, verbose=False):
     """EM algorithm for positive set P and unlabelled set U
 
         iterate NB classifier with updated labels for unlabelled set (with optional initial labels) until convergence"""
@@ -68,25 +80,25 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
 
         iterations += 1
 
-        print("Iteration #", iterations)
-        print("Building new model using probabilistic labels")
+        if verbose: print("Iteration #", iterations, "\tBuilding new model using probabilistic labels")
 
         new_model = build_proba_MNB(np.concatenate((P, N, U)),
                                     np.concatenate((y_P, y_N, ypU)))
 
-        print("Predicting probabilities for U")
+        if verbose: print("Predicting probabilities for U")
         ypU_old = ypU
         ypU = new_model.predict_proba(U)[:, 1]
 
         predU = [round(p) for p in ypU]
         pos_ratio = sum(predU) / len(U)
 
-        print("Unlabelled instances classified as positive:", sum(predU), "/", len(U),
-              "(", pos_ratio * 100, "%)\n")
+        if verbose: print("Unlabelled instances classified as positive:", sum(predU), "/", len(U),
+                          "(", pos_ratio * 100, "%)\n")
 
         if pos_ratio >= max_pos_ratio:
-            print("Acceptable ratio of positively labelled sentences in U is reached.")
+            if verbose: print("Acceptable ratio of positively labelled sentences in U is reached.")
             break
 
-    print("Returning final model after", iterations, "iterations")
+    if verbose: print("Returning final model after", iterations, "iterations")
     return new_model
+

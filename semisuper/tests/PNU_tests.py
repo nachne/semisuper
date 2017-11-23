@@ -2,6 +2,7 @@ import random
 import time
 
 import numpy as np
+
 from semisuper import loaders, basic_pipeline, ss_techniques
 from semisuper.helpers import num_rows, unsparsify
 
@@ -17,46 +18,6 @@ print("HoC negative sentences:", len(hocneg))
 print("PIBOSO outcome sentences:", len(piboso_outcome))
 print("PIBOSO other sentences:", len(piboso_other))
 
-# print("\n\nTRAINING ON CIVIC AND ABSTRACTS\n\n")
-
-show_sentences = True
-
-P_raw = random.sample(hocpos + civic, 1000)
-N_raw = random.sample(hocneg, 1000)
-U_raw = random.sample(abstracts, 2000)
-
-print("\nTRAINING SEMI-SUPERVISED"
-      "\tP: HOC POS"
-      ", CIVIC"
-      , "\tN: HOC NEG"
-      , ",\tU: ABSTRACTS"
-      )
-
-words, wordgram_range = [False, (1, 3)]  # TODO change back to True, (1,3)
-chars, chargram_range = [True, (2, 4)]  # TODO change back to True, (3,6)
-rules, lemmatize = [True, True]
-
-print("Fitting vectorizer")
-vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range,
-                                       chars=chars, chargram_range=chargram_range,
-                                       rules=rules, lemmatize=lemmatize)
-vectorizer.fit(np.concatenate((P_raw, U_raw)))
-
-P = unsparsify(vectorizer.transform(P_raw))
-N = unsparsify(vectorizer.transform(N_raw))
-U = unsparsify(vectorizer.transform(U_raw))
-
-print("P:", num_rows(P), "\tN:", num_rows(N), "\tU:", num_rows(U))
-print("Features before selection:", np.shape(P)[1])
-
-selector = basic_pipeline.selector()
-selector.fit(np.concatenate((P, N, U)),
-             np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)), np.zeros(num_rows(U)))))
-P = unsparsify(selector.transform(P))
-N = unsparsify(selector.transform(N))
-U = unsparsify(selector.transform(U))
-
-print("Features after selection:", np.shape(P)[1])
 
 
 # ------------------
@@ -64,10 +25,9 @@ print("Features after selection:", np.shape(P)[1])
 # ------------------
 
 def test_all(P, N, U):
-    test_label_propagation(P, N, U)
-    # test_svm(P, N, U)
-    # test_em(P, N, U)
-
+    test_svm(P, N, U)
+    test_em(P, N, U)
+    # test_label_propagation(P, N, U)
     return
 
 
@@ -85,6 +45,7 @@ def test_label_propagation(P, N, U):
 
     print_sentences(model, "Label Propagation")
     return
+
 
 def test_svm(P, N, U):
     print("\n\n"
@@ -122,9 +83,8 @@ def test_em(P, N, U):
 # helper to print amount of positive docs, top and bottom sentences per corpus
 # ------------------
 
+
 def print_sentences(model, modelname=""):
-    if not show_sentences:
-        return
 
     print("\n\n"
           "----------------\n"
@@ -174,17 +134,64 @@ def print_sentences(model, modelname=""):
 
 
 # ------------------
+# prepare corpus, vectors, vectorizer, selector
+# ------------------
 
-def print_params():
-    print("words:", words, "\tword n-gram range:", wordgram_range,
-          "\nchars:", chars, "\tchar n-gram range:", chargram_range,
-          "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
-    return
+def prepare_corpus():
+    P_raw = random.sample(hocpos, 4000)
+    N_raw = random.sample(hocneg, 6000)
+    U_raw = random.sample(abstracts + civic, 12000)
+
+    print("\nTRAINING SEMI-SUPERVISED"
+          "\tP: HOC POS"
+          , "(", num_rows(P_raw), ")"
+          , "\tN: HOC NEG"
+          , "(", num_rows(N_raw), ")"
+          , ",\tU: ABSTRACTS"
+          , "+ CIVIC"
+          , "(", num_rows(U_raw), ")"
+          )
+
+    words, wordgram_range = [True, (1, 3)]  # TODO change back to True, (1,3)
+    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
+    rules, lemmatize = [True, True]
+
+    def print_params():
+        print("words:", words, "\tword n-gram range:", wordgram_range,
+              "\nchars:", chars, "\tchar n-gram range:", chargram_range,
+              "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
+        return
+
+    print_params()
+
+    print("Fitting vectorizer")
+    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range,
+                                           chars=chars, chargram_range=chargram_range,
+                                           rules=rules, lemmatize=lemmatize)
+    vectorizer.fit(np.concatenate((P_raw, N_raw, U_raw)))
+
+    P = unsparsify(vectorizer.transform(P_raw))
+    N = unsparsify(vectorizer.transform(N_raw))
+    U = unsparsify(vectorizer.transform(U_raw))
+
+    print("Features before selection:", np.shape(P)[1])
+
+    selector = basic_pipeline.selector()
+    selector.fit(np.concatenate((P, N, U)),
+                 (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
+    P = unsparsify(selector.transform(P))
+    N = unsparsify(selector.transform(N))
+    U = unsparsify(selector.transform(U))
+
+    print("Features after selection:", np.shape(P)[1])
+
+    return P, N, U, vectorizer, selector
+
 
 
 # ------------------
 # execute
 # ------------------
 
-print_params()
+P, N, U, vectorizer, selector = prepare_corpus()
 test_all(P, N, U)

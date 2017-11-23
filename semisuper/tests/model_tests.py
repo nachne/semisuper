@@ -2,6 +2,7 @@ import random
 import time
 
 import numpy as np
+
 from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline
 from semisuper.helpers import num_rows, unsparsify
 
@@ -17,55 +18,19 @@ print("HoC negative sentences:", len(hocneg))
 print("PIBOSO outcome sentences:", len(piboso_outcome))
 print("PIBOSO other sentences:", len(piboso_other))
 
-# P_raw = civic
-# U_raw = abstracts
-
-# print("\n\nTRAINING ON CIVIC AND ABSTRACTS\n\n")
-
-show_sentences = True
-
-P_raw = random.sample(hocpos + civic, 400)
-U_raw = random.sample(hocneg + abstracts, 400)
-
-print("\nTRAINING ON HOC CORPUS"
-      , ", CIVIC"
-      , ", AND ABSTRACTS"
-      )
-
-words, wordgram_range = [True, (1, 3)]  # TODO change back to True, (1,3)
-chars, chargram_range = [True, (3, 6)]  # TODO change back to True, (3,6)
-rules, lemmatize = [True, True]
-
-print("Fitting vectorizer")
-vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range,
-                                       chars=chars, chargram_range=chargram_range,
-                                       rules=rules, lemmatize=lemmatize)
-vectorizer.fit(np.concatenate((P_raw, U_raw)))
-P = unsparsify(vectorizer.transform(P_raw))
-U = unsparsify(vectorizer.transform(U_raw))
-
-print("P:", num_rows(P), "\tU:", num_rows(U))
-print("Features before selection:", np.shape(P)[1])
-
-selector = basic_pipeline.selector()
-selector.fit(np.concatenate((P, U)),
-             np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U)))))
-P = unsparsify(selector.transform(P))
-U = unsparsify(selector.transform(U))
-
-print("Features after selection:", np.shape(P)[1])
 
 # ------------------
 # model testers
 # ------------------
 
 def test_all(P, U):
-    test_i_em(P, U)
-    test_s_em(P, U)
-    test_roc_svm(P, U)
-    test_cr_svm(P, U)
-    test_roc_em(P, U)
-    test_spy_svm(P, U)
+    # test_i_em(P, U)
+    # test_s_em(P, U)
+    # test_roc_svm(P, U)
+    # test_cr_svm(P, U)
+    # test_roc_em(P, U)
+    # test_spy_svm(P, U)
+    test_biased_svm_grid(P, U)
     test_biased_svm(P, U)
     return
 
@@ -159,14 +124,32 @@ def test_roc_em(P, U):
 def test_biased_svm(P, U):
     print("\n\n"
           "---------------\n"
-          "BIASED-SVM TEST\n"
+          "BIASED-SVM TEST (C+, C-, C)\n"
           "---------------\n")
 
     start_time = time.time()
+
     model = pu_biased_svm.biased_SVM_weight_selection(P, U,
                                                       Cs=[10 ** x for x in range(1, 5, 1)],
                                                       Cs_neg=[1],
                                                       Cs_pos_factors=range(1, 1100, 200))
+
+    print("\nTraining Biased-SVM took %s seconds\n" % (time.time() - start_time))
+
+    print_sentences(model, "BIASED-SVM")
+    return
+
+
+def test_biased_svm_grid(P, U):
+    print("\n\n"
+          "---------------\n"
+          "BIASED-SVM TEST (GRID SEARCH FOR C AS DESCRIBED BY MORDELET)\n"
+          "---------------\n")
+
+    start_time = time.time()
+
+    model = pu_biased_svm.biased_SVM_grid_search(P, U)
+
     print("\nTraining Biased-SVM took %s seconds\n" % (time.time() - start_time))
 
     print_sentences(model, "BIASED-SVM")
@@ -178,9 +161,6 @@ def test_biased_svm(P, U):
 # ------------------
 
 def print_sentences(model, modelname=""):
-    if not show_sentences:
-        return
-
     print("\n\n"
           "----------------\n"
           "{} SENTENCES\n"
@@ -229,17 +209,59 @@ def print_sentences(model, modelname=""):
 
 
 # ------------------
+# prepare corpus, vectors, vectorizer, selector
+# ------------------
 
-def print_params():
-    print("words:", words, "\tword n-gram range:", wordgram_range,
-          "\nchars:", chars, "\tchar n-gram range:", chargram_range,
-          "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
-    return
+def prepare_corpus():
+    P_raw = random.sample(hocpos + civic, 8000)
+    U_raw = random.sample(hocneg + abstracts, 14000)
+
+    print("\nPU TRAINING"
+          "\tP: HOC POS"
+          , "+ CIVIC"
+          , "(", num_rows(P_raw), ")"
+          , "\tN: HOC NEG"
+          , "+ ABSTRACTS"
+          , "(", num_rows(U_raw), ")"
+          )
+
+    words, wordgram_range = [True, (1, 3)]  # TODO change back to True, (1,3)
+    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
+    rules, lemmatize = [True, True]
+
+    def print_params():
+        print("words:", words, "\tword n-gram range:", wordgram_range,
+              "\nchars:", chars, "\tchar n-gram range:", chargram_range,
+              "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
+        return
+
+    print_params()
+
+    print("Fitting vectorizer")
+    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range,
+                                           chars=chars, chargram_range=chargram_range,
+                                           rules=rules, lemmatize=lemmatize)
+    vectorizer.fit(np.concatenate((P_raw, U_raw)))
+
+    P = unsparsify(vectorizer.transform(P_raw))
+    U = unsparsify(vectorizer.transform(U_raw))
+
+    print("Features before selection:", np.shape(P)[1])
+
+    selector = basic_pipeline.selector()
+    selector.fit(np.concatenate((P, U)),
+                 (np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U))))))
+    P = unsparsify(selector.transform(P))
+    U = unsparsify(selector.transform(U))
+
+    print("Features after selection:", np.shape(P)[1])
+
+    return P, U, vectorizer, selector
 
 
 # ------------------
 # execute
 # ------------------
 
-print_params()
+P, U, vectorizer, selector = prepare_corpus()
 test_all(P, U)
