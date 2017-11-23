@@ -3,7 +3,7 @@ from functools import reduce
 from operator import itemgetter, mul
 import numpy as np
 from scipy.sparse import issparse
-from sklearn.metrics import classification_report as clsr
+from sklearn.metrics import classification_report as clsr, accuracy_score
 from sklearn.utils import check_array
 import os.path
 
@@ -83,6 +83,13 @@ def pu_measure(y_P, y_U):
     Pr_fx_1 = (np.sum(np.round(y_P)) + np.sum(np.round(y_U))) / (num_rows(y_P) + num_rows(y_U))
 
     return r_sq / Pr_fx_1
+
+def eval_model(model, X, y):
+    if X is not None and y is not None:
+        y_pred = model.predict(X)
+        print("Accuracy:", accuracy_score(y, y_pred))
+        print(clsr(y, y_pred))
+    return
 
 def train_report(model, P, N):
     print("Classification Report (on training, not on test data!):\n")

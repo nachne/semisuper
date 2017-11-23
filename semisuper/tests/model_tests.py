@@ -3,8 +3,9 @@ import time
 
 import numpy as np
 
+from sklearn.model_selection import train_test_split
 from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline
-from semisuper.helpers import num_rows, unsparsify
+from semisuper.helpers import num_rows, unsparsify, eval_model
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -23,19 +24,19 @@ print("PIBOSO other sentences:", len(piboso_other))
 # model testers
 # ------------------
 
-def test_all(P, U):
-    # test_i_em(P, U)
-    # test_s_em(P, U)
-    # test_roc_svm(P, U)
-    # test_cr_svm(P, U)
-    # test_roc_em(P, U)
-    # test_spy_svm(P, U)
-    test_biased_svm_grid(P, U)
-    test_biased_svm(P, U)
+def test_all(P, U, X_test=None, y_test=None, sample_sentences=False):
+    test_i_em(P, U, X_test, y_test, sample_sentences)
+    test_s_em(P, U, X_test, y_test, sample_sentences)
+    test_roc_svm(P, U, X_test, y_test, sample_sentences)
+    test_cr_svm(P, U, X_test, y_test, sample_sentences)
+    test_roc_em(P, U, X_test, y_test, sample_sentences)
+    test_spy_svm(P, U, X_test, y_test, sample_sentences)
+    test_biased_svm_grid(P, U, X_test, y_test, sample_sentences)
+    test_biased_svm(P, U, X_test, y_test, sample_sentences)
     return
 
 
-def test_s_em(P, U):
+def test_s_em(P, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------\n"
           "S-EM TEST\n"
@@ -46,11 +47,14 @@ def test_s_em(P, U):
     model = pu_two_step.s_EM(P, U, spy_ratio=0.15, tolerance=0.15, noise_lvl=0.1)
     print("\nTraining S-EM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "S-EM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "S-EM")
     return
 
 
-def test_i_em(P, U):
+def test_i_em(P, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------\n"
           "I-EM TEST\n"
@@ -61,11 +65,14 @@ def test_i_em(P, U):
     model = pu_two_step.i_EM(P, U, max_pos_ratio=0.5, max_imbalance=100.0, tolerance=0.15)
     print("\nTraining I-EM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "I-EM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "I-EM")
     return
 
 
-def test_roc_svm(P, U):
+def test_roc_svm(P, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "------------\n"
           "ROC-SVM TEST\n"
@@ -75,11 +82,14 @@ def test_roc_svm(P, U):
     model = pu_two_step.roc_SVM(P, U, max_neg_ratio=0.1)
     print("\nTraining ROC-SVM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "ROC-SVM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "ROC-SVM")
     return
 
 
-def test_cr_svm(P, U):
+def test_cr_svm(P, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "-----------\n"
           "CR-SVM TEST\n"
@@ -89,11 +99,14 @@ def test_cr_svm(P, U):
     model = pu_two_step.cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.5)
     print("\nTraining CR-SVM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "CR-SVM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "CR-SVM")
     return
 
 
-def test_spy_svm(P, U):
+def test_spy_svm(P, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "------------\n"
           "SPY-SVM TEST\n"
@@ -103,11 +116,14 @@ def test_spy_svm(P, U):
     model = pu_two_step.spy_SVM(P, U, spy_ratio=0.15, max_neg_ratio=0.1, tolerance=0.15, noise_lvl=0.2)
     print("\nTraining SPY-SVM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "SPY-SVM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "SPY-SVM")
     return
 
 
-def test_roc_em(P, U):
+def test_roc_em(P, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "-----------\n"
           "ROC-EM TEST\n"
@@ -117,11 +133,14 @@ def test_roc_em(P, U):
     model = pu_two_step.roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, clf_selection=True)
     print("\nTraining ROC-EM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "ROC-EM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "ROC-EM")
     return
 
 
-def test_biased_svm(P, U):
+def test_biased_svm(P, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------------\n"
           "BIASED-SVM TEST (C+, C-, C)\n"
@@ -136,11 +155,14 @@ def test_biased_svm(P, U):
 
     print("\nTraining Biased-SVM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "BIASED-SVM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "BIASED-SVM")
     return
 
 
-def test_biased_svm_grid(P, U):
+def test_biased_svm_grid(P, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------------\n"
           "BIASED-SVM TEST (GRID SEARCH FOR C AS DESCRIBED BY MORDELET)\n"
@@ -152,7 +174,10 @@ def test_biased_svm_grid(P, U):
 
     print("\nTraining Biased-SVM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "BIASED-SVM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "BIASED-SVM")
     return
 
 
@@ -212,9 +237,17 @@ def print_sentences(model, modelname=""):
 # prepare corpus, vectors, vectorizer, selector
 # ------------------
 
-def prepare_corpus():
-    P_raw = random.sample(hocpos + civic, 8000)
-    U_raw = random.sample(hocneg + abstracts, 14000)
+def prepare_corpus(P_count=1000, U_count=3000):
+
+    half_test_size=max(int((P_count+U_count)/8), num_rows(hocpos))
+    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=half_test_size)
+    hocneg_train, X_test_neg = train_test_split(hocpos, test_size=half_test_size)
+
+    P_raw = random.sample(hocpos_train + civic, P_count)
+    U_raw = random.sample(hocneg_train + abstracts, U_count)
+    X_test_raw = np.concatenate((X_test_pos, X_test_neg))
+    y_test = np.concatenate((np.ones(half_test_size), np.zeros(half_test_size)))
+
 
     print("\nPU TRAINING"
           "\tP: HOC POS"
@@ -223,10 +256,11 @@ def prepare_corpus():
           , "\tN: HOC NEG"
           , "+ ABSTRACTS"
           , "(", num_rows(U_raw), ")"
+          , "TEST SET (HOC POS + HOC NEG):", 2*half_test_size
           )
 
     words, wordgram_range = [True, (1, 3)]  # TODO change back to True, (1,3)
-    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
+    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (2,6)
     rules, lemmatize = [True, True]
 
     def print_params():
@@ -253,15 +287,16 @@ def prepare_corpus():
                  (np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U))))))
     P = unsparsify(selector.transform(P))
     U = unsparsify(selector.transform(U))
+    X_test = unsparsify(selector.transform(vectorizer.transform(X_test_raw)))
 
     print("Features after selection:", np.shape(P)[1])
 
-    return P, U, vectorizer, selector
+    return P, U, X_test, y_test, vectorizer, selector
 
 
 # ------------------
 # execute
 # ------------------
 
-P, U, vectorizer, selector = prepare_corpus()
-test_all(P, U)
+P, U, X_test, y_test, vectorizer, selector = prepare_corpus(4000, 8000)
+test_all(P, U, X_test, y_test, sample_sentences=True)

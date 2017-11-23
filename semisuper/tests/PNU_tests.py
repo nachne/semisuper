@@ -2,9 +2,9 @@ import random
 import time
 
 import numpy as np
-
+from sklearn.model_selection import train_test_split
 from semisuper import loaders, basic_pipeline, ss_techniques
-from semisuper.helpers import num_rows, unsparsify
+from semisuper.helpers import num_rows, unsparsify, eval_model
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -19,19 +19,18 @@ print("PIBOSO outcome sentences:", len(piboso_outcome))
 print("PIBOSO other sentences:", len(piboso_other))
 
 
-
 # ------------------
 # model testers
 # ------------------
 
-def test_all(P, N, U):
-    test_svm(P, N, U)
-    test_em(P, N, U)
-    # test_label_propagation(P, N, U)
+def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+    test_svm(P, N, U, X_test, y_test, sample_sentences)
+    test_em(P, N, U, X_test, y_test, sample_sentences)
+    # test_label_propagation(P, N, U, X_test, y_test)
     return
 
 
-def test_label_propagation(P, N, U):
+def test_label_propagation(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------\n"
           "LABEL PROPAGATION TEST\n"
@@ -43,11 +42,14 @@ def test_label_propagation(P, N, U):
 
     print("\nTraining Label Propagation took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "Label Propagation")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "Label Propagation")
     return
 
 
-def test_svm(P, N, U):
+def test_svm(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------\n"
           "SVM TEST\n"
@@ -59,11 +61,14 @@ def test_svm(P, N, U):
 
     print("\nIterating SVM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "iterativeSVM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "iterativeSVM")
     return
 
 
-def test_em(P, N, U):
+def test_em(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------\n"
           "EM TEST\n"
@@ -75,7 +80,10 @@ def test_em(P, N, U):
 
     print("\nTraining EM took %s seconds\n" % (time.time() - start_time))
 
-    print_sentences(model, "EM")
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "EM")
     return
 
 
@@ -85,7 +93,6 @@ def test_em(P, N, U):
 
 
 def print_sentences(model, modelname=""):
-
     print("\n\n"
           "----------------\n"
           "{} SENTENCES\n"
@@ -137,10 +144,17 @@ def print_sentences(model, modelname=""):
 # prepare corpus, vectors, vectorizer, selector
 # ------------------
 
-def prepare_corpus():
-    P_raw = random.sample(hocpos, 4000)
-    N_raw = random.sample(hocneg, 6000)
-    U_raw = random.sample(abstracts + civic, 12000)
+def prepare_corpus(P_count=1000, N_count=1000, U_count=2000):
+    half_test_size = max(int((P_count + U_count) / 8), num_rows(hocpos))
+    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=half_test_size)
+    hocneg_train, X_test_neg = train_test_split(hocpos, test_size=half_test_size)
+
+    P_raw = random.sample(hocpos, P_count)
+    N_raw = random.sample(hocneg, N_count)
+    U_raw = random.sample(abstracts + civic, U_count)
+
+    X_test_raw = np.concatenate((X_test_pos, X_test_neg))
+    y_test = np.concatenate((np.ones(half_test_size), np.zeros(half_test_size)))
 
     print("\nTRAINING SEMI-SUPERVISED"
           "\tP: HOC POS"
@@ -150,6 +164,7 @@ def prepare_corpus():
           , ",\tU: ABSTRACTS"
           , "+ CIVIC"
           , "(", num_rows(U_raw), ")"
+          , "TEST SET (HOC POS + HOC NEG):", 2*half_test_size
           )
 
     words, wordgram_range = [True, (1, 3)]  # TODO change back to True, (1,3)
@@ -185,13 +200,12 @@ def prepare_corpus():
 
     print("Features after selection:", np.shape(P)[1])
 
-    return P, N, U, vectorizer, selector
-
+    return P, N, U, X_test, y_test, vectorizer, selector
 
 
 # ------------------
 # execute
 # ------------------
 
-P, N, U, vectorizer, selector = prepare_corpus()
-test_all(P, N, U)
+P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(1000, 1000, 2000)
+test_all(P, N, U, X_test, y_test)

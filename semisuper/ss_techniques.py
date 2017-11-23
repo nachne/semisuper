@@ -2,11 +2,16 @@ import random
 
 import numpy as np
 import sklearn.semi_supervised as ss
+
 from semisuper import pu_two_step
 from semisuper.helpers import num_rows
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_two_step import almost_equal
 
+
+# ----------------------------------------------------------------
+# top level
+# ----------------------------------------------------------------
 
 
 
@@ -58,6 +63,9 @@ def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-
     return propagation
 
 
+# ----------------------------------------------------------------
+# implementations
+# ----------------------------------------------------------------
 
 def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, verbose=False):
     """EM algorithm for positive set P and unlabelled set U
