@@ -7,4 +7,4 @@ nltk_downloads = ["wordnet",
                   ]
 
 for d in nltk_downloads:
-    nltk.downloads(d)
+    nltk.download(d)
