@@ -1,0 +1,8 @@
+IFN-Î³ is a master regulator of the immune responses that occur in the transplanted kidney , acting both on the immune system and on the graft itself .	[]
+The cellular responses to IFN-Î³ are complex , and emerging evidence suggests that IFN-Î³ may regulate autophagic functions .	[]
+Conversely , autophagy modulates innate and adaptive immune functions in various contexts .	[]
+In this study , we identify a novel mechanism by which IFN-Î³ activates autophagy in human kidney epithelial cells and provide new insights into how autophagy regulates immune functions in response to IFN-Î³ .	['resisting cell death', 'tumor promoting inflammation']
+Our results indicate that IFN-Î³ promotes tryptophan depletion , activates the eIF2Î± kinase general control nonderepressible-2 ( GCN2 ) , and leads to an increase in the autophagic flux .	['resisting cell death']
+Further , tryptophan supplementation and RNA interference directed against GCN2 inhibited IFN-Î³-induced autophagy .	['resisting cell death']
+This process is of functional relevance because autophagy regulates the secretion of inflammatory cytokines and growth factors by human kidney epithelial cells in response to IFN-Î³ .	['tumor promoting inflammation']
+These findings assign to IFN-Î³ a novel function in the regulation of autophagy , which , in turn , modulates IFN-Î³-induced secretion of inflammatory cytokines .	['resisting cell death', 'tumor promoting inflammation']

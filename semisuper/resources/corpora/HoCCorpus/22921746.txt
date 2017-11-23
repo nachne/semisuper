@@ -1,0 +1,8 @@
+Curcumin ( diferuloylmethane ) is a polyphenol derived from the plant turmeric ( Curcuma longa ) , which is commonly used as a spice .	[]
+Although anti-carcinogenic , anti-oxidant , anti-inflammation , and anti-angiogenic properties have been reported , the effect of curcumin on breast cancer metastasis is unknown .	[]
+Matrix metalloproteinase-9 ( MMP-9 ) is a major component in cancer cell invasion .	[]
+In this study , we investigated the inhibitory effect of curcumin on 12-O-tetradecanoylphorbol-13-acetate ( TPA)-induced MMP-9 expression and cell invasion and the molecular mechanisms involved in MCF-7 cells .	[]
+Our results showed that curcumin inhibits TPA-induced MMP-9 expression and cell invasion through suppressing NF-ÎºB and AP-1 activation .	['activating invasion and metastasis']
+Also , curcumin strongly repressed the TPA-induced phosphorylation of p38 and JNK and inhibited TPA-induced translocation of PKCÎ± from the cytosol to the membrane , but did not affect the translocation of PKCÎ´ .	[]
+These results indicate that curcumin-mediated inhibition of TPA-induced MMP-9 expression and cell invasion involves the suppression of the PKCÎ± , MAPK and NF-ÎºB/AP-1 pathway in MCF-7 cells .	['activating invasion and metastasis']
+Curcumin may have potential value in restricting breast cancer metastasis .	['activating invasion and metastasis']

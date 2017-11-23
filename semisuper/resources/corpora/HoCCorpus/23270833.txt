@@ -1,0 +1,7 @@
+AIM : To explore the inhibitory effect of sulfated polysaccharide from Masson pine ( Pinus massoniana ) pollen ( SPPM60 ) on G(2)/M phase of human liver cancer HepG2 cells and its mechanism .	[]
+METHODS : The proliferation rate of HepG2 cells was evaluated by methyl thiazolyl tetrazolium ( MTT ) colorimetric assay .	[]
+The cycles of HepG2 cells were measured by flow cytometry when 200Î¼g/ml concentration of SPPM60 was adopted , the expression of the genes related to cell cycle was detected by real-time PCR .	[]
+RESULTS : SPPM60 inhibited the proliferation of HepG2 cells and the inhibition rate was elevated with increase of SPPM60 concentration .	[]
+After treatment with 200Î¼g/ml of SPPM60 , the percentage of S phase cells was decreased , but that of G(2)/M phase was significantly increased ( 72h vs control : 32.96ï¿½0.33% vs 18.59ï¿½0.04% , 3.44ï¿½0.05% vs 18.30ï¿½0.08% , P&lt;0.01 ) .	['sustaining proliferative signaling']
+The results of real-time PCR showed that SPPM60 could down-regulate the mRNA levels of CDK1 and CyclinB ( P&lt;0.01 ) , and up-regulate the expression of p53 and p21 ( P&lt;0.05 ) .	[]
+CONCLUSION : SPPM60 causes arrest of HepG2 cells at G(2)/M phase , and the mechanism is related to the down-regulation of CDK1 and CyclinB and up-regulation of p53 and p21 expression .	['evading growth suppressors', 'sustaining proliferative signaling']

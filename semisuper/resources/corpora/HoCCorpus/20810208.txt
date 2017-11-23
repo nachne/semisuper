@@ -1,0 +1,5 @@
+The NF-ÎºB is best known for its role in inflammation .	[]
+Here we show that constitutive NF-ÎºB activity in cancer cells promotes the biosynthesis of redox scavenger glutathione ( GSH ) , which in turn confers resistance to oxidative stress .	['tumor promoting inflammation']
+Inhibition of NF-ÎºB significantly decreases GSH in several lines of human leukemia and prostate cancer cells possessing high or moderate NF-ÎºB activities .	[]
+Concomitantly , NF-ÎºB inhibition by pharmacological and molecular means sensitizes " NF-ÎºB positive " cancer cells to chemically-induced oxidative stress and death .	['tumor promoting inflammation']
+We propose that inhibition of NF-ÎºB can reduce intracellular GSH in " NF-ÎºB-positive " cancers thereby improving the efficacy of oxidative stress-based anti-cancer therapy .	['tumor promoting inflammation']

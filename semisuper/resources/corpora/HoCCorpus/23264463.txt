@@ -1,0 +1,8 @@
+The Wnt/Î²-catenin pathway is constitutively activated in over 90% of human colorectal cancer .	[]
+Activated Î²-catenin stimulates cell proliferation and survival , however , its anti-apoptotic mechanisms are not fully understood .	[]
+We show here that activated Î²-catenin is required to suppress caspase-8 activation but only in colon cancer cells that are resistant to tumor necrosis factor-a ( TNF ) induced apoptosis .	['resisting cell death']
+We found that lysosomal delivery of internalized TNF occurred at a faster pace in apoptosis-resistant than in apoptosis-sensitive colon cancer cells .	['resisting cell death']
+Retardation of endosomal trafficking through V-ATPase inhibition enhanced caspase-8 activation in the apoptosis-resistant but not sensitive cells .	['resisting cell death']
+Interestingly , knockdown of Î²-catenin also prolonged TNF association with the early endosome and enhanced caspase-8 activation in the apoptosis-resistant but not sensitive colon cancer cells .	['resisting cell death']
+In a mouse model of inflammation-associated colon tumors , we found nuclear expression of Î²-catenin , resistance to TNF-induced apoptosis , and reactivation of apoptosis in vivo by cotreatment of TNF with a V-ATPase inhibitor .	['resisting cell death', 'tumor promoting inflammation']
+Together , these results suggest that activated Î²-catenin can facilitate endosomal trafficking of internalized TNF to suppress caspase-8 activation in colon cancer cells .	['resisting cell death']

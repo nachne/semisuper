@@ -1,0 +1,10 @@
+Aurora kinases play an essential role in mitotic progression and are potentially druggable targets in cancer therapy .	[]
+We identified benzo[e]pyridoindoles ( BePI ) as powerful aurora kinase inhibitors .	[]
+Their efficiency was demonstrated both in enzymatic inhibition studies and in cell culture assays .	[]
+New BePI molecules were synthesized , and a structure-activity relationship study was conducted with the aim of improving the activity and solubility of the lead compound .	[]
+Tetracyclic BePI derivatives are characterized by a particular curved shape , and the presence of an oxo group on the pyridine ring was found to be required for aurora kinaseâB inhibition .	[]
+New hydrosoluble benzo[e]pyridoindolones were subsequently designed , and their efficacy was tested by a combination of cell-cycle analysis and time-lapse experiments in live cells .	[]
+The most active BePI derivative , 13âb , inhibited the cell cycle , drove cells to polyploidy , and eventually induced apoptosis .	['resisting cell death', 'evading growth suppressors', 'sustaining proliferative signaling']
+It exhibited high antiproliferative activity in HeLa cells with an IC(50) value of 63ânM .	[]
+Relative to compounds tested in clinical trials , this antiproliferative potency places 13âb among the top 10 aurora kinase inhibitors .	[]
+Our results justify further inâvivo evaluation in preclinical animal models of cancer .	[]
