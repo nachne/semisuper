@@ -1,0 +1,6 @@
+Cancer cells undergo multi-step processes in obtaining the ability to metastasize , and are constantly exposed to signals that induce apoptosis .	[]
+Acquisition of anti-apoptotic properties by cancer cells is important for metastasis , and recent studies suggest that transforming growth factor ( TGF)-Î² promotes the survival of certain types of cancer cells .	[]
+Here , we found that in highly metastatic breast cancer cells , JygMC(A) , JygMC(B) and 4T1 , TGF-Î² ligands were produced in autocrine fashion .	['sustaining proliferative signaling']
+Pharmacological inhibition of endogenous TGF-Î² signalling by a TGF-Î² type I receptor kinase inhibitor in serum-free conditions increased the expression of BH3-only protein , Bim ( also known as Bcl2-like 11 ) in JygMC(A) and JygMC(B) cells , and caused apoptotic cell death .	['resisting cell death', 'sustaining proliferative signaling']
+We also found that induction of Bim by TGF-Î² was not observed in Foxc1 knocked-down cancer cells .	['sustaining proliferative signaling']
+These findings suggest that TGF-Î² plays a crucial role in the regulation of survival of certain types of cancer cells through the TGF-Î²-Foxc1-Bim pathway , and that specific inhibitors of TGF-Î² signalling might be useful as apoptosis inducers in breast cancer cells .	['sustaining proliferative signaling']

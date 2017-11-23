@@ -1,0 +1,8 @@
+Tumors are infiltrated by macrophages , T and B-lymphocytes , which may favor tumor development by promoting angiogenesis , growth and invasion .	[]
+The aim of this study was to investigate the clinical relevance of the relative amount of macrophages ( CD68âº ) , T-cells ( CD3âº and B-cells ( CD20âº ) at the invasive front of breast carcinomas , and the expression of matrix metalloproteases ( MMPs ) and their inhibitors ( TIMPs ) either at the invasive front or at the tumor center .	[]
+We performed an immunohistochemical study counting CD3 , CD20 and CD68 positive cells at the invasive front , in 102 breast carcinomas .	[]
+Also , tissue sections were stained with MMP-2 , -9 , -11 , -14 and TIMP-2 antibodies , and immunoreactivity location , percentage of reactive area and intensity were determined at the invasive front and at the tumor center .	[]
+The results showed that an increased CD68 count and CD68/(CD3+CD20) ratio were directly associated with both MMP-11 and TIMP-2 expression by mononuclear inflammatory cells at the tumor center ( pâ=â0.041 and pâ=â0.025 for CD68 count and pâ=â0.001 and pâ=â0.045 for ratio , respectively for MMP-11 and TIMP-2 ) .	['tumor promoting inflammation', 'avoiding immune destruction']
+In addition , a high CD68/(CD3+CD20) ratio ( &gt;0.05 ) was directly associated with a higher probability of shortened relapse-free survival .	[]
+Multivariate analysis revealed that CD68/(CD3+CD20) ratio was an independent factor associated with distant relapse-free survival ( RR : 2.54 , CI : ( 1.23-5.24 ) , p&lt;0.01 ) .	[]
+Therefore , CD68/(CD3+CD20) ratio at the invasive front could be used as an important prognostic marker .	[]

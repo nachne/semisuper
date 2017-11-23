@@ -1,0 +1,6 @@
+We present a novel gain-of-function mutation of TGF-Î² receptor II ( TÎ²RII ) found in human oral squamous cell carcinoma ( OSCC ) .	['genomic instability and mutation', 'sustaining proliferative signaling']
+Expression of E221V/N238I mutant TÎ²RII enhanced TGF-Î² signaling .	[]
+Mutation of TÎ²RII conferred cells higher migratory and invasive capabilities and MMP-2 activity .	['genomic instability and mutation', 'activating invasion and metastasis']
+In mouse tumor model , mutant tumors exhibited poor differentiation and E-cadherin relocalization to the cytosol .	[]
+Lipid-raft-dependent endocytosis of TÎ²RII was attenuated in mutant TÎ²RII , suggesting that enhancement of TGF-Î² signaling by this mutation is due to delayed TÎ²RII internalization .	[]
+Taken together , our results show a novel gain-of-function TÎ²RII mutation , which enhances TGF-Î² signaling leading to more invasive phenotypic changes in human OSCC .	['genomic instability and mutation', 'activating invasion and metastasis']
