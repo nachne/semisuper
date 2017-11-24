@@ -20,10 +20,10 @@ hocneg_train, hocneg_test = train_test_split(hocneg, test_size=0.3)
 civic_train, civic_test = train_test_split(civic, test_size=0.3)
 abstracts_train, abstracts_test = train_test_split(abstracts, test_size=0.01)
 
-P = random.sample(hocpos_train + civic_train, 1500)
-U = random.sample(hocneg_train + abstracts_train, 2000)
+P = random.sample(hocpos_train + civic_train, 4000)
+U = random.sample(hocneg_train + abstracts_train, 8000)
 
-half_test_size=500
+half_test_size=1000
 X_test = random.sample(hocpos_test, half_test_size) + random.sample(hocneg_test, half_test_size)
 y_test = [1] * half_test_size + [0] * half_test_size
 

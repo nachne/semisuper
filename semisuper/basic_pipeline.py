@@ -8,21 +8,19 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import SelectPercentile, chi2
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import Binarizer
+from sklearn.preprocessing import Binarizer, MinMaxScaler
 from sklearn.decomposition import *
 from functools import partial
 import re
 
 
-def train_clf(X_vec, y, classifier=None, binary=False, verbose=False):
+def train_clf(X_vec, y, classifier, binary=False, verbose=False):
     """build and train classifier on pre-vectorized data"""
 
     if verbose:
         print("Training classifier...")
 
-    if not classifier:
-        clf = naive_bayes.MultinomialNB(alpha=0.1, class_prior=None, fit_prior=True)
-    elif isinstance(classifier, type):
+    if isinstance(classifier, type):
         clf = classifier()
     else:
         clf = classifier
@@ -41,7 +39,7 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
                    words=True, wordgram_range=(1, 3),
                    chars=True, chargram_range=(3, 6),
                    binary=False,
-                   selection=True, score_func=chi2, percentile=20, selection_model=PCA, n_components=1000):
+                   selection=True):
     """build complete pipeline"""
 
     if verbose:
@@ -59,7 +57,7 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
                                 binary=binary)),
         ('selector', None if not selection else
         # selector(score_func=score_func, percentile=percentile)),
-        selector(selection_model, n_components)),
+        selector()),
         ('classifier', clf)
     ])
 
@@ -74,7 +72,7 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
 
 
 def vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6), binary=False, rules=True,
-               lemmatize=True, min_df_word=20, min_df_char=50, max_df=0.95):
+               lemmatize=True, min_df_word=30, min_df_char=60, max_df=0.95):
     return FeatureUnion(n_jobs=2,
                         transformer_list=[
                             ("wordgrams", None if not words else
@@ -107,16 +105,14 @@ def vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3,
                         ])
 
 
-# TODO not feasible with >> 100,000 features / >> 16,000 examples
+# TODO not feasible with >> 50,000 features / >> 16,000 examples
 # def selector(score_func=chi2, percentile=20):
 #     return SelectPercentile(score_func=score_func, percentile=percentile)
 
-def selector(method='SparsePCA', n_components=3000):
+def selector(method='TruncatedSVD', n_components=1000):
     # PCA, IncrementalPCA, FactorAnalysis, FastICA, LatentDirichletAllocation, TruncatedSVD, fastica
 
     sparse = {
-        'IncrementalPCA'           : IncrementalPCA,
-        'SparsePCA'                : SparsePCA,
         'NMF'                      : NMF,
         'LatentDirichletAllocation': LatentDirichletAllocation,
         'TruncatedSVD'             : TruncatedSVD
@@ -125,11 +121,10 @@ def selector(method='SparsePCA', n_components=3000):
     model = sparse.get(method, None)
 
     if model is not None:
-        return model(n_components)
+        return FeatureNamePipeline([("selector", model(n_components))])
 
     dense = {
         'PCA'               : PCA,
-        'MiniBatchSparsePCA': MiniBatchSparsePCA,
         'FactorAnalysis'    : FactorAnalysis
     }
 
@@ -140,7 +135,7 @@ def selector(method='SparsePCA', n_components=3000):
                                     ("selector", model(n_components))])
 
     else:
-        print(method, 'is not available, using SparsePCA instead')
+
         return SparsePCA(n_components)
 
 

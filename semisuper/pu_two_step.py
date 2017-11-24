@@ -356,11 +356,13 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel='linear'
     y_RN = np.zeros(num_rows(RN))
 
     if verbose: print("Building initial SVM classifier with Positive and Reliable Negative docs")
-    clf = BaggingClassifier(svm.SVC(kernel=kernel, class_weight='balanced', probability=True), bootstrap=True,
-                            n_jobs=min(n_estimators, cpu_count()))
+    clf = (
+        # BaggingClassifier
+        (svm.LinearSVC(class_weight='balanced')
+         #, bootstrap=True, n_jobs=min(n_estimators, cpu_count()))
+           ))
 
-    initial_model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)),
-                              classifier=clf)
+    initial_model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
 
     if verbose: print("Predicting U with initial SVM, adding negatively classified docs to RN for iteration")
     y_U = initial_model.predict(U)
@@ -377,12 +379,11 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel='linear'
 
         if verbose: print("\nIteration #", iteration, "\tReliable negative examples:", num_rows(RN))
 
-        clf = svm.SVC(kernel=kernel, class_weight='balanced', probability=True)
+        clf = svm.LinearSVC(class_weight='balanced')
         # clf = BaggingClassifier(svm.SVC(kernel=kernel, class_weight='balanced', probability=True),
         # bootstrap=True, n_jobs=min(n_estimators, cpu_count()-1))
 
-        model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)),
-                          classifier=clf)
+        model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
         y_U = model.predict(Q)
         Q, W = partition_pos_neg(Q, y_U)
 
