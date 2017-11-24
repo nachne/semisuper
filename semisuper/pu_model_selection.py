@@ -1,19 +1,20 @@
 import datetime
+import multiprocessing as multi
 import os
 import pickle
+import time
+from copy import deepcopy
+from functools import partial
 
 import numpy as np
+from sklearn.metrics import classification_report, precision_recall_fscore_support, accuracy_score
+from sklearn.model_selection import train_test_split
+
 import semisuper.basic_pipeline as basic_pipeline
 import semisuper.pu_biased_svm as biased_svm
 import semisuper.pu_two_step as two_step
 from semisuper.helpers import num_rows, unsparsify
-from sklearn.feature_selection import SelectPercentile, chi2
-from sklearn.metrics import classification_report, precision_recall_fscore_support, accuracy_score
-from sklearn.model_selection import train_test_split
-import multiprocessing as multi
-from functools import partial
-import time
-from copy import deepcopy
+from semisuper.loaders import sentences_civic_abstracts
 
 
 def getBestModel(P_train, U_train, X_test, y_test):
@@ -236,7 +237,6 @@ def print_reports(i):
     for m in i:
         print("\n{}:\tacc: {}, classification report:\n{}".format(m['name'], m['acc'], m['clsr']))
     return
-
 
 def file_path(file_relative):
     """return the correct file path given the file's path relative to calling script"""
