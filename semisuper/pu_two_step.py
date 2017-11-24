@@ -359,8 +359,8 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel='linear'
     clf = (
         # BaggingClassifier
         (svm.LinearSVC(class_weight='balanced')
-         #, bootstrap=True, n_jobs=min(n_estimators, cpu_count()))
-           ))
+         # , bootstrap=True, n_jobs=min(n_estimators, cpu_count()))
+         ))
 
     initial_model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
 

@@ -22,7 +22,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
     print("\nEvaluating parameter ranges for preprocessor and classifiers")
 
     # splitting test set (should have true labels) in test and dev set
-    X_test, X_dev, y_test, y_dev = train_test_split(X_test, y_test, test_size=0.3)
+    X_test, X_dev, y_test, y_dev = train_test_split(X_test, y_test, test_size=0.5)
 
     X_train = np.concatenate((P_train, U_train), 0)
     y_train = np.concatenate((np.ones(num_rows(P_train)), np.zeros(num_rows(U_train))))
@@ -35,13 +35,16 @@ def getBestModel(P_train, U_train, X_test, y_test):
         'rules'         : [True],
         'lemmatize'     : [False],
         'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [(2, 4), (2, 5), (2, 6)]
+        'chargram_range': [None, (2, 4), (2, 5), (2, 6)]
     }
 
     for wordgram in preproc_params['wordgram_range']:
         for chargram in preproc_params['chargram_range']:
             for r in preproc_params['rules']:
                 for l in preproc_params['lemmatize']:
+
+                    if wordgram == None and chargram == None:
+                        break
 
                     print("\n----------------------------------------------------------------",
                           "\nwords:", wordgram, "chars:", chargram,
@@ -75,8 +78,10 @@ def getBestModel(P_train, U_train, X_test, y_test):
                         {'name' : 's-em spy=0.2',
                          'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
                         {'name': 'roc-svm', 'model': partial(two_step.roc_SVM, P_train_, U_train_)},
-                        {'name': 'cr_svm noise=0.1', 'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.1)},
-                        {'name': 'cr_svm noise=0.2', 'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.2)},
+                        {'name' : 'cr_svm noise=0.1',
+                         'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.1)},
+                        {'name' : 'cr_svm noise=0.2',
+                         'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.2)},
                         {'name': 'roc_em', 'model': partial(two_step.roc_EM, P_train_, U_train_)},
                         {'name' : 'spy_svm spy=0.1',
                          'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
@@ -90,9 +95,9 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
                     # eval models
                     with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
-                        iter_stats = list(p.imap_unordered(partial(model_eval_record, X_dev_, y_dev), iteration))
+                        iter_stats = list(p.map(partial(model_eval_record, X_dev_, y_dev), iteration, chunksize=1))
 
-                    # finalize records: remove memory-heavy model, add n-gram stats, update best
+                    # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
                         m['n-grams'] = pp
                         if m['acc'] > results['best']['acc']:
@@ -101,9 +106,12 @@ def getBestModel(P_train, U_train, X_test, y_test):
                             results['best']['selector'] = selector
                         m.pop('model', None)
 
+                    results['all'].append(iter_stats)
+
                     print("Evaluated words:", wordgram, "chars:", chargram,
                           "in %s seconds\n" % (time.time() - start_time))
-                    results['all'].append(iter_stats)
+
+                    print_reports(iter_stats)
 
     print_results(results)
 
@@ -166,7 +174,8 @@ def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_rang
 
     vectorizer = basic_pipeline.vectorizer(words=True if wordgram_range else False, wordgram_range=wordgram_range,
                                            chars=True if chargram_range else False, chargram_range=chargram_range,
-                                           rules=rules, lemmatize=lemmatize, min_df_word=min_df_word, min_df_char=min_df_char)
+                                           rules=rules, lemmatize=lemmatize, min_df_word=min_df_word,
+                                           min_df_char=min_df_char)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)
@@ -209,10 +218,23 @@ def print_results(results):
 
     print("All stats:")
     for i in results['all']:
-        print(i[0]['n-grams'])
-        for m in i:
-            print("\t", m['name'], "\n\t\t",
-                  "stats: p={}\tr={}\tf1={}\tacc={}\t".format(best['p'], best['r'], best['f1'], best['acc']))
+        print_stats(i)
+    return
+
+
+def print_stats(i):
+    print(i[0]['n-grams'])
+    for m in i:
+        print("\t", m['name'], "\n\t\t",
+              "stats: p={}\tr={}\tf1={}\tacc={}\t".format(m['p'], m['r'], m['f1'], m['acc']))
+        print(m['clsr'])
+    return
+
+
+def print_reports(i):
+    print(i[0]['n-grams'])
+    for m in i:
+        print("\n{}:\tacc: {}, classification report:\n{}".format(m['name'], m['acc'], m['clsr']))
     return
 
 
