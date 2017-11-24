@@ -12,8 +12,8 @@ print("CIViC sentences:", len(civic))
 print("Abstract sentences:", len(abstracts))
 print("HoC positive sentences:", len(hocpos))
 print("HoC negative sentences:", len(hocneg))
-print("PIBOSO outcome sentences:", len(piboso_outcome))
-print("PIBOSO other sentences:", len(piboso_other))
+# print("PIBOSO outcome sentences:", len(piboso_outcome))
+# print("PIBOSO other sentences:", len(piboso_other))
 
 hocpos_train, hocpos_test = train_test_split(hocpos, test_size=0.3)
 hocneg_train, hocneg_test = train_test_split(hocneg, test_size=0.3)
@@ -27,6 +27,8 @@ half_test_size=1000
 X_test = random.sample(hocpos_test, half_test_size) + random.sample(hocneg_test, half_test_size)
 y_test = [1] * half_test_size + [0] * half_test_size
 
-print("Training sets: \tP", num_rows(P), "\tU", num_rows(U), "\tTest:", num_rows(X_test))
+print("Training sets: \tP (HoC labelled + CIViC)", num_rows(P),
+      "\tU (HoC unlabelled + CIViC source abstracts)", num_rows(U),
+      "\tTest (HoC labelled VS. HoC unlabelled):", num_rows(X_test))
 
 pu_model_selection.getBestModel(P, U, X_test, y_test)
