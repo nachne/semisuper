@@ -124,8 +124,8 @@ def selector(method='TruncatedSVD', n_components=1000):
         return FeatureNamePipeline([("selector", model(n_components))])
 
     dense = {
-        'PCA'               : PCA,
-        'FactorAnalysis'    : FactorAnalysis
+        'PCA'           : PCA,
+        'FactorAnalysis': FactorAnalysis
     }
 
     model = dense.get(method, None)
