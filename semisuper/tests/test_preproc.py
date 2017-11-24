@@ -7,6 +7,7 @@ from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNameP
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.decomposition import LatentDirichletAllocation
 import numpy as np
 import time
 import sys
@@ -58,23 +59,27 @@ print("Training preprocessing pipeline")
 
 start_time = time.time()
 v.fit(test_corpus)
-print("vectorizing took", time.time() - start_time, "secs")
+print("vectorizing took", time.time() - start_time, "secs.")
 
 start_time = time.time()
 vectorized_corpus = v.transform(test_corpus)
-print("transforming took", time.time() - start_time, "secs. \n", np.shape(vectorized_corpus)[1], "features")
+print("transforming took", time.time() - start_time, "secs. \t", np.shape(vectorized_corpus)[1], "features")
 
 # TruncatedSVD:                 ok              3.5min at cutoff 50/100
-# MiniBatchSparsePCA:           slow,16GB RAM   (but parallel)
-# SparsePCA:
-# LatentDirichletAllocation:
-sparse = ['TruncatedSVD', 'MiniBatchSparsePCA', 'SparsePCA', 'LatentDirichletAllocation'
-          # ,'NMF'
-          ]
+# LatentDirichletAllocation:    few topics!
+sparse = ['TruncatedSVD', 'NMF']
 # PCA:
+# SparsePCA:
 # IncrementalPCA:
 # Factor Analysis:
-dense = ['PCA', 'IncrementalPCA', 'FactorAnalysis']
+dense = ['PCA', 'FactorAnalysis']
+
+# NOT:
+# MiniBatchSparsePCA:           >15h/CPU, 16GB
+
+# start_time = time.time()
+# LatentDirichletAllocation(n_topics=10, n_jobs=-1).fit(vectorized_corpus)
+# print("fitting LDA took", time.time() - start_time, "secs")
 
 for sel in sparse:
     start_time = time.time()

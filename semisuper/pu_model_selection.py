@@ -3,7 +3,7 @@ import os
 import pickle
 
 import numpy as np
-import semisuper.basic_pipeline as pipeline
+import semisuper.basic_pipeline as basic_pipeline
 import semisuper.pu_biased_svm as biased_svm
 import semisuper.pu_two_step as two_step
 from semisuper.helpers import num_rows, unsparsify
@@ -49,12 +49,11 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
                     start_time = time.time()
 
-                    X_train_, X_dev_, vectorizer, selector = prepareTrainTest(trainData=X_train, trainLabels=y_train,
-                                                                              testData=X_dev,
+                    X_train_, X_dev_, vectorizer, selector = prepareTrainTest(trainData=X_train, testData=X_dev,
+                                                                              trainLabels=y_train, rules=r,
                                                                               wordgram_range=wordgram,
-                                                                              chargram_range=chargram,
                                                                               featureSelect=False,
-                                                                              rules=r, lemmatize=l)
+                                                                              chargram_range=chargram, lemmatize=l)
                     if selector:
                         P_train_ = selector.transform(vectorizer.transform(P_train))
                         U_train_ = selector.transform(vectorizer.transform(U_train))
@@ -70,28 +69,28 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
                     # fit models
                     iteration = [
-                        {'name': 'i-em', 'model': two_step.i_EM(P_train_, U_train_)},
+                        {'name': 'i-em', 'model': partial(two_step.i_EM, P_train_, U_train_)},
                         {'name' : 's-em spy=0.1',
-                         'model': two_step.s_EM(P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
+                         'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
                         {'name' : 's-em spy=0.2',
-                         'model': two_step.s_EM(P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
-                        {'name': 'roc-svm', 'model': two_step.roc_SVM(P_train_, U_train_)},
-                        {'name': 'cr_svm noise=0.1', 'model': two_step.cr_SVM(P_train_, U_train_, noise_lvl=0.1)},
-                        {'name': 'cr_svm noise=0.2', 'model': two_step.cr_SVM(P_train_, U_train_, noise_lvl=0.2)},
-                        {'name': 'roc_em', 'model': two_step.roc_EM(P_train_, U_train_)},
+                         'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
+                        {'name': 'roc-svm', 'model': partial(two_step.roc_SVM, P_train_, U_train_)},
+                        {'name': 'cr_svm noise=0.1', 'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.1)},
+                        {'name': 'cr_svm noise=0.2', 'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.2)},
+                        {'name': 'roc_em', 'model': partial(two_step.roc_EM, P_train_, U_train_)},
                         {'name' : 'spy_svm spy=0.1',
-                         'model': two_step.spy_SVM(P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
+                         'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
                         {'name' : 'spy_svm spy=0.2',
-                         'model': two_step.spy_SVM(P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
+                         'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
                         {'name' : 'biased-svm',
-                         'model': biased_svm.biased_SVM_weight_selection(P_train_, U_train_)},
+                         'model': partial(biased_svm.biased_SVM_weight_selection, P_train_, U_train_)},
                         # {'name' : 'bagging-svm',
                         #  'model': biased_svm.biased_SVM_grid_search(P_train_, U_train_)}
                     ]
 
                     # eval models
-                    with multi.Pool(min(multi.cpu_count()-1, len(iteration))) as p:
-                        iter_stats = p.map(partial(model_eval_record, X_dev_, y_dev), iteration)
+                    with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
+                        iter_stats = list(p.imap_unordered(partial(model_eval_record, X_dev_, y_dev), iteration))
 
                     # finalize records: remove memory-heavy model, add n-gram stats, update best
                     for m in iter_stats:
@@ -157,15 +156,17 @@ def getBestModel(P_train, U_train, X_test, y_test):
     return results['best']
 
 
-def prepareTrainTest(trainData, testData, trainLabels, featureSelect=True, min_df=1, max_df=1.0,
-                     wordgram_range=None, chargram_range=None, rules=True, lemmatize=True):
-    """prepare training and test vectors and vectorizer for validating classifiers"""
+def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_range=None, featureSelect=True,
+                     chargram_range=None, lemmatize=True, min_df_char=100, min_df_word=50, max_df=1.0):
+    """prepare training and test vectors and vectorizer for validating classifiers
+    :param min_df_char:
+    """
 
-    print("Fitting vectorizer and preparing training and test data")
+    print("Fitting vectorizer, preparing training and test data")
 
-    vectorizer = pipeline.vectorizer(words=True if wordgram_range else False, wordgram_range=wordgram_range,
-                                     chars=True if chargram_range else False, chargram_range=chargram_range,
-                                     rules=rules, lemmatize=lemmatize, min_df=min_df)
+    vectorizer = basic_pipeline.vectorizer(words=True if wordgram_range else False, wordgram_range=wordgram_range,
+                                           chars=True if chargram_range else False, chargram_range=chargram_range,
+                                           rules=rules, lemmatize=lemmatize, min_df_word=min_df_word, min_df_char=min_df_char)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)
@@ -174,18 +175,18 @@ def prepareTrainTest(trainData, testData, trainLabels, featureSelect=True, min_d
 
     selector = None
     if featureSelect:
-        selector = SelectPercentile(chi2, 20)
+        selector = basic_pipeline.selector()
         selector.fit(transformedTrainData, trainLabels)
         transformedTrainData = selector.transform(transformedTrainData)
         transformedTestData = selector.transform(transformedTestData)
 
         print("No. of features after reduction:", transformedTrainData.shape[1], "\n")
-
+    print()
     return transformedTrainData, transformedTestData, vectorizer, selector
 
 
 def model_eval_record(X, y, m):
-    model = m['model']
+    model = m['model']()
     name = m['name']
 
     y_pred = model.predict(X)
@@ -194,7 +195,7 @@ def model_eval_record(X, y, m):
     acc = accuracy_score(y, y_pred)
     clsr = classification_report(y, y_pred)
 
-    print('Classification report for', name, '\n', clsr)
+    print("\n{}:\tacc: {}, classification report:\n{}".format(name, acc, clsr))
 
     return {'name': name, 'p': p, 'r': r, 'f1': f1, 'acc': acc, 'clsr': clsr, 'model': model}
 

@@ -16,13 +16,13 @@ def biased_SVM_grid_search(P, U, Cs=None, kernel='linear', n_estimators=12, verb
 
     print("Running Biased-SVM with balanced class weights and grid search over", len(Cs), "C values")
 
-    model = BaggingClassifier(SVC())
+    model = BaggingClassifier(LinearSVC())
 
     grid_search = GridSearchCV(model,
                                param_grid={'base_estimator__C'           : Cs,
                                            'base_estimator__class_weight': ['balanced'],
                                            ### not applicable for LinearSVC
-                                           'base_estimator__kernel'      : [kernel],
+                                           # 'base_estimator__kernel'      : [kernel],
                                            # 'base_estimator__cache_size'  : [8000],
                                            # 'base_estimator__probability' : [True],
                                            ### fit parameters for Bagging wrapper
@@ -136,7 +136,7 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
     return model
 
 
-class BiasedSVM(SVC):
+class BiasedSVM(LinearSVC):
     """wrapper for sklearn SVC with get_class_weights function and linear default kernel"""
 
     def __init__(self, C=1.0, class_weight='balanced',
@@ -144,7 +144,7 @@ class BiasedSVM(SVC):
                  random_state=None):
         self.param_class_weight = {'C_pos': class_weight[1], 'C_neg': class_weight[0], 'C': C}
 
-        super(BiasedSVM, self).__init__(C=C, class_weight=class_weight, kernel='linear',
+        super(BiasedSVM, self).__init__(C=C, class_weight=class_weight, # kernel='linear',
                                         tol=tol, verbose=verbose, max_iter=max_iter, random_state=random_state)
 
     def get_class_weights(self):
