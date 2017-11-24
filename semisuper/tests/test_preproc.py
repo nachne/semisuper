@@ -1,42 +1,92 @@
 import random
 
 from semisuper import loaders, transformers
-from semisuper.helpers import identity
+from semisuper.helpers import identity, identitySelector, unsparsify
+from semisuper.basic_pipeline import selector, vectorizer
 from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline, FeatureUnion
+import numpy as np
+import time
+import sys
 
 # ----------------------------------------------------------------
 # Data
 # ----------------------------------------------------------------
 
 civic, abstracts = loaders.sentences_civic_abstracts()
-
+hocpos, hocneg = loaders.sentences_HoC()
 piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
-civic_ = random.sample(civic, 20)
-abstracts_ = random.sample(abstracts, 20)
+civic_ = random.sample(civic, 2000)
+abstracts_ = random.sample(abstracts, 2000)
+hocpos_ = random.sample(hocpos, 2000)
+hocneg_ = random.sample(hocneg, 2000)
 
 # ----------------------------------------------------------------
 # Pipeline
 # ----------------------------------------------------------------
 
+min_df_word = 50
+min_df_char = 100
+n_components = 1000
+print("min_df: \tword:", min_df_word, "\tchar:", min_df_char, "\tn_components:", n_components)
+
 pp = TokenizePreprocessor()
 
+v = vectorizer(words=True, wordgram_range=(1, 4),
+               chars=True, chargram_range=(2, 6),
+               rules=True, lemmatize=True,
+               min_df_word=min_df_word, min_df_char=min_df_char, max_df=0.95)
+s = selector('TruncatedSVD')
+
 pppl = Pipeline([
-    ('preprocessor', pp),
-    ('vectorizer', FeatureUnion(transformer_list=[("words", TfidfVectorizer(
-        tokenizer=identity, preprocessor=None, lowercase=False, ngram_range=(1, 3))
-                                                   ),
-                                                  ("stats", FeatureNamePipeline([
-                                                      ("stats", TextStats()),
-                                                      ("vect", DictVectorizer())
-                                                  ]))
-                                                  ]
-                                ))
+    ('vectorizer', v),
+    ('selector', s)
 ])
+
+# ----------------------------------------------------------------
+# vectorization and selection performance
+# ----------------------------------------------------------------
+
+# test_corpus = np.concatenate((civic_, abstracts_, hocpos_, hocneg_))
+test_corpus = np.concatenate((civic, abstracts, hocpos, hocneg))
+
+print("Training preprocessing pipeline")
+
+start_time = time.time()
+v.fit(test_corpus)
+print("vectorizing took", time.time() - start_time, "secs")
+
+start_time = time.time()
+vectorized_corpus = v.transform(test_corpus)
+print("transforming took", time.time() - start_time, "secs. \n", np.shape(vectorized_corpus)[1], "features")
+
+# TruncatedSVD:                 ok              3.5min at cutoff 50/100
+# MiniBatchSparsePCA:           slow,16GB RAM   (but parallel)
+# SparsePCA:
+# LatentDirichletAllocation:
+sparse = ['TruncatedSVD', 'MiniBatchSparsePCA', 'SparsePCA', 'LatentDirichletAllocation'
+          # ,'NMF'
+          ]
+# PCA:
+# IncrementalPCA:
+# Factor Analysis:
+dense = ['PCA', 'IncrementalPCA', 'FactorAnalysis']
+
+for sel in sparse:
+    start_time = time.time()
+    selector(sel, n_components).fit(vectorized_corpus)
+    print("fitting", sel, "took", time.time() - start_time, "secs")
+
+for sel in dense:
+    start_time = time.time()
+    selector(sel, n_components).fit(unsparsify(vectorized_corpus))
+    print("fitting", sel, "took", time.time() - start_time, "secs")
+
+sys.exit(0)
 
 # ----------------------------------------------------------------
 # Regex tests
@@ -75,11 +125,11 @@ print("\n----------------------------------------------------------------",
       "\n----------------------------------------------------------------\n")
 
 print(transformers.sentence_tokenize(
-    "He is going to be there, i.e. Dougie is going to be there.I can not "
-    "wait to see how he's RS.123 doing. Conf. fig. 13 for additional "
-    "information. E.g."
-    "if you want to know the time, you should take b. "
-    "Beispieltext ist schön. first. 10. we are going to cowabunga. let there be rainbows."))
+        "He is going to be there, i.e. Dougie is going to be there.I can not "
+        "wait to see how he's RS.123 doing. Conf. fig. 13 for additional "
+        "information. E.g."
+        "if you want to know the time, you should take b. "
+        "Beispieltext ist schön. first. 10. we are going to cowabunga. let there be rainbows."))
 
 [print(x, pp.transform([x])) for x in ['Janus kinase 2 JAK2 tyrosine kinase',
                                        'CLINICALTRIALSGOV: NCT00818441.',

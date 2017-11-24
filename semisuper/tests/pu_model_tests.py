@@ -5,7 +5,7 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline
-from semisuper.helpers import num_rows, unsparsify, eval_model
+from semisuper.helpers import num_rows, unsparsify, eval_model, identitySelector
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -31,7 +31,7 @@ def test_all(P, U, X_test=None, y_test=None, sample_sentences=False):
     test_cr_svm(P, U, X_test, y_test, sample_sentences)
     test_roc_em(P, U, X_test, y_test, sample_sentences)
     test_spy_svm(P, U, X_test, y_test, sample_sentences)
-    test_biased_svm_grid(P, U, X_test, y_test, sample_sentences)
+    # test_biased_svm_grid(P, U, X_test, y_test, sample_sentences)
     test_biased_svm(P, U, X_test, y_test, sample_sentences)
     return
 
@@ -157,15 +157,15 @@ def test_biased_svm(P, U, X_test=None, y_test=None, sample_sentences=False):
 
     eval_model(model, X_test, y_test)
 
-    if sample_sentences:
-        print_sentences(model, "BIASED-SVM")
+    # if sample_sentences:
+        # print_sentences(model, "BIASED-SVM")
     return
 
 
 def test_biased_svm_grid(P, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------------\n"
-          "BIASED-SVM TEST (GRID SEARCH FOR C AS DESCRIBED BY MORDELET)\n"
+          "BAGGING-SVM TEST (GRID SEARCH FOR C AS DESCRIBED BY MORDELET)\n"
           "---------------\n")
 
     start_time = time.time()
@@ -177,7 +177,7 @@ def test_biased_svm_grid(P, U, X_test=None, y_test=None, sample_sentences=False)
     eval_model(model, X_test, y_test)
 
     if sample_sentences:
-        print_sentences(model, "BIASED-SVM")
+        print_sentences(model, "BAGGING-SVM")
     return
 
 
@@ -239,7 +239,7 @@ def print_sentences(model, modelname=""):
 
 def prepare_corpus(P_count=1000, U_count=3000):
 
-    half_test_size=max(int((P_count+U_count)/8), num_rows(hocpos))
+    half_test_size=min(int((P_count+U_count)/8), 2000)
     hocpos_train, X_test_pos = train_test_split(hocpos, test_size=half_test_size)
     hocneg_train, X_test_neg = train_test_split(hocpos, test_size=half_test_size)
 
@@ -259,7 +259,7 @@ def prepare_corpus(P_count=1000, U_count=3000):
           , "TEST SET (HOC POS + HOC NEG):", 2*half_test_size
           )
 
-    words, wordgram_range = [True, (1, 3)]  # TODO change back to True, (1,3)
+    words, wordgram_range = [False, (1, 3)]  # TODO change back to True, (1,3)
     chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (2,6)
     rules, lemmatize = [True, True]
 
@@ -272,9 +272,8 @@ def prepare_corpus(P_count=1000, U_count=3000):
     print_params()
 
     print("Fitting vectorizer")
-    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range,
-                                           chars=chars, chargram_range=chargram_range,
-                                           rules=rules, lemmatize=lemmatize)
+    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
+                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
     vectorizer.fit(np.concatenate((P_raw, U_raw)))
 
     P = unsparsify(vectorizer.transform(P_raw))
@@ -282,7 +281,8 @@ def prepare_corpus(P_count=1000, U_count=3000):
 
     print("Features before selection:", np.shape(P)[1])
 
-    selector = basic_pipeline.selector()
+    # selector = basic_pipeline.selector()
+    selector = identitySelector()
     selector.fit(np.concatenate((P, U)),
                  (np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U))))))
     P = unsparsify(selector.transform(P))

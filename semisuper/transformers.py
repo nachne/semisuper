@@ -6,6 +6,7 @@ from nltk import WordNetLemmatizer
 from nltk import pos_tag
 from nltk import sent_tokenize
 from nltk.corpus import wordnet as wn
+from semisuper.helpers import unsparsify
 from semisuper.dict_matchers import HypernymMapper
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -90,6 +91,20 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         }.get(tag[0], wn.NOUN)
 
         return self.lemmatizer.lemmatize(token, tag)
+
+
+def cleanup(sentence):
+    """callable for character n-gram tfidf-vectorizer, replaces any sequence of non-word characters by a space"""
+    return re.sub("[^\w-=%]+", " ", sentence).lower()
+
+class Densifier(BaseEstimator, TransformerMixin):
+    """Makes sparse matrices dense for following pipeline steps"""
+    def __init__(self):
+        return
+    def fit(self, X=None, y=None):
+        return self
+    def transform(self, X):
+        return unsparsify(X)
 
 
 def map_regex_concepts(token):

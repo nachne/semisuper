@@ -4,6 +4,7 @@ from operator import itemgetter, mul
 import numpy as np
 from scipy.sparse import issparse
 from sklearn.metrics import classification_report as clsr, accuracy_score
+from sklearn.feature_selection.base import SelectorMixin
 from sklearn.utils import check_array
 import os.path
 
@@ -30,6 +31,17 @@ def identity(x):
     return x
 
 
+class identitySelector():
+    def __init__(self):
+        return
+
+    def fit(self, X, y):
+        return self
+
+    def transform(self, X):
+        return X
+
+
 def positive(x):
     return x > 0
 
@@ -52,6 +64,18 @@ def partition_pos_neg(X, y):
     neg_idx = np.ones(num_rows(y), dtype=bool)
     neg_idx[pos_idx] = False
     return X[pos_idx], X[neg_idx]
+
+
+def partition_pos_neg_unsure(X, y_pred, confidence):
+    """partitions X into positive, negative or undefined elements given y probabilities and confidence threshold"""
+    pos_idx = np.where(y_pred[:, 1] >= confidence)
+    neg_idx = np.where(y_pred[:, 0] >= confidence)
+
+    unsure_idx = np.ones(num_rows(X), dtype=bool)
+    unsure_idx[pos_idx] = False
+    unsure_idx[neg_idx] = False
+
+    return X[pos_idx], X[neg_idx], X[unsure_idx]
 
 
 def label2num(label):
@@ -84,12 +108,14 @@ def pu_measure(y_P, y_U):
 
     return r_sq / Pr_fx_1
 
+
 def eval_model(model, X, y):
     if X is not None and y is not None:
         y_pred = model.predict(X)
         print("Accuracy:", accuracy_score(y, y_pred))
         print(clsr(y, y_pred))
     return
+
 
 def train_report(model, P, N):
     print("Classification Report (on training, not on test data!):\n")

@@ -53,6 +53,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
                                                                               testData=X_dev,
                                                                               wordgram_range=wordgram,
                                                                               chargram_range=chargram,
+                                                                              featureSelect=False,
                                                                               rules=r, lemmatize=l)
                     if selector:
                         P_train_ = selector.transform(vectorizer.transform(P_train))
@@ -84,12 +85,12 @@ def getBestModel(P_train, U_train, X_test, y_test):
                          'model': two_step.spy_SVM(P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
                         {'name' : 'biased-svm',
                          'model': biased_svm.biased_SVM_weight_selection(P_train_, U_train_)},
-                        {'name' : 'bagging-svm',
-                         'model': biased_svm.biased_SVM_grid_search(P_train_, U_train_)}
+                        # {'name' : 'bagging-svm',
+                        #  'model': biased_svm.biased_SVM_grid_search(P_train_, U_train_)}
                     ]
 
                     # eval models
-                    with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
+                    with multi.Pool(min(multi.cpu_count()-1, len(iteration))) as p:
                         iter_stats = p.map(partial(model_eval_record, X_dev_, y_dev), iteration)
 
                     # finalize records: remove memory-heavy model, add n-gram stats, update best
@@ -164,7 +165,7 @@ def prepareTrainTest(trainData, testData, trainLabels, featureSelect=True, min_d
 
     vectorizer = pipeline.vectorizer(words=True if wordgram_range else False, wordgram_range=wordgram_range,
                                      chars=True if chargram_range else False, chargram_range=chargram_range,
-                                     rules=rules, lemmatize=lemmatize, min_df=min_df, max_df=max_df)
+                                     rules=rules, lemmatize=lemmatize, min_df=min_df)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)
