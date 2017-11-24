@@ -4,7 +4,7 @@ import time
 import numpy as np
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, basic_pipeline, ss_techniques
-from semisuper.helpers import num_rows, unsparsify, eval_model
+from semisuper.helpers import num_rows, unsparsify, eval_model, identitySelector
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -24,9 +24,29 @@ print("PIBOSO other sentences:", len(piboso_other))
 # ------------------
 
 def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+    test_knn(P, N, U, X_test, y_test, sample_sentences)
     test_svm(P, N, U, X_test, y_test, sample_sentences)
     test_em(P, N, U, X_test, y_test, sample_sentences)
     # test_label_propagation(P, N, U, X_test, y_test)
+    return
+
+
+def test_knn(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+    print("\n\n"
+          "---------\n"
+          "ITERATIVE KNN TEST\n"
+          "---------\n")
+
+    start_time = time.time()
+
+    model = ss_techniques.iterate_knn(P, N, U)
+
+    print("\nTraining kNN self-training took %s seconds\n" % (time.time() - start_time))
+
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "kNN")
     return
 
 
@@ -145,26 +165,26 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 def prepare_corpus(P_count=1000, N_count=1000, U_count=2000):
-    half_test_size = max(int((P_count + U_count) / 8), num_rows(hocpos))
+    half_test_size = min(int((P_count + U_count) / 8), 2000)
     hocpos_train, X_test_pos = train_test_split(hocpos, test_size=half_test_size)
     hocneg_train, X_test_neg = train_test_split(hocpos, test_size=half_test_size)
 
-    P_raw = random.sample(hocpos, P_count)
-    N_raw = random.sample(hocneg, N_count)
-    U_raw = random.sample(abstracts + civic, U_count)
+    P_raw = random.sample(hocpos_train + civic, P_count)
+    N_raw = random.sample(hocneg_train, N_count)
+    U_raw = random.sample(abstracts, U_count)
 
     X_test_raw = np.concatenate((X_test_pos, X_test_neg))
     y_test = np.concatenate((np.ones(half_test_size), np.zeros(half_test_size)))
 
     print("\nTRAINING SEMI-SUPERVISED"
           "\tP: HOC POS"
+          , "+ CIVIC"
           , "(", num_rows(P_raw), ")"
           , "\tN: HOC NEG"
           , "(", num_rows(N_raw), ")"
           , ",\tU: ABSTRACTS"
-          , "+ CIVIC"
           , "(", num_rows(U_raw), ")"
-          , "TEST SET (HOC POS + HOC NEG):", 2*half_test_size
+          , "TEST SET (HOC POS + HOC NEG):", 2 * half_test_size
           )
 
     words, wordgram_range = [True, (1, 3)]  # TODO change back to True, (1,3)
@@ -180,32 +200,33 @@ def prepare_corpus(P_count=1000, N_count=1000, U_count=2000):
     print_params()
 
     print("Fitting vectorizer")
-    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range,
-                                           chars=chars, chargram_range=chargram_range,
-                                           rules=rules, lemmatize=lemmatize)
+    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
+                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
     vectorizer.fit(np.concatenate((P_raw, N_raw, U_raw)))
 
     P = unsparsify(vectorizer.transform(P_raw))
     N = unsparsify(vectorizer.transform(N_raw))
     U = unsparsify(vectorizer.transform(U_raw))
+    X_test = vectorizer.transform(X_test_raw)
 
     print("Features before selection:", np.shape(P)[1])
 
-    selector = basic_pipeline.selector()
+    selector = identitySelector()  # TODO FIXME chi2 does not help
+    # selector = basic_pipeline.selector()
     selector.fit(np.concatenate((P, N, U)),
                  (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
     P = unsparsify(selector.transform(P))
     N = unsparsify(selector.transform(N))
     U = unsparsify(selector.transform(U))
+    X_test = unsparsify(selector.transform(X_test))
 
-    print("Features after selection:", np.shape(P)[1])
+    # print("Features after selection:", np.shape(P)[1])
 
-    return P, N, U, X_test, y_test, vectorizer, selector
+    return P, N, U, X_test, y_test, vectorizer, selector  # ------------------
 
 
-# ------------------
 # execute
 # ------------------
 
-P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(1000, 1000, 2000)
+P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(1000, 1000, 4000)
 test_all(P, N, U, X_test, y_test)

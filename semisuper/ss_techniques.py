@@ -1,18 +1,51 @@
 import random
 
 import numpy as np
-import sklearn.semi_supervised as ss
+from sklearn import semi_supervised
+from sklearn.neighbors import KNeighborsClassifier, kneighbors_graph
 
 from semisuper import pu_two_step
-from semisuper.helpers import num_rows
+from semisuper.helpers import num_rows, partition_pos_neg_unsure, arrays
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_two_step import almost_equal
+
+import multiprocessing as multi
 
 
 # ----------------------------------------------------------------
 # top level
 # ----------------------------------------------------------------
 
+def iterate_knn(P, N, U):
+    P_, N_, U_ = arrays((P, N, U))
+    thresh = 0.5
+
+    knn = KNeighborsClassifier(n_neighbors=13, weights='uniform', n_jobs=multi.cpu_count() - 1)
+    knn.fit(np.concatenate((P_, N_)), np.concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+
+    y_pred = knn.predict_proba(U_)
+    U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
+    i = 0
+
+    while num_rows(U_pos) and num_rows(U_neg) and num_rows(U_):
+        print("Iteration #", i)
+        print("New confidently predicted examples: \tpos", num_rows(U_pos), "\tneg", num_rows(U_neg))
+        print("Remaining unlabelled:", num_rows(U_))
+
+        P_ = np.concatenate((P_, U_pos))
+        N_ = np.concatenate((N_, U_neg))
+
+        knn.fit(np.concatenate((P_, N_)), np.concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+
+        y_pred = knn.predict_proba(U_)
+        U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
+        i += 1
+
+    print("Converged with", num_rows(U_), "sentences remaining unlabelled. ",
+          "\nLabelled pos:", num_rows(P_) - num_rows(P),
+          "\tneg:", num_rows(N_) - num_rows(N),
+          "Returning classifier")
+    return knn
 
 
 def iterate_SVM(P, N, U, verbose=True):
@@ -58,7 +91,8 @@ def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-
     y_init = np.concatenate((np.ones(num_rows(P)),
                              -np.ones(num_rows(N)),
                              np.zeros(num_rows(U))))
-    propagation = ss.LabelPropagation(kernel=kernel, n_neighbors=n_neighbors, max_iter=max_iter, n_jobs=n_jobs)
+    propagation = semi_supervised.LabelPropagation(kernel=kernel, n_neighbors=n_neighbors, max_iter=max_iter,
+                                                   n_jobs=n_jobs)
     propagation.fit(X, y_init)
     return propagation
 
@@ -109,4 +143,3 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
 
     if verbose: print("Returning final model after", iterations, "iterations")
     return new_model
-

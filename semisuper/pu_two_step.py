@@ -343,8 +343,9 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, clf_
     print("Returning final NB after", iterations, "iterations")
     return new_model
 
+
 # TODO if linear kernel is sufficient, LinearSVC instead of SVC
-def iterate_SVM(P, U, RN, max_neg_ratio=0.1, clf_selection=True, kernel='linear', n_estimators=24, verbose=False):
+def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel='linear', n_estimators=24, verbose=False):
     """runs an SVM classifier trained on P and RN iteratively, augmenting RN
 
     after each iteration, the documents in U classified as negative are moved to RN until there are none left.
@@ -375,8 +376,10 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.1, clf_selection=True, kernel='linear'
         y_RN = np.zeros(num_rows(RN))
 
         if verbose: print("\nIteration #", iteration, "\tReliable negative examples:", num_rows(RN))
-        clf = BaggingClassifier(svm.SVC(kernel=kernel, class_weight='balanced', probability=True), bootstrap=True,
-                                n_jobs=min(n_estimators, cpu_count()))
+
+        clf = svm.SVC(kernel=kernel, class_weight='balanced', probability=True)
+        # clf = BaggingClassifier(svm.SVC(kernel=kernel, class_weight='balanced', probability=True),
+        # bootstrap=True, n_jobs=min(n_estimators, cpu_count()-1))
 
         model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)),
                           classifier=clf)
@@ -401,8 +404,8 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.1, clf_selection=True, kernel='linear'
         if verbose: print("Ratio of positive examples misclassified as negative by final SVM:", final_neg_ratio)
 
         if final_neg_ratio > max_neg_ratio:
-            if verbose: print(iteration, "iterations - final SVM discards too many positive examples.",
-                              "Returning initial SVM instead")
+            print(iteration, "iterations - final SVM discards too many positive examples.",
+                  "Returning initial SVM instead")
 
             return initial_model
 
@@ -517,4 +520,3 @@ def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1, verbose=False):
     # print(U_minus_RN[:10])
 
     return U_minus_PN, PN
-

@@ -16,13 +16,13 @@ def biased_SVM_grid_search(P, U, Cs=None, kernel='linear', n_estimators=12, verb
 
     print("Running Biased-SVM with balanced class weights and grid search over", len(Cs), "C values")
 
-    model = BaggingClassifier(LinearSVC())
+    model = BaggingClassifier(SVC())
 
     grid_search = GridSearchCV(model,
                                param_grid={'base_estimator__C'           : Cs,
                                            'base_estimator__class_weight': ['balanced'],
                                            ### not applicable for LinearSVC
-                                           # 'base_estimator__kernel'      : [kernel],
+                                           'base_estimator__kernel'      : [kernel],
                                            # 'base_estimator__cache_size'  : [8000],
                                            # 'base_estimator__probability' : [True],
                                            ### fit parameters for Bagging wrapper
@@ -86,13 +86,11 @@ def biased_SVM_weight_selection(P, U,
     print("Building final classifier")
 
     model = build_biased_SVM(concatenate((P, U)),
-
                              concatenate((ones(num_rows(P)), zeros(num_rows(U)))),
                              C_pos=best_score_params[1]['C_pos'],
                              C_neg=best_score_params[1]['C_neg'],
                              C=best_score_params[1]['C'],
                              probability=True, kernel=kernel)
-
 
     if verbose: train_report(model, P, U)
     print("Returning Biased-SVM with parameters", best_score_params[1], "and PU-score", best_score_params[0])
@@ -128,6 +126,9 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
 
     clf = BiasedSVM(C=C, class_weight=class_weight)
 
+    # clf = BaggingClassifier(BiasedSVM(C=C, class_weight=class_weight))
+    # clf.get_class_weights = clf.base_estimator.get_class_weights
+
     model = train_clf(X, y, classifier=clf)
 
     model.get_class_weights = clf.get_class_weights
@@ -135,7 +136,7 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
     return model
 
 
-class BiasedSVM(LinearSVC):
+class BiasedSVM(SVC):
     """wrapper for sklearn SVC with get_class_weights function and linear default kernel"""
 
     def __init__(self, C=1.0, class_weight='balanced',
@@ -143,7 +144,7 @@ class BiasedSVM(LinearSVC):
                  random_state=None):
         self.param_class_weight = {'C_pos': class_weight[1], 'C_neg': class_weight[0], 'C': C}
 
-        super(BiasedSVM, self).__init__(C=C, class_weight=class_weight,
+        super(BiasedSVM, self).__init__(C=C, class_weight=class_weight, kernel='linear',
                                         tol=tol, verbose=verbose, max_iter=max_iter, random_state=random_state)
 
     def get_class_weights(self):
