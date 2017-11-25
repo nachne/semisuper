@@ -24,15 +24,35 @@ print("PIBOSO other sentences:", len(piboso_other))
 # ------------------
 
 def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
-    test_svc(P, N, U, X_test, y_test, sample_sentences)
 
-    # test_iterative_svm(P, N, U, X_test, y_test, sample_sentences)
+    test_linsvc(P, N, U, X_test, y_test, sample_sentences)
+    test_iterative_svm(P, N, U, X_test, y_test, sample_sentences)
+
+    # test_svc(P, N, U, X_test, y_test, sample_sentences)
 
     # test_knn(P, N, U, X_test, y_test, sample_sentences)
     # test_em(P, N, U, X_test, y_test, sample_sentences)
     # test_label_propagation(P, N, U, X_test, y_test)
     return
 
+
+def test_linsvc(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+    print("\n\n"
+          "---------\n"
+          "LINEAR SVC TEST\n"
+          "---------\n")
+
+    start_time = time.time()
+
+    model = ss_techniques.grid_search_svc(P, N, U)
+
+    print("\nTraining grid-search linear SVC took %s seconds\n" % (time.time() - start_time))
+
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "linearSVC")
+    return
 
 def test_svc(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
@@ -44,7 +64,7 @@ def test_svc(P, N, U, X_test=None, y_test=None, sample_sentences=False):
 
     model = ss_techniques.grid_search_svc(P, N, U)
 
-    print("\nTraining kNN self-training took %s seconds\n" % (time.time() - start_time))
+    print("\nTraining grid-search SVC took %s seconds\n" % (time.time() - start_time))
 
     eval_model(model, X_test, y_test)
 

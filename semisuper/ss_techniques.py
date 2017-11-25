@@ -19,6 +19,32 @@ import multiprocessing as multi
 # top level
 # ----------------------------------------------------------------
 
+
+def grid_search_linsvc(P, N, U, verbose=True):
+
+    model = LinearSVC()
+
+    grid_search = GridSearchCV(model,
+                               param_grid={'C'           : [2/x for x in range(1, 8)],
+                                           'class_weight': ['balanced'],
+                                           'loss': ['hinge', 'squared_hinge'],
+                                           'penalty' : ['l1', 'l2']
+                                           },
+                               cv=3,
+                               n_jobs=min(multi.cpu_count(), 16),
+                               verbose=0)
+
+    if verbose:
+        print("Grid searching parameters for SVC")
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+
+    grid_search.fit(X, y)
+
+    print("SVC parameters:", grid_search.best_params_, "\tscore:", grid_search.best_score_)
+
+    return grid_search.best_estimator_
+
 def grid_search_svc(P, N, U, verbose=True):
 
     model = SVC()
