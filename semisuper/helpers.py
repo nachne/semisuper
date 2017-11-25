@@ -26,6 +26,10 @@ def prod(iterable):
     return reduce(mul, iterable, 1)
 
 
+def run_fun(fun):
+    return fun()
+
+
 def identity(x):
     """identity function"""
     return x

@@ -24,12 +24,33 @@ print("PIBOSO other sentences:", len(piboso_other))
 # ------------------
 
 def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
-    test_knn(P, N, U, X_test, y_test, sample_sentences)
-    test_svm(P, N, U, X_test, y_test, sample_sentences)
-    test_em(P, N, U, X_test, y_test, sample_sentences)
+    test_svc(P, N, U, X_test, y_test, sample_sentences)
+
+    # test_iterative_svm(P, N, U, X_test, y_test, sample_sentences)
+
+    # test_knn(P, N, U, X_test, y_test, sample_sentences)
+    # test_em(P, N, U, X_test, y_test, sample_sentences)
     # test_label_propagation(P, N, U, X_test, y_test)
     return
 
+
+def test_svc(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+    print("\n\n"
+          "---------\n"
+          "SVC TEST\n"
+          "---------\n")
+
+    start_time = time.time()
+
+    model = ss_techniques.grid_search_svc(P, N, U)
+
+    print("\nTraining kNN self-training took %s seconds\n" % (time.time() - start_time))
+
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "SVC")
+    return
 
 def test_knn(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
@@ -69,7 +90,7 @@ def test_label_propagation(P, N, U, X_test=None, y_test=None, sample_sentences=F
     return
 
 
-def test_svm(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+def test_iterative_svm(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------\n"
           "SVM TEST\n"
@@ -121,13 +142,23 @@ def print_sentences(model, modelname=""):
     def sort_model(sentences):
         sent_features = unsparsify(selector.transform(vectorizer.transform(sentences)))
 
-        return sorted(zip(model.predict_proba(sent_features),
-                          sentences),
-                      key=lambda x: x[0][1],
-                      reverse=True)
+        if hasattr(model, 'predict_proba'):
+            return sorted(zip(model.predict_proba(sent_features),
+                              sentences),
+                          key=lambda x: x[0][1],
+                          reverse=True)
+        else:
+            return sorted(zip(model.decision_function(sent_features),
+                              sentences),
+                          key=lambda x: x[0],
+                          reverse=True)
 
     def top_bot_12_model(predictions, name):
-        pos = sum([1 for x in predictions if x[0][1] > x[0][0]])
+
+        if np.isscalar(predictions[0][0]):
+            pos = sum([1 for x in predictions if x[0] > 0])
+        else:
+            pos = sum([1 for x in predictions if x[0][1] > x[0][0]])
         num = num_rows(predictions)
 
         print()
@@ -165,15 +196,16 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 def prepare_corpus(P_count=1000, N_count=1000, U_count=2000):
-    half_test_size = min(int((P_count + U_count) / 8), 2000)
-    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=half_test_size)
-    hocneg_train, X_test_neg = train_test_split(hocpos, test_size=half_test_size)
+    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=0.3)
+    hocneg_train, X_test_neg = train_test_split(hocneg, test_size=0.3)
+    civic_train, civic_test = train_test_split(civic, test_size=0.3)
+    abstracts_train, abstracts_test = train_test_split(abstracts, test_size=0.01)
 
-    P_raw = random.sample(hocpos_train + civic, P_count)
+    half_test_size = min(int((P_count + U_count) / 8), num_rows(X_test_pos))
+    P_raw = random.sample(hocpos_train + civic_train, P_count)
     N_raw = random.sample(hocneg_train, N_count)
-    U_raw = random.sample(abstracts, U_count)
-
-    X_test_raw = np.concatenate((X_test_pos, X_test_neg))
+    U_raw = random.sample(abstracts_train, U_count)
+    X_test_raw = random.sample(X_test_pos, half_test_size) + random.sample(X_test_neg, half_test_size)
     y_test = np.concatenate((np.ones(half_test_size), np.zeros(half_test_size)))
 
     print("\nTRAINING SEMI-SUPERVISED"
@@ -187,7 +219,7 @@ def prepare_corpus(P_count=1000, N_count=1000, U_count=2000):
           , "TEST SET (HOC POS + HOC NEG):", 2 * half_test_size
           )
 
-    words, wordgram_range = [True, (1, 3)]  # TODO change back to True, (1,3)
+    words, wordgram_range = [False, (1, 3)]  # TODO change back to True, (1,3)
     chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
     rules, lemmatize = [True, True]
 
@@ -228,5 +260,5 @@ def prepare_corpus(P_count=1000, N_count=1000, U_count=2000):
 # execute
 # ------------------
 
-P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(1000, 1000, 4000)
-test_all(P, N, U, X_test, y_test)
+P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(3000, 3000, 12000)
+test_all(P, N, U, X_test, y_test, sample_sentences=True)

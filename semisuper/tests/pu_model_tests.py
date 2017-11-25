@@ -5,7 +5,9 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline
-from semisuper.helpers import num_rows, unsparsify, eval_model, identitySelector
+from semisuper.helpers import num_rows, unsparsify, eval_model, identitySelector, run_fun
+from functools import partial
+import multiprocessing as multi
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -25,11 +27,11 @@ print("PIBOSO other sentences:", len(piboso_other))
 # ------------------
 
 def test_all(P, U, X_test=None, y_test=None, sample_sentences=False):
-    test_i_em(P, U, X_test, y_test, sample_sentences)
-    test_s_em(P, U, X_test, y_test, sample_sentences)
+    # test_i_em(P, U, X_test, y_test, sample_sentences)
+    # test_s_em(P, U, X_test, y_test, sample_sentences)
     test_roc_svm(P, U, X_test, y_test, sample_sentences)
     test_cr_svm(P, U, X_test, y_test, sample_sentences)
-    test_roc_em(P, U, X_test, y_test, sample_sentences)
+    # test_roc_em(P, U, X_test, y_test, sample_sentences)
     test_spy_svm(P, U, X_test, y_test, sample_sentences)
     # test_biased_svm_grid(P, U, X_test, y_test, sample_sentences)
     test_biased_svm(P, U, X_test, y_test, sample_sentences)
@@ -157,8 +159,8 @@ def test_biased_svm(P, U, X_test=None, y_test=None, sample_sentences=False):
 
     eval_model(model, X_test, y_test)
 
-    # if sample_sentences:
-        # print_sentences(model, "BIASED-SVM")
+    if sample_sentences:
+        print_sentences(model, "BIASED-SVM")
     return
 
 
@@ -194,13 +196,23 @@ def print_sentences(model, modelname=""):
     def sort_model(sentences):
         sent_features = unsparsify(selector.transform(vectorizer.transform(sentences)))
 
-        return sorted(zip(model.predict_proba(sent_features),
-                          sentences),
-                      key=lambda x: x[0][1],
-                      reverse=True)
+        if hasattr(model, 'predict_proba'):
+            return sorted(zip(model.predict_proba(sent_features),
+                              sentences),
+                          key=lambda x: x[0][1],
+                          reverse=True)
+        else:
+            return sorted(zip(model.decision_function(sent_features),
+                              sentences),
+                          key=lambda x: x[0],
+                          reverse=True)
 
     def top_bot_12_model(predictions, name):
-        pos = sum([1 for x in predictions if x[0][1] > x[0][0]])
+
+        if np.isscalar(predictions[0][0]):
+            pos = sum([1 for x in predictions if x[0] > 0])
+        else:
+            pos = sum([1 for x in predictions if x[0][1] > x[0][0]])
         num = num_rows(predictions)
 
         print()
@@ -238,16 +250,16 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 def prepare_corpus(P_count=1000, U_count=3000):
+    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=0.3)
+    hocneg_train, X_test_neg = train_test_split(hocneg, test_size=0.3)
+    civic_train, civic_test = train_test_split(civic, test_size=0.3)
+    abstracts_train, abstracts_test = train_test_split(abstracts, test_size=0.01)
 
-    half_test_size=min(int((P_count+U_count)/8), 2000)
-    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=half_test_size)
-    hocneg_train, X_test_neg = train_test_split(hocpos, test_size=half_test_size)
-
-    P_raw = random.sample(hocpos_train + civic, P_count)
-    U_raw = random.sample(hocneg_train + abstracts, U_count)
-    X_test_raw = np.concatenate((X_test_pos, X_test_neg))
+    half_test_size = min(int((P_count + U_count) / 8), num_rows(X_test_pos))
+    P_raw = random.sample(hocpos_train + civic_train, P_count)
+    U_raw = random.sample(hocneg_train + abstracts_train, U_count)
+    X_test_raw = random.sample(X_test_pos, half_test_size) + random.sample(X_test_neg, half_test_size)
     y_test = np.concatenate((np.ones(half_test_size), np.zeros(half_test_size)))
-
 
     print("\nPU TRAINING"
           "\tP: HOC POS"
@@ -256,7 +268,7 @@ def prepare_corpus(P_count=1000, U_count=3000):
           , "\tN: HOC NEG"
           , "+ ABSTRACTS"
           , "(", num_rows(U_raw), ")"
-          , "TEST SET (HOC POS + HOC NEG):", 2*half_test_size
+          , "TEST SET (HOC POS + HOC NEG):", 2 * half_test_size
           )
 
     words, wordgram_range = [False, (1, 3)]  # TODO change back to True, (1,3)
@@ -298,5 +310,5 @@ def prepare_corpus(P_count=1000, U_count=3000):
 # execute
 # ------------------
 
-P, U, X_test, y_test, vectorizer, selector = prepare_corpus(4000, 8000)
+P, U, X_test, y_test, vectorizer, selector = prepare_corpus(4000, 8000)  # 4000 VS 8000
 test_all(P, U, X_test, y_test, sample_sentences=True)

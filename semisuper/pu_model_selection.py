@@ -73,17 +73,17 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
                     # fit models
                     iteration = [
-                        {'name': 'i-em', 'model': partial(two_step.i_EM, P_train_, U_train_)},
-                        {'name' : 's-em spy=0.1',
-                         'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
-                        {'name' : 's-em spy=0.2',
-                         'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
+                        # {'name': 'i-em', 'model': partial(two_step.i_EM, P_train_, U_train_)},
+                        # {'name' : 's-em spy=0.1',
+                        #  'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
+                        # {'name' : 's-em spy=0.2',
+                        #  'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
                         {'name': 'roc-svm', 'model': partial(two_step.roc_SVM, P_train_, U_train_)},
                         {'name' : 'cr_svm noise=0.1',
                          'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.1)},
                         {'name' : 'cr_svm noise=0.2',
                          'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.2)},
-                        {'name': 'roc_em', 'model': partial(two_step.roc_EM, P_train_, U_train_)},
+                        # {'name': 'roc_em', 'model': partial(two_step.roc_EM, P_train_, U_train_)},
                         {'name' : 'spy_svm spy=0.1',
                          'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
                         {'name' : 'spy_svm spy=0.2',
@@ -142,7 +142,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
         # ===============================================================
         # CREATE MODEL BASED ON BEST
         # ===============================================================
-        print('\nFitting best model on complete data')
+        print('\nFitting best model on complete data (training + dev)')
 
         if selector:
             transformedData = unsparsify(selector.fit_transform(vectorizer.fit_transform(
@@ -160,7 +160,18 @@ def getBestModel(P_train, U_train, X_test, y_test):
         # ===============================================================
 
         y_predicted_test = classModel.predict(transformedTestData)
-        print(classification_report(y_test, y_predicted_test))
+        print("{}:\tacc {}, \n{}".format(results['best']['name'],
+                        accuracy_score(y_test, y_predicted_test),
+                        classification_report(y_test, y_predicted_test)))
+
+        print("\nAmount of unlabelled training set classified as positive:")
+        if selector:
+            transformedU = unsparsify(selector.transform(vectorizer.transform(U_train)))
+        else:
+            transformedU = unsparsify(vectorizer.transform(U_train))
+        y_predicted_U = classModel.predict(transformedU)
+        print(np.sum(y_predicted_U), "/", num_rows(y_predicted_U),
+              "(", np.sum(y_predicted_U)/ num_rows(y_predicted_U), ")")
 
     return results['best']
 

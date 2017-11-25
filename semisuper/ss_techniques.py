@@ -3,6 +3,9 @@ import random
 import numpy as np
 from sklearn import semi_supervised
 from sklearn.neighbors import KNeighborsClassifier, kneighbors_graph
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.svm import SVC, NuSVC, LinearSVC
+from sklearn.ensemble import BaggingClassifier
 
 from semisuper import pu_two_step
 from semisuper.helpers import num_rows, partition_pos_neg_unsure, arrays
@@ -16,36 +19,30 @@ import multiprocessing as multi
 # top level
 # ----------------------------------------------------------------
 
-def iterate_knn(P, N, U):
-    P_, N_, U_ = arrays((P, N, U))
-    thresh = 0.5
+def grid_search_svc(P, N, U, verbose=True):
 
-    knn = KNeighborsClassifier(n_neighbors=13, weights='uniform', n_jobs=multi.cpu_count() - 1)
-    knn.fit(np.concatenate((P_, N_)), np.concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+    model = SVC()
 
-    y_pred = knn.predict_proba(U_)
-    U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
-    i = 0
+    grid_search = GridSearchCV(model,
+                               param_grid={'C'           : [1/x for x in range(1, 4)],
+                                           'class_weight': ['balanced'],
+                                           'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
+                                           },
+                               cv=3,
+                               n_jobs=multi.cpu_count(),
+                               verbose=0)
 
-    while num_rows(U_pos) and num_rows(U_neg) and num_rows(U_):
-        print("Iteration #", i)
-        print("New confidently predicted examples: \tpos", num_rows(U_pos), "\tneg", num_rows(U_neg))
-        print("Remaining unlabelled:", num_rows(U_))
+    if verbose:
+        print("Grid searching parameters for SVC")
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
 
-        P_ = np.concatenate((P_, U_pos))
-        N_ = np.concatenate((N_, U_neg))
+    grid_search.fit(X, y)
 
-        knn.fit(np.concatenate((P_, N_)), np.concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+    print("SVC parameters:", grid_search.best_params_, "\tscore:", grid_search.best_score_)
 
-        y_pred = knn.predict_proba(U_)
-        U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
-        i += 1
+    return grid_search.best_estimator_
 
-    print("Converged with", num_rows(U_), "sentences remaining unlabelled. ",
-          "\nLabelled pos:", num_rows(P_) - num_rows(P),
-          "\tneg:", num_rows(N_) - num_rows(N),
-          "Returning classifier")
-    return knn
 
 
 def iterate_SVM(P, N, U, verbose=True):
@@ -83,6 +80,38 @@ def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1
     model = iterate_EM_PNU(P=P, N=N, U=U, ypU=ypU, tolerance=tolerance, max_pos_ratio=max_pos_ratio, verbose=verbose)
 
     return model
+
+
+def iterate_knn(P, N, U):
+    P_, N_, U_ = arrays((P, N, U))
+    thresh = 0.5
+
+    knn = KNeighborsClassifier(n_neighbors=13, weights='uniform', n_jobs=multi.cpu_count() - 1)
+    knn.fit(np.concatenate((P_, N_)), np.concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+
+    y_pred = knn.predict_proba(U_)
+    U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
+    i = 0
+
+    while num_rows(U_pos) and num_rows(U_neg) and num_rows(U_):
+        print("Iteration #", i)
+        print("New confidently predicted examples: \tpos", num_rows(U_pos), "\tneg", num_rows(U_neg))
+        print("Remaining unlabelled:", num_rows(U_))
+
+        P_ = np.concatenate((P_, U_pos))
+        N_ = np.concatenate((N_, U_neg))
+
+        knn.fit(np.concatenate((P_, N_)), np.concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+
+        y_pred = knn.predict_proba(U_)
+        U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
+        i += 1
+
+    print("Converged with", num_rows(U_), "sentences remaining unlabelled. ",
+          "\nLabelled pos:", num_rows(P_) - num_rows(P),
+          "\tneg:", num_rows(N_) - num_rows(N),
+          "Returning classifier")
+    return knn
 
 
 # horrible results!
