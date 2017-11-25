@@ -151,7 +151,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
             transformedTestData = unsparsify(selector.transform(vectorizer.transform(X_test)))
         else:
             transformedData = unsparsify(vectorizer.fit_transform(np.concatenate((P_train, U_train), 0)))
-            transformedTestData = unsparsify(vectorizer.transform(X_train))
+            transformedTestData = unsparsify(vectorizer.transform(X_test))
 
         classModel = best_model.fit(transformedData, [1] * num_rows(P_train) + [0] * num_rows(U_train))
 
