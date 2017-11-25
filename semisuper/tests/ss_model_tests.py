@@ -25,10 +25,13 @@ print("PIBOSO other sentences:", len(piboso_other))
 
 def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
 
-    test_linsvc(P, N, U, X_test, y_test, sample_sentences)
-    test_iterative_svm(P, N, U, X_test, y_test, sample_sentences)
+    test_iterative_SVC(P, N, U, X_test, y_test, sample_sentences, kernel="poly")
+    test_iterative_SVC(P, N, U, X_test, y_test, sample_sentences, kernel="rbf")
+    test_iterative_SVC(P, N, U, X_test, y_test, sample_sentences, kernel="sigmoid")
+    test_iterative_linearSVM(P, N, U, X_test, y_test, sample_sentences)
 
     # test_svc(P, N, U, X_test, y_test, sample_sentences)
+    # test_linearSVM(P, N, U, X_test, y_test, sample_sentences)
 
     # test_knn(P, N, U, X_test, y_test, sample_sentences)
     # test_em(P, N, U, X_test, y_test, sample_sentences)
@@ -36,15 +39,51 @@ def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     return
 
 
-def test_linsvc(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+def test_iterative_SVC(P, N, U, X_test=None, y_test=None, sample_sentences=False, kernel='rbf'):
     print("\n\n"
           "---------\n"
-          "LINEAR SVC TEST\n"
+          "ITERATIVE SVM TEST\n"
           "---------\n")
 
     start_time = time.time()
 
-    model = ss_techniques.grid_search_linsvc(P, N, U)
+    model = ss_techniques.iterate_SVC(P, N, U, kernel=kernel)
+
+    print("\nIterating SVC with", kernel, "kernel took %s seconds\n" % (time.time() - start_time))
+
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "iterativeSVM")
+    return
+
+def test_iterative_linearSVM(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+    print("\n\n"
+          "---------\n"
+          "ITERATIVE LINEAR SVM TEST\n"
+          "---------\n")
+
+    start_time = time.time()
+
+    model = ss_techniques.iterate_linearSVC(P, N, U)
+
+    print("\nIterating SVM took %s seconds\n" % (time.time() - start_time))
+
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "iterativeSVM")
+    return
+
+def test_linearSVM(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+    print("\n\n"
+          "---------\n"
+          "LINEAR SVM TEST\n"
+          "---------\n")
+
+    start_time = time.time()
+
+    model = ss_techniques.grid_search_linearSVM(P, N, U)
 
     print("\nTraining grid-search linear SVC took %s seconds\n" % (time.time() - start_time))
 
@@ -62,7 +101,7 @@ def test_svc(P, N, U, X_test=None, y_test=None, sample_sentences=False):
 
     start_time = time.time()
 
-    model = ss_techniques.grid_search_svc(P, N, U)
+    model = ss_techniques.grid_search_SVC(P, N, U)
 
     print("\nTraining grid-search SVC took %s seconds\n" % (time.time() - start_time))
 
@@ -109,24 +148,6 @@ def test_label_propagation(P, N, U, X_test=None, y_test=None, sample_sentences=F
         print_sentences(model, "Label Propagation")
     return
 
-
-def test_iterative_svm(P, N, U, X_test=None, y_test=None, sample_sentences=False):
-    print("\n\n"
-          "---------\n"
-          "SVM TEST\n"
-          "---------\n")
-
-    start_time = time.time()
-
-    model = ss_techniques.iterate_SVM(P, N, U)
-
-    print("\nIterating SVM took %s seconds\n" % (time.time() - start_time))
-
-    eval_model(model, X_test, y_test)
-
-    if sample_sentences:
-        print_sentences(model, "iterativeSVM")
-    return
 
 
 def test_em(P, N, U, X_test=None, y_test=None, sample_sentences=False):

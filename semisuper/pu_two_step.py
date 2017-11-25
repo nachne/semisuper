@@ -345,7 +345,7 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, clf_
 
 
 # TODO if linear kernel is sufficient, LinearSVC instead of SVC
-def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel='linear', n_estimators=24, verbose=False):
+def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, n_estimators=8, verbose=False):
     """runs an SVM classifier trained on P and RN iteratively, augmenting RN
 
     after each iteration, the documents in U classified as negative are moved to RN until there are none left.
@@ -355,12 +355,19 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel='linear'
     y_P = np.ones(num_rows(P))
     y_RN = np.zeros(num_rows(RN))
 
-    if verbose: print("Building initial SVM classifier with Positive and Reliable Negative docs")
-    clf = (
-        # BaggingClassifier
-        (svm.LinearSVC(class_weight='balanced')
-         # , bootstrap=True, n_jobs=min(n_estimators, cpu_count()))
-         ))
+    if kernel is not None:
+        if verbose: print("Building initial Bagging SVC (", n_estimators, " clfs )",
+                          "with Positive and Reliable Negative docs")
+        clf = (
+            BaggingClassifier(
+                    svm.SVC(class_weight='balanced', kernel=kernel), bootstrap=True,
+                    n_estimators=n_estimators, n_jobs=min(n_estimators, cpu_count()),
+                    max_samples=(1.0 if n_estimators < 4 else 1.0 / (n_estimators - 2))
+            )
+        )
+    else:
+        if verbose: print("Building initial linearSVM classifier with Positive and Reliable Negative docs")
+        clf = svm.LinearSVC(class_weight='balanced')
 
     initial_model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
 
@@ -369,6 +376,10 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel='linear'
     Q, W = partition_pos_neg(U, y_U)
     iteration = 0
     model = None
+
+    if num_rows(Q) == 0 or num_rows(W) == 0:
+        print("WARNING Returning initial SVM because all of U was assigned label", y_U[0])
+        return initial_model
 
     # iterate SVM, each turn augmenting RN by the documents in Q classified negative
     while num_rows(W) > 0 and num_rows(Q) > 0:
@@ -379,9 +390,18 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel='linear'
 
         if verbose: print("\nIteration #", iteration, "\tReliable negative examples:", num_rows(RN))
 
-        clf = svm.LinearSVC(class_weight='balanced')
-        # clf = BaggingClassifier(svm.SVC(kernel=kernel, class_weight='balanced', probability=True),
-        # bootstrap=True, n_jobs=min(n_estimators, cpu_count()-1))
+        if kernel is not None:
+            if verbose: print("Building initial Bagging SVC classifier with Positive and Reliable Negative docs")
+            clf = (
+                BaggingClassifier(
+                        svm.SVC(class_weight='balanced', kernel=kernel), bootstrap=True,
+                        n_estimators=n_estimators, n_jobs=min(n_estimators, cpu_count()),
+                        max_samples=(1.0 if n_estimators < 4 else 1.0 / (n_estimators - 2))
+                )
+            )
+        else:
+            if verbose: print("Building initial linearSVM classifier with Positive and Reliable Negative docs")
+            clf = svm.LinearSVC(class_weight='balanced')
 
         model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
         y_U = model.predict(Q)

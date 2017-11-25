@@ -20,62 +20,24 @@ import multiprocessing as multi
 # ----------------------------------------------------------------
 
 
-def grid_search_linsvc(P, N, U, verbose=True):
-
-    model = LinearSVC()
-
-    grid_search = GridSearchCV(model,
-                               param_grid={'C'           : [2/x for x in range(1, 8)],
-                                           'class_weight': ['balanced'],
-                                           'loss': ['hinge', 'squared_hinge'],
-                                           },
-                               cv=3,
-                               n_jobs=min(multi.cpu_count(), 16),
-                               verbose=0)
-
-    if verbose:
-        print("Grid searching parameters for SVC")
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-
-    grid_search.fit(X, y)
-
-    print("SVC parameters:", grid_search.best_params_, "\tscore:", grid_search.best_score_)
-
-    return grid_search.best_estimator_
-
-def grid_search_svc(P, N, U, verbose=True):
-
-    model = SVC()
-
-    grid_search = GridSearchCV(model,
-                               param_grid={'C'           : [1/x for x in range(1, 4)],
-                                           'class_weight': ['balanced'],
-                                           'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
-                                           },
-                               cv=3,
-                               n_jobs=min(multi.cpu_count(), 16),
-                               verbose=0)
-
-    if verbose:
-        print("Grid searching parameters for SVC")
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-
-    grid_search.fit(X, y)
-
-    print("SVC parameters:", grid_search.best_params_, "\tscore:", grid_search.best_score_)
-
-    return grid_search.best_estimator_
-
-
-
-def iterate_SVM(P, N, U, verbose=True):
+def iterate_SVC(P, N, U, kernel="rbf", verbose=True):
     """run SVM iteratively until labels for U converge"""
 
-    print("Running iterative SVM")
+    print("Running iterative SVM with", kernel, "kernel")
 
-    return pu_two_step.iterate_SVM(P=P, U=U, RN=N, max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
+    return pu_two_step.iterate_SVM(P=P, U=U, RN=N,
+                                   kernel=kernel,
+                                   max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
+
+
+def iterate_linearSVC(P, N, U, verbose=True):
+    """run SVM iteratively until labels for U converge"""
+
+    print("Running iterative linear SVM")
+
+    return pu_two_step.iterate_SVM(P=P, U=U, RN=N,
+                                   kernel=None,
+                                   max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
 
 
 def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1.5, verbose=True):
@@ -197,3 +159,61 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
 
     if verbose: print("Returning final model after", iterations, "iterations")
     return new_model
+
+
+# ----------------------------------------------------------------
+# obsolete
+# ----------------------------------------------------------------
+
+
+
+# TODO move to not Supervised
+def grid_search_linearSVM(P, N, U, verbose=True):
+
+    model = LinearSVC()
+
+    grid_search = GridSearchCV(model,
+                               param_grid={'C'           : [2/x for x in range(1, 8)],
+                                           'class_weight': ['balanced'],
+                                           'loss': ['hinge', 'squared_hinge'],
+                                           },
+                               cv=3,
+                               n_jobs=min(multi.cpu_count(), 16),
+                               verbose=0)
+
+    if verbose:
+        print("Grid searching parameters for SVC")
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+
+    grid_search.fit(X, y)
+
+    print("SVC parameters:", grid_search.best_params_, "\tscore:", grid_search.best_score_)
+
+    return grid_search.best_estimator_
+
+# TODO move to not Supervised
+def grid_search_SVC(P, N, U, verbose=True):
+
+    model = SVC()
+
+    grid_search = GridSearchCV(model,
+                               param_grid={'C'           : [1/x for x in range(1, 4)],
+                                           'class_weight': ['balanced'],
+                                           'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
+                                           },
+                               cv=3,
+                               n_jobs=min(multi.cpu_count(), 16),
+                               verbose=0)
+
+    if verbose:
+        print("Grid searching parameters for SVC")
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+
+    grid_search.fit(X, y)
+
+    print("SVC parameters:", grid_search.best_params_, "\tscore:", grid_search.best_score_)
+
+    return grid_search.best_estimator_
+
