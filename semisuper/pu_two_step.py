@@ -350,7 +350,8 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, n_
 
     after each iteration, the documents in U classified as negative are moved to RN until there are none left.
     max_neg_ratio is the maximum accepted ratio of P to be classified as negative by final classifier.
-    if the final classifier regards more than max_neg_ratio of P as negative, return the initial one."""
+    if clf_selection is true and the final classifier regards more than max_neg_ratio of P as negative,
+    return the initial one."""
 
     y_P = np.ones(num_rows(P))
     y_RN = np.zeros(num_rows(RN))
@@ -391,7 +392,6 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, n_
         if verbose: print("\nIteration #", iteration, "\tReliable negative examples:", num_rows(RN))
 
         if kernel is not None:
-            if verbose: print("Building initial Bagging SVC classifier with Positive and Reliable Negative docs")
             clf = (
                 BaggingClassifier(
                         svm.SVC(class_weight='balanced', kernel=kernel), bootstrap=True,
@@ -400,7 +400,6 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, n_
                 )
             )
         else:
-            if verbose: print("Building initial linearSVM classifier with Positive and Reliable Negative docs")
             clf = svm.LinearSVC(class_weight='balanced')
 
         model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
