@@ -28,7 +28,6 @@ def grid_search_linsvc(P, N, U, verbose=True):
                                param_grid={'C'           : [2/x for x in range(1, 8)],
                                            'class_weight': ['balanced'],
                                            'loss': ['hinge', 'squared_hinge'],
-                                           'penalty' : ['l1', 'l2']
                                            },
                                cv=3,
                                n_jobs=min(multi.cpu_count(), 16),

@@ -44,7 +44,7 @@ def test_linsvc(P, N, U, X_test=None, y_test=None, sample_sentences=False):
 
     start_time = time.time()
 
-    model = ss_techniques.grid_search_svc(P, N, U)
+    model = ss_techniques.grid_search_linsvc(P, N, U)
 
     print("\nTraining grid-search linear SVC took %s seconds\n" % (time.time() - start_time))
 
