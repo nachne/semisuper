@@ -29,7 +29,7 @@ def grid_search_svc(P, N, U, verbose=True):
                                            'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
                                            },
                                cv=3,
-                               n_jobs=multi.cpu_count(),
+                               n_jobs=min(multi.cpu_count(), 16),
                                verbose=0)
 
     if verbose:

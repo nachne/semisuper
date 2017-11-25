@@ -260,5 +260,5 @@ def prepare_corpus(P_count=1000, N_count=1000, U_count=2000):
 # execute
 # ------------------
 
-P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(3000, 3000, 12000)
+P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(2000, 2000, 8000)
 test_all(P, N, U, X_test, y_test, sample_sentences=True)
