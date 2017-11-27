@@ -57,7 +57,7 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
                                 binary=binary)),
         ('selector', None if not selection else
         # selector(score_func=score_func, percentile=percentile)),
-        selector()),
+        factorization()),
         ('classifier', clf)
     ])
 
@@ -105,11 +105,21 @@ def vectorizer(words=True, wordgram_range=(1, 4), chars=True, chargram_range=(2,
                         ])
 
 
-# TODO not feasible with >> 50,000 features / >> 16,000 examples
-# def selector(score_func=chi2, percentile=20):
-#     return SelectPercentile(score_func=score_func, percentile=percentile)
+class identitySelector():
+    """feature selector that does nothing"""
+    def __init__(self):
+        return
+    def fit(self, X, y=None):
+        return self
+    def transform(self, X):
+        return X
 
-def selector(method='TruncatedSVD', n_components=1000):
+# TODO not feasible with >> 50,000 features / >> 16,000 examples
+def percentile_selector(score_func=chi2, percentile=20):
+    """supervised feature selector"""
+    return SelectPercentile(score_func=score_func, percentile=percentile)
+
+def factorization(method='TruncatedSVD', n_components=1000):
     # PCA, IncrementalPCA, FactorAnalysis, FastICA, LatentDirichletAllocation, TruncatedSVD, fastica
 
     sparse = {
@@ -122,7 +132,7 @@ def selector(method='TruncatedSVD', n_components=1000):
 
     if model is not None:
         return FeatureNamePipeline([("selector", model(n_components)),
-                                    ("normalizer", StandardScaler)])
+                                    ("normalizer", StandardScaler())]) # TODO Standard or MinMax?
 
     dense = {
         'PCA'           : PCA,
@@ -134,7 +144,7 @@ def selector(method='TruncatedSVD', n_components=1000):
     if model is not None:
         return FeatureNamePipeline([("densifier", Densifier()),
                                     ("selector", model(n_components)),
-                                    ("normalizer", StandardScaler)])
+                                    ("normalizer", StandardScaler())]) # TODO Standard or MinMax?
 
     else:
 

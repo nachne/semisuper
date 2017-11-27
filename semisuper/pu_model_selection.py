@@ -196,7 +196,7 @@ def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_rang
 
     selector = None
     if featureSelect:
-        selector = basic_pipeline.selector()
+        selector = basic_pipeline.factorization()
         selector.fit(transformedTrainData, trainLabels)
         transformedTrainData = selector.transform(transformedTrainData)
         transformedTestData = selector.transform(transformedTestData)

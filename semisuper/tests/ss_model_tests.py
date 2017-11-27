@@ -2,9 +2,12 @@ import random
 import time
 
 import numpy as np
+from scipy.sparse import csr_matrix, vstack
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, basic_pipeline, ss_techniques
-from semisuper.helpers import num_rows, unsparsify, eval_model, identitySelector
+from semisuper.helpers import num_rows, unsparsify, eval_model
+from basic_pipeline import identitySelector
+from semisuper.basic_pipeline import percentile_selector
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -25,11 +28,17 @@ print("PIBOSO other sentences:", len(piboso_other))
 
 def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
 
+    test_neg_self_training(P, N, U, X_test, y_test, sample_sentences)
+
+    # test_self_training(P, N, U, X_test, y_test, sample_sentences)
+
     # supervised thingies
+    test_supervised(P, N, U, X_test, y_test, sample_sentences)
     # test_svc(P, N, U, X_test, y_test, sample_sentences)
     # test_linearSVM(P, N, U, X_test, y_test, sample_sentences)
 
     test_iterative_linearSVM(P, N, U, X_test, y_test, sample_sentences)
+
     # poly, rbf, sigmoid go wrong
     # test_iterative_SVC(P, N, U, X_test, y_test, sample_sentences, kernel="poly")
     # test_iterative_SVC(P, N, U, X_test, y_test, sample_sentences, kernel="linear")
@@ -39,6 +48,86 @@ def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     # test_knn(P, N, U, X_test, y_test, sample_sentences)
     # test_em(P, N, U, X_test, y_test, sample_sentences)
     # test_label_propagation(P, N, U, X_test, y_test)
+
+
+    return
+
+
+def test_supervised(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+    print("\n\n"
+          "---------\n"
+          "SUPERVISED TECHNIQUES TEST\n"
+          "---------\n")
+
+    clfs = {
+        'sgd'    : ss_techniques.sgd,
+        'logreg' : ss_techniques.logreg,
+        'mlp'    : ss_techniques.mlp,
+        # 'dectree': ss_techniques.dectree,
+        # 'mnb'         : ss_techniques.mnb,
+        # 'randomforest': ss_techniques.randomforest
+    }
+
+    for name in clfs:
+        start_time = time.time()
+        print("\nSupervised training with", name)
+        model = clfs[name](P, N, U=None)
+        print("took", time.time() - start_time, "secs")
+        eval_model(model, X_test, y_test)
+        if sample_sentences:
+            print_sentences(model, name)
+    return
+
+
+def test_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=False, clf=None, confidence=0.8):
+    print("\n\n"
+          "---------\n"
+          "SELF-TRAINING TEST\n"
+          "---------\n")
+
+    start_time = time.time()
+
+    model = ss_techniques.self_training(P, N, U, confidence=confidence, clf=clf)
+
+    print("\nIterating Self-Training with", (clf or "Logistic Regression"),
+          "confidence =", confidence, "took %s\n" % (time.time() - start_time))
+
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "Self-Training {} {}".format((clf or "Logistic Regression"), confidence))
+    return
+
+def test_neg_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=False, clf=None):
+    print("\n\n"
+          "---------\n"
+          "NEG SELF-TRAINING TEST\n"
+          "---------\n")
+
+    start_time = time.time()
+    model = ss_techniques.neg_self_training(P, N, U, clf=clf)
+    print("\nIteratively expanding negative set with", (clf or "Logistic Regression"),
+          "took %s\n" % (time.time() - start_time))
+    eval_model(model, X_test, y_test)
+    if sample_sentences:
+        print_sentences(model, "Negative Self-Training {}".format((clf or "Logistic Regression")))
+
+    start_time = time.time()
+    model = ss_techniques.neg_self_training_sgd(P, N, U)
+    print("\nIteratively expanding negative set with SGDClassifier",
+          "took %s\n" % (time.time() - start_time))
+    eval_model(model, X_test, y_test)
+    if sample_sentences:
+        print_sentences(model, "Negative Self-Training SGD")
+
+    start_time = time.time()
+    model = ss_techniques.neg_self_training_mlp(P, N, U,)
+    print("\nIteratively expanding negative set with MLPClassifier",
+          "took %s\n" % (time.time() - start_time))
+    eval_model(model, X_test, y_test)
+    if sample_sentences:
+        print_sentences(model, "Negative Self-Training MLP")
+
     return
 
 
@@ -60,6 +149,7 @@ def test_iterative_SVC(P, N, U, X_test=None, y_test=None, sample_sentences=False
         print_sentences(model, "iterativeSVM")
     return
 
+
 def test_iterative_linearSVM(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------\n"
@@ -77,6 +167,7 @@ def test_iterative_linearSVM(P, N, U, X_test=None, y_test=None, sample_sentences
     if sample_sentences:
         print_sentences(model, "iterativeSVM")
     return
+
 
 def test_linearSVM(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
@@ -96,6 +187,7 @@ def test_linearSVM(P, N, U, X_test=None, y_test=None, sample_sentences=False):
         print_sentences(model, "linearSVC")
     return
 
+
 def test_svc(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
           "---------\n"
@@ -113,6 +205,7 @@ def test_svc(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     if sample_sentences:
         print_sentences(model, "SVC")
     return
+
 
 def test_knn(P, N, U, X_test=None, y_test=None, sample_sentences=False):
     print("\n\n"
@@ -240,7 +333,6 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 def prepare_corpus(ratio=0.5):
-
     hocpos_train, X_test_pos = train_test_split(hocpos, test_size=0.2)
     hocneg_train, X_test_neg = train_test_split(hocneg, test_size=0.2)
     civic_train, civic_test = train_test_split(civic, test_size=0.2)
@@ -287,16 +379,16 @@ def prepare_corpus(ratio=0.5):
                                            chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
     vectorizer.fit(np.concatenate((P_raw, N_raw, U_raw)))
 
-    P = unsparsify(vectorizer.transform(P_raw))
-    N = unsparsify(vectorizer.transform(N_raw))
-    U = unsparsify(vectorizer.transform(U_raw))
+    P = (vectorizer.transform(P_raw))
+    N = (vectorizer.transform(N_raw))
+    U = (vectorizer.transform(U_raw))
     X_test = vectorizer.transform(X_test_raw)
 
     print("Features before selection:", np.shape(P)[1])
 
-    selector = identitySelector()  # TODO FIXME chi2 does not help
+    selector = identitySelector()  # TODO FIXME chi2 does not help, PCA too slow
     # selector = basic_pipeline.selector()
-    selector.fit(np.concatenate((P, N, U)),
+    selector.fit(vstack((P, N, U)),
                  (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
     P = unsparsify(selector.transform(P))
     N = unsparsify(selector.transform(N))

@@ -1,12 +1,11 @@
-from itertools import islice
+import os.path
 from functools import reduce
-from operator import itemgetter, mul
+from itertools import islice
+from operator import mul
+
 import numpy as np
 from scipy.sparse import issparse
 from sklearn.metrics import classification_report as clsr, accuracy_score
-from sklearn.feature_selection.base import SelectorMixin
-from sklearn.utils import check_array
-import os.path
 
 
 # helper
@@ -35,17 +34,6 @@ def identity(x):
     return x
 
 
-class identitySelector():
-    def __init__(self):
-        return
-
-    def fit(self, X, y):
-        return self
-
-    def transform(self, X):
-        return X
-
-
 def positive(x):
     return x > 0
 
@@ -64,6 +52,8 @@ def arrays(args):
 
 def partition_pos_neg(X, y):
     """partitions X into elements where corresponding y element is nonzero VS zero"""
+    if not np.isscalar(y[0]):
+        y = np.round(y[:,1])
     pos_idx = np.nonzero(y)
     neg_idx = np.ones(num_rows(y), dtype=bool)
     neg_idx[pos_idx] = False
@@ -115,7 +105,7 @@ def pu_measure(y_P, y_U):
 
 def eval_model(model, X, y):
     if X is not None and y is not None:
-        y_pred = model.predict(X)
+        y_pred = np.round(model.predict(X))
         print("Accuracy:", accuracy_score(y, y_pred))
         print(clsr(y, y_pred))
     return

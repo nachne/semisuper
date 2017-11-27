@@ -1,8 +1,9 @@
 import random
 
 from semisuper import loaders, transformers
-from semisuper.helpers import identity, identitySelector, unsparsify
-from semisuper.basic_pipeline import selector, vectorizer
+from semisuper.helpers import identity, unsparsify
+from basic_pipeline import identitySelector
+from semisuper.basic_pipeline import factorization, vectorizer, percentile_selector
 from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -32,7 +33,7 @@ hocneg_ = random.sample(hocneg, 2000)
 
 min_df_word = 30
 min_df_char = 60
-n_components = 1000
+n_components = 100
 print("min_df: \tword:", min_df_word, "\tchar:", min_df_char, "\tn_components:", n_components)
 
 pp = TokenizePreprocessor()
@@ -41,7 +42,7 @@ v = vectorizer(words=True, wordgram_range=(1, 4),
                chars=True, chargram_range=(2, 6),
                rules=True, lemmatize=True,
                min_df_word=min_df_word, min_df_char=min_df_char, max_df=0.95)
-s = selector('TruncatedSVD')
+s = factorization('TruncatedSVD')
 
 pppl = Pipeline([
     ('vectorizer', v),
@@ -52,7 +53,7 @@ pppl = Pipeline([
 # vectorization and selection performance
 # ----------------------------------------------------------------
 
-test_corpus = np.concatenate((civic_, abstracts_, hocpos_, hocneg_))
+# test_corpus = np.concatenate((civic_, abstracts_, hocpos_, hocneg_))
 test_corpus = np.concatenate((civic, abstracts, hocpos, hocneg))
 
 print("Training preprocessing pipeline")
@@ -69,11 +70,11 @@ print("transforming took", time.time() - start_time, "secs. \t", np.shape(vector
 # LatentDirichletAllocation:    few topics!
 # 'NMF':                        slow
 sparse = ['TruncatedSVD']
-# PCA:
+# 'PCA':                        RAM
 # SparsePCA:
 # IncrementalPCA:
 # Factor Analysis:              slow
-dense = ['PCA']
+dense = []
 
 # NOT:
 # MiniBatchSparsePCA:           >15h/CPU, 16GB
@@ -82,14 +83,15 @@ dense = ['PCA']
 # LatentDirichletAllocation(n_topics=10, n_jobs=-1).fit(vectorized_corpus)
 # print("fitting LDA took", time.time() - start_time, "secs")
 
+
 for sel in sparse:
     start_time = time.time()
-    selector(sel, n_components).fit(vectorized_corpus)
+    factorization(sel, n_components).fit(vectorized_corpus)
     print("fitting", sel, "took", time.time() - start_time, "secs")
 
 for sel in dense:
     start_time = time.time()
-    selector(sel, n_components).fit(unsparsify(vectorized_corpus))
+    factorization(sel, n_components).fit(unsparsify(vectorized_corpus))
     print("fitting", sel, "took", time.time() - start_time, "secs")
 
 # sys.exit(0)

@@ -5,7 +5,8 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline
-from semisuper.helpers import num_rows, unsparsify, eval_model, identitySelector, run_fun
+from semisuper.helpers import num_rows, unsparsify, eval_model, run_fun
+from basic_pipeline import identitySelector
 from functools import partial
 import multiprocessing as multi
 

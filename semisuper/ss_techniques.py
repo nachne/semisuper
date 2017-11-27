@@ -1,14 +1,22 @@
 import random
 
 import numpy as np
+from scipy.sparse import csr_matrix, vstack
 from sklearn import semi_supervised
 from sklearn.neighbors import KNeighborsClassifier, kneighbors_graph
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.svm import SVC, NuSVC, LinearSVC
+from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import BaggingClassifier
 
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso, ElasticNet
+from sklearn.svm import SVC, LinearSVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.naive_bayes import MultinomialNB
+
 from semisuper import pu_two_step
-from semisuper.helpers import num_rows, partition_pos_neg_unsure, arrays
+from semisuper.helpers import num_rows, partition_pos_neg, partition_pos_neg_unsure, arrays
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_two_step import almost_equal
 
@@ -20,7 +28,95 @@ import multiprocessing as multi
 # ----------------------------------------------------------------
 
 
+def self_training(P, N, U, confidence=0.8, clf=None, verbose=True):
+    """Generic Self-Training with optional classifier (must implement predict_proba) and confidence threshold.
+    Default: Logistic Regression"""
 
+    print("Running standard Self-Training with confidence threshold", confidence,
+          "and classifier", (clf or "Logistic Regression"))
+
+    if verbose: print("Training initial classifier")
+
+    if clf is not None:
+        if isinstance(clf, type):
+            model = clf()
+        else:
+            model = clf
+    else:
+        model = LogisticRegression(solver='sag', C=1.0)
+    model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+
+    ypU = model.predict_proba(U)
+    RP, RN, U = partition_pos_neg_unsure(U, ypU, confidence)
+
+    iteration = 0
+
+    while np.size(RP) or np.size(RN):
+        iteration += 1
+        if verbose:
+            print("Iteration #", iteration, "\tRP", num_rows(RP), "\tRN", num_rows(RN), "\tunclear:", num_rows(U))
+        P = np.concatenate((P, RP)) if np.size(RP) else P
+        N = np.concatenate((N, RN)) if np.size(RN) else N
+
+        model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+
+        if not np.size(U):
+            break
+
+        ypU = model.predict_proba(U)
+        RP, RN, U = partition_pos_neg_unsure(U, ypU, confidence)
+
+    print("Returning final model after", iteration, "iterations.")
+    return model
+
+def neg_self_training(P, N, U, clf=None, verbose=True):
+    """Iteratively augment negative set. Optional classifier (must implement predict_proba) and confidence threshold.
+    Default: Logistic Regression"""
+
+    print("Iteratively augmenting negative set with", (clf or "Logistic Regression"), "classifier")
+
+    if verbose: print("Training initial classifier")
+
+    if clf is not None:
+        if isinstance(clf, type):
+            model = clf()
+        else:
+            model = clf
+    else:
+        model = LogisticRegression(solver='sag', C=1.0)
+
+    model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+
+    ypU = model.predict_proba(U)
+    U, RN = partition_pos_neg(U, ypU)
+
+    iteration = 0
+
+    while np.size(RN):
+        iteration += 1
+        if verbose:
+            print("Iteration #", iteration, "\tRN", num_rows(RN), "\tremaining:", num_rows(U))
+
+        N = np.concatenate((N, RN)) if np.size(RN) else N
+
+        model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+
+        if not np.size(U):
+            break
+
+        ypU = model.predict_proba(U)
+        U, RN = partition_pos_neg(U, ypU)
+
+    print("Returning final model after", iteration, "iterations.")
+    return model
+
+neg_self_training_logit = neg_self_training
+
+def neg_self_training_mlp(P, N, U, activation="relu", verbose=True):
+    return neg_self_training(P, N, U, clf=MLPClassifier(activation=activation), verbose=verbose)
+
+def neg_self_training_sgd(P, N, U, loss="squared_hinge", n_jobs=2, verbose=True):
+    return neg_self_training(P, N, U, clf=SGDClassifier(loss=loss, n_jobs=n_jobs), verbose=verbose)
 
 def iterate_linearSVC(P, N, U, verbose=True):
     """run SVM iteratively until labels for U converge"""
@@ -93,6 +189,17 @@ def iterate_knn(P, N, U):
     return knn
 
 
+# slow
+def iterate_SVC(P, N, U, kernel="rbf", verbose=True):
+    """run SVM iteratively until labels for U converge"""
+
+    print("Running iterative SVM with", kernel, "kernel")
+
+    return pu_two_step.iterate_SVM(P=P, U=U, RN=N,
+                                   kernel=kernel,
+                                   max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
+
+
 # horrible results!
 def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-1):
     X = np.concatenate((P, N, U))
@@ -103,16 +210,6 @@ def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-
                                                    n_jobs=n_jobs)
     propagation.fit(X, y_init)
     return propagation
-
-# slow
-def iterate_SVC(P, N, U, kernel="rbf", verbose=True):
-    """run SVM iteratively until labels for U converge"""
-
-    print("Running iterative SVM with", kernel, "kernel")
-
-    return pu_two_step.iterate_SVM(P=P, U=U, RN=N,
-                                   kernel=kernel,
-                                   max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
 
 
 # ----------------------------------------------------------------
@@ -164,23 +261,74 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
 
 
 # ----------------------------------------------------------------
-# obsolete
+# supervised
 # ----------------------------------------------------------------
 
+# RandomForestClassifier
+# LogisticRegression, SGDClassifier, Lasso, ElasticNet
+# SVC, LinearSVC
+# DecisionTreeClassifier
+# MLPClassifier
+# MultinomialNB
+
+# quite good and fast (grid search: not so fast)
+def logreg(P, N, U=None, verbose=True):
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = GridSearchCV(estimator=LogisticRegression(),
+                         param_grid={
+                             'C'           : [10 ** x for x in range(-3, 3)],
+                             'solver'      : ['sag'],
+                             'class_weight': ['balanced']
+                         },
+                         ).fit(X, y)
+    print("Best hyperparameters for Logistic Regression:", model.best_params_)
+    print("Grid search score:", model.best_score_)
+    return model.best_estimator_
+
+
+def sgd(P, N, U, loss="modified_huber", verbose=True):
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = SGDClassifier(loss=loss).fit(X, y)
+    return model
+
+
+# bad (biased towards one class)
+def mnb(P, N, U, verbose=True):
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = MultinomialNB().fit(X, y)
+    return model
+
+
+# very good but slow
+def mlp(P, N, U, verbose=True):
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = MLPClassifier().fit(X, y)
+    return model
+
+
+# ok but slow
+def dectree(P, N, U, verbose=True):
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = DecisionTreeClassifier().fit(X, y)
+    return model
 
 
 # TODO move to Supervised
 def grid_search_linearSVM(P, N, U, verbose=True):
-
     model = LinearSVC()
 
     grid_search = GridSearchCV(model,
-                               param_grid={'C'           : [10**x for x in range(-5, 5, 2)],
+                               param_grid={'C'           : [10 ** x for x in range(-5, 5, 2)],
                                            'class_weight': ['balanced'],
-                                           'loss': ['hinge', 'squared_hinge'],
+                                           'loss'        : ['hinge', 'squared_hinge'],
                                            },
                                cv=3,
-                               n_jobs=min(multi.cpu_count(), 16),
+                               n_jobs=2,  # min(multi.cpu_count(), 16),
                                verbose=0)
 
     if verbose:
@@ -194,15 +342,15 @@ def grid_search_linearSVM(P, N, U, verbose=True):
 
     return grid_search.best_estimator_
 
+
 # TODO move to Supervised
 def grid_search_SVC(P, N, U, verbose=True):
-
     model = SVC()
 
     grid_search = GridSearchCV(model,
-                               param_grid={'C'           : [10**x for x in range(-5, 5, 2)],
+                               param_grid={'C'           : [10 ** x for x in range(-5, 5, 2)],
                                            'class_weight': ['balanced'],
-                                           'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
+                                           'kernel'      : ['linear', 'poly', 'rbf', 'sigmoid']
                                            },
                                cv=3,
                                n_jobs=min(multi.cpu_count(), 16),
@@ -219,3 +367,26 @@ def grid_search_SVC(P, N, U, verbose=True):
 
     return grid_search.best_estimator_
 
+
+# terrible
+def lasso(P, N, U, verbose=True):
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = Lasso().fit(X, y)
+    return model
+
+
+# terrible
+def elastic(P, N, U, verbose=True):
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = Lasso().fit(X, y)
+    return model
+
+
+# bad
+def randomforest(P, N, U, verbose=True):
+    X = np.concatenate((P, N))
+    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = RandomForestClassifier().fit(X, y)
+    return model
