@@ -10,11 +10,12 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import BaggingClassifier
 
 
-def biased_SVM_grid_search(P, U, Cs=None, kernel='linear', n_estimators=12, verbose=False):
+def biased_SVM_grid_search(P, U, Cs=None, kernel='linear', n_estimators=9, verbose=False):
     if Cs is None:
         Cs = [10 ** x for x in range(-12, 12, 2)]
 
-    print("Running Biased-SVM with balanced class weights and grid search over", len(Cs), "C values")
+    if verbose:
+        print("Running Biased-SVM with balanced class weights and grid search over", len(Cs), "C values")
 
     model = BaggingClassifier(LinearSVC())
 
@@ -56,7 +57,7 @@ def biased_SVM_weight_selection(P, U,
     # default values
     # TODO refactor parameters, find good range of pos and neg weights
     if Cs is None:
-        Cs = [10 ** x for x in range(1, 5, 1)]
+        Cs = [10 ** x for x in range(-12, 12, 2)]
     if Cs_neg is None:
         Cs_neg = [1]  # arange(0.01, 0.63, 0.04)
     if Cs_pos_factors is None:
@@ -65,7 +66,8 @@ def biased_SVM_weight_selection(P, U,
     Cs = [(C, C_neg * j, C_neg)
           for C in Cs for C_neg in Cs_neg for j in Cs_pos_factors]
 
-    print("Running Biased-SVM with range of C and positive class weight factors.",
+    if verbose:
+        print("Running Biased-SVM with range of C and positive class weight factors.",
           num_rows(Cs), "parameter combinations.")
 
     P_train, P_test = train_test_split(P, test_size=test_size)
@@ -83,7 +85,7 @@ def biased_SVM_weight_selection(P, U,
      for s in score_weights]
     if verbose:
         print("\nBest model has parameters", best_score_params[1], "and PU-score", best_score_params[0])
-    print("Building final classifier")
+        print("Building final classifier")
 
     model = build_biased_SVM(concatenate((P, U)),
                              concatenate((ones(num_rows(P)), zeros(num_rows(U)))),
@@ -144,7 +146,7 @@ class BiasedSVM(LinearSVC):
                  random_state=None):
         self.param_class_weight = {'C_pos': class_weight[1], 'C_neg': class_weight[0], 'C': C}
 
-        super(BiasedSVM, self).__init__(C=C, class_weight=class_weight, # kernel='linear',
+        super(BiasedSVM, self).__init__(C=C, class_weight=class_weight,  # kernel='linear',
                                         tol=tol, verbose=verbose, max_iter=max_iter, random_state=random_state)
 
     def get_class_weights(self):

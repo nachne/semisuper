@@ -30,8 +30,8 @@ hocneg_ = random.sample(hocneg, 2000)
 # Pipeline
 # ----------------------------------------------------------------
 
-min_df_word = 50
-min_df_char = 100
+min_df_word = 30
+min_df_char = 60
 n_components = 1000
 print("min_df: \tword:", min_df_word, "\tchar:", min_df_char, "\tn_components:", n_components)
 
@@ -52,7 +52,7 @@ pppl = Pipeline([
 # vectorization and selection performance
 # ----------------------------------------------------------------
 
-# test_corpus = np.concatenate((civic_, abstracts_, hocpos_, hocneg_))
+test_corpus = np.concatenate((civic_, abstracts_, hocpos_, hocneg_))
 test_corpus = np.concatenate((civic, abstracts, hocpos, hocneg))
 
 print("Training preprocessing pipeline")
@@ -67,12 +67,13 @@ print("transforming took", time.time() - start_time, "secs. \t", np.shape(vector
 
 # TruncatedSVD:                 ok              3.5min at cutoff 50/100
 # LatentDirichletAllocation:    few topics!
-sparse = ['TruncatedSVD', 'NMF']
+# 'NMF':                        slow
+sparse = ['TruncatedSVD']
 # PCA:
 # SparsePCA:
 # IncrementalPCA:
-# Factor Analysis:
-dense = ['PCA', 'FactorAnalysis']
+# Factor Analysis:              slow
+dense = ['PCA']
 
 # NOT:
 # MiniBatchSparsePCA:           >15h/CPU, 16GB
@@ -91,7 +92,7 @@ for sel in dense:
     selector(sel, n_components).fit(unsparsify(vectorized_corpus))
     print("fitting", sel, "took", time.time() - start_time, "secs")
 
-sys.exit(0)
+# sys.exit(0)
 
 # ----------------------------------------------------------------
 # Regex tests
@@ -150,33 +151,37 @@ print(transformers.sentence_tokenize(
 
 print("\nShortest sentences")
 print("\nCIViC:\n")
-[print(x, "\t", pp.transform([x]))
- for x in sorted(civic, key=len)[:20]]
+[print(x, "\t", pp.transform([x])) for x in sorted(civic, key=len)[:20]]
 print("\nAbstracts:\n")
 [print(x, "\t", pp.transform([x])) for x in sorted(abstracts, key=len)[:20]]
-print("\nPIBOSO other:\n")
-[print(x, "\t", pp.transform([x]))
- for x in sorted(piboso_other, key=len)[:20]]
+print("\nHoC pos:\n")
+[print(x, "\t", pp.transform([x])) for x in sorted(hocpos, key=len)[:20]]
+print("\nHoC neg:\n")
+[print(x, "\t", pp.transform([x])) for x in sorted(hocneg, key=len)[:20]]
 print("\nPIBOSO outcome:\n")
 [print(x, "\t", pp.transform([x])) for x in sorted(piboso_outcome, key=len)[:20]]
+print("\nPIBOSO other:\n")
+[print(x, "\t", pp.transform([x])) for x in sorted(piboso_other, key=len)[:20]]
 
 print("\nLongest sentences")
 print("\nCIViC:\n")
-[print(x, "\t", pp.transform([x]))
- for x in sorted(civic, key=len)[-20:]]
+[print(x, "\t", pp.transform([x])) for x in sorted(civic, key=len)[-20:]]
 print("\nAbstracts:\n")
 [print(x, "\t", pp.transform([x])) for x in sorted(abstracts, key=len)[-20:]]
-print("\nPIBOSO other:\n")
-[print(x, "\t", pp.transform([x]))
- for x in sorted(piboso_other, key=len)[-20:]]
+print("\nHoC pos:\n")
+[print(x, "\t", pp.transform([x])) for x in sorted(hocpos, key=len)[-20:]]
+print("\nHoC neg:\n")
+[print(x, "\t", pp.transform([x])) for x in sorted(hocneg, key=len)[-20:]]
 print("\nPIBOSO outcome:\n")
 [print(x, "\t", pp.transform([x])) for x in sorted(piboso_outcome, key=len)[-20:]]
+print("\nPIBOSO other:\n")
+[print(x, "\t", pp.transform([x])) for x in sorted(piboso_other, key=len)[-20:]]
 
 print("\n----------------------------------------------------------------",
       "\nWord vectors for subsets of CIViC and Abstracts",
       "\n----------------------------------------------------------------\n")
 
 [print(x, "\n", pp.transform([x]), "\n")
- for x in civic_]
+ for x in civic_[1:10]]
 
-[print(x, "\n", pp.transform([x]), "\n") for x in abstracts_]
+[print(x, "\n", pp.transform([x]), "\n") for x in abstracts_[1:10]]

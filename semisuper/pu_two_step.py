@@ -15,7 +15,7 @@ from multiprocessing import cpu_count
 # ----------------------------------------------------------------
 
 
-def cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.2, alpha=16, beta=4, verbose=False):
+def cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.2, alpha=16, beta=4, kernel=None, C=0.1, verbose=False):
     """Two-Step technique based on Cosine Similarity, Rocchio and SVM
 
 
@@ -36,14 +36,14 @@ def cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.2, alpha=16, beta=4, verbose=Fal
 
     # step2
     if verbose: print("\nIterating SVM with P, U-RN, and RN")
-    model = iterate_SVM(P, U_minus_RN, RN, max_neg_ratio=max_neg_ratio, verbose=verbose)
+    model = iterate_SVM(P, U_minus_RN, RN, kernel=kernel, C=C, max_neg_ratio=max_neg_ratio, verbose=verbose)
 
     if verbose: train_report(model, P, U)
 
     return model
 
-
-def roc_SVM(P, U, max_neg_ratio=0.1, alpha=16, beta=4, verbose=False):
+# TODO: good default C param
+def roc_SVM(P, U, max_neg_ratio=0.1, alpha=16, beta=4, kernel=None, C=0.1, verbose=False):
     """Two-Step technique based on Rocchio and SVM
 
     Step 1: Find Reliable Negative docs using Rocchio (similarity to mean positive/unlabelled vector)
@@ -59,7 +59,7 @@ def roc_SVM(P, U, max_neg_ratio=0.1, alpha=16, beta=4, verbose=False):
 
     # step2
     if verbose: print("\nIterating SVM with P, U-RN, and RN")
-    model = iterate_SVM(P, U_minus_RN, RN, max_neg_ratio=max_neg_ratio, verbose=verbose)
+    model = iterate_SVM(P, U_minus_RN, RN, kernel=kernel, C=C, max_neg_ratio=max_neg_ratio, verbose=verbose)
 
     if verbose: train_report(model, P, U)
 
@@ -345,7 +345,7 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, clf_
 
 
 # TODO if linear kernel is sufficient, LinearSVC instead of SVC
-def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, n_estimators=8, verbose=False):
+def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=0.1, n_estimators=9, verbose=False):
     """runs an SVM classifier trained on P and RN iteratively, augmenting RN
 
     after each iteration, the documents in U classified as negative are moved to RN until there are none left.
@@ -357,18 +357,18 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, n_
     y_RN = np.zeros(num_rows(RN))
 
     if kernel is not None:
-        if verbose: print("Building initial Bagging SVC (", n_estimators, " clfs )",
+        if verbose: print("Building initial Bagging SVC (", n_estimators, "clfs)",
                           "with Positive and Reliable Negative docs")
         clf = (
             BaggingClassifier(
-                    svm.SVC(class_weight='balanced', kernel=kernel), bootstrap=True,
-                    n_estimators=n_estimators, n_jobs=min(n_estimators, cpu_count()),
+                    svm.SVC(class_weight='balanced', kernel=kernel, C=C)
+                    , bootstrap=True, n_estimators=n_estimators, n_jobs=min(n_estimators, cpu_count()),
                     max_samples=(1.0 if n_estimators < 4 else 1.0 / (n_estimators - 2))
             )
         )
     else:
         if verbose: print("Building initial linearSVM classifier with Positive and Reliable Negative docs")
-        clf = svm.LinearSVC(class_weight='balanced')
+        clf = svm.LinearSVC(class_weight='balanced', C=C)
 
     initial_model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
 
@@ -392,15 +392,14 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, n_
         if verbose: print("\nIteration #", iteration, "\tReliable negative examples:", num_rows(RN))
 
         if kernel is not None:
-            clf = (
-                BaggingClassifier(
-                        svm.SVC(class_weight='balanced', kernel=kernel), bootstrap=True,
-                        n_estimators=n_estimators, n_jobs=min(n_estimators, cpu_count()),
-                        max_samples=(1.0 if n_estimators < 4 else 1.0 / (n_estimators - 2))
-                )
+            clf = (BaggingClassifier(
+                    svm.SVC(class_weight='balanced', kernel=kernel, C=C)
+                    , bootstrap=True, n_estimators=n_estimators, n_jobs=min(n_estimators, cpu_count()),
+                    max_samples=(1.0 if n_estimators < 4 else 1.0 / (n_estimators - 2))
+            )
             )
         else:
-            clf = svm.LinearSVC(class_weight='balanced')
+            clf = svm.LinearSVC(class_weight='balanced', C=C)
 
         model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
         y_U = model.predict(Q)

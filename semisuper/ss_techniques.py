@@ -21,15 +21,6 @@ import multiprocessing as multi
 
 
 
-def iterate_SVC(P, N, U, kernel="rbf", verbose=True):
-    """run SVM iteratively until labels for U converge"""
-
-    print("Running iterative SVM with", kernel, "kernel")
-
-    return pu_two_step.iterate_SVM(P=P, U=U, RN=N,
-                                   kernel=kernel,
-                                   max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
-
 
 def iterate_linearSVC(P, N, U, verbose=True):
     """run SVM iteratively until labels for U converge"""
@@ -113,6 +104,16 @@ def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-
     propagation.fit(X, y_init)
     return propagation
 
+# slow
+def iterate_SVC(P, N, U, kernel="rbf", verbose=True):
+    """run SVM iteratively until labels for U converge"""
+
+    print("Running iterative SVM with", kernel, "kernel")
+
+    return pu_two_step.iterate_SVM(P=P, U=U, RN=N,
+                                   kernel=kernel,
+                                   max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
+
 
 # ----------------------------------------------------------------
 # implementations
@@ -168,13 +169,13 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
 
 
 
-# TODO move to not Supervised
+# TODO move to Supervised
 def grid_search_linearSVM(P, N, U, verbose=True):
 
     model = LinearSVC()
 
     grid_search = GridSearchCV(model,
-                               param_grid={'C'           : [2/x for x in range(1, 8)],
+                               param_grid={'C'           : [10**x for x in range(-5, 5, 2)],
                                            'class_weight': ['balanced'],
                                            'loss': ['hinge', 'squared_hinge'],
                                            },
@@ -183,7 +184,7 @@ def grid_search_linearSVM(P, N, U, verbose=True):
                                verbose=0)
 
     if verbose:
-        print("Grid searching parameters for SVC")
+        print("Grid searching parameters for Linear SVC")
     X = np.concatenate((P, N))
     y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
 
@@ -193,13 +194,13 @@ def grid_search_linearSVM(P, N, U, verbose=True):
 
     return grid_search.best_estimator_
 
-# TODO move to not Supervised
+# TODO move to Supervised
 def grid_search_SVC(P, N, U, verbose=True):
 
     model = SVC()
 
     grid_search = GridSearchCV(model,
-                               param_grid={'C'           : [1/x for x in range(1, 4)],
+                               param_grid={'C'           : [10**x for x in range(-5, 5, 2)],
                                            'class_weight': ['balanced'],
                                            'kernel': ['linear', 'poly', 'rbf', 'sigmoid']
                                            },

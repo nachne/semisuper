@@ -8,7 +8,7 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import SelectPercentile, chi2
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import Binarizer, MinMaxScaler
+from sklearn.preprocessing import Binarizer, MinMaxScaler, StandardScaler
 from sklearn.decomposition import *
 from functools import partial
 import re
@@ -71,8 +71,8 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
     return model
 
 
-def vectorizer(words=True, wordgram_range=(1, 3), chars=True, chargram_range=(3, 6), binary=False, rules=True,
-               lemmatize=True, min_df_word=30, min_df_char=60, max_df=0.95):
+def vectorizer(words=True, wordgram_range=(1, 4), chars=True, chargram_range=(2, 6), binary=False, rules=True,
+               lemmatize=True, min_df_word=20, min_df_char=20, max_df=1.0):
     return FeatureUnion(n_jobs=2,
                         transformer_list=[
                             ("wordgrams", None if not words else
@@ -121,7 +121,8 @@ def selector(method='TruncatedSVD', n_components=1000):
     model = sparse.get(method, None)
 
     if model is not None:
-        return FeatureNamePipeline([("selector", model(n_components))])
+        return FeatureNamePipeline([("selector", model(n_components)),
+                                    ("normalizer", StandardScaler)])
 
     dense = {
         'PCA'           : PCA,
@@ -132,11 +133,12 @@ def selector(method='TruncatedSVD', n_components=1000):
 
     if model is not None:
         return FeatureNamePipeline([("densifier", Densifier()),
-                                    ("selector", model(n_components))])
+                                    ("selector", model(n_components)),
+                                    ("normalizer", StandardScaler)])
 
     else:
 
-        return SparsePCA(n_components)
+        return TruncatedSVD(n_components)
 
 
 def show_most_informative_features(model: object, text: object = None, n: object = 40) -> object:

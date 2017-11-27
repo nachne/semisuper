@@ -1,4 +1,4 @@
-from numpy import concatenate, ones, zeros
+from numpy import concatenate, ones, zeros, vstack
 from scipy import vstack
 from semisuper.basic_pipeline import train_clf
 from semisuper.helpers import partition_pos_neg, num_rows, label2num
@@ -119,9 +119,9 @@ class BinaryRocchio(BaseEstimator, ClassifierMixin):
 
         proba = (sim_p - sim_n) / 2 + 0.5
 
-        return proba
+        return vstack((1-proba, proba)).T
 
     def predict(self, X):
-        proba = self.predict_proba(X)
+        proba = self.predict_proba(X)[:,1]
 
         return proba.round()

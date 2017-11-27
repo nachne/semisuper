@@ -32,7 +32,7 @@ def test_all(P, U, X_test=None, y_test=None, sample_sentences=False):
     test_roc_svm(P, U, X_test, y_test, sample_sentences)
     test_cr_svm(P, U, X_test, y_test, sample_sentences)
     # test_roc_em(P, U, X_test, y_test, sample_sentences)
-    test_spy_svm(P, U, X_test, y_test, sample_sentences)
+    # test_spy_svm(P, U, X_test, y_test, sample_sentences)
     # test_biased_svm_grid(P, U, X_test, y_test, sample_sentences)
     test_biased_svm(P, U, X_test, y_test, sample_sentences)
     return
@@ -249,29 +249,34 @@ def print_sentences(model, modelname=""):
 # prepare corpus, vectors, vectorizer, selector
 # ------------------
 
-def prepare_corpus(P_count=1000, U_count=3000):
-    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=0.3)
-    hocneg_train, X_test_neg = train_test_split(hocneg, test_size=0.3)
-    civic_train, civic_test = train_test_split(civic, test_size=0.3)
-    abstracts_train, abstracts_test = train_test_split(abstracts, test_size=0.01)
+def prepare_corpus(ratio=0.5):
+    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=0.2)
+    hocneg_train, X_test_neg = train_test_split(hocneg, test_size=0.2)
+    civic_train, civic_test = train_test_split(civic, test_size=0.2)
 
-    half_test_size = min(int((P_count + U_count) / 8), num_rows(X_test_pos))
-    P_raw = random.sample(hocpos_train + civic_train, P_count)
-    U_raw = random.sample(hocneg_train + abstracts_train, U_count)
-    X_test_raw = random.sample(X_test_pos, half_test_size) + random.sample(X_test_neg, half_test_size)
-    y_test = np.concatenate((np.ones(half_test_size), np.zeros(half_test_size)))
+    P_raw = hocpos_train + civic_train
+    U_raw = abstracts + hocneg_train
 
-    print("\nPU TRAINING"
+    if ratio < 1.0:
+        P_raw = random.sample(P_raw, int(ratio * num_rows(P_raw)))
+        U_raw = random.sample(U_raw, int(ratio * num_rows(U_raw)))
+        X_test_pos = random.sample(X_test_pos, int(ratio * num_rows(X_test_pos)))
+        X_test_neg = random.sample(X_test_neg, int(ratio * num_rows(X_test_neg)))
+
+    X_test_raw = X_test_pos + X_test_neg
+    y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
+
+    print("\nPU TRAINING", "(on", 100 * ratio, "% of available data)",
           "\tP: HOC POS"
           , "+ CIVIC"
           , "(", num_rows(P_raw), ")"
           , "\tN: HOC NEG"
           , "+ ABSTRACTS"
           , "(", num_rows(U_raw), ")"
-          , "TEST SET (HOC POS + HOC NEG):", 2 * half_test_size
+          , "TEST SET (HOC POS + HOC NEG):", num_rows(X_test_raw)
           )
 
-    words, wordgram_range = [False, (1, 3)]  # TODO change back to True, (1,3)
+    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,3)
     chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (2,6)
     rules, lemmatize = [True, True]
 
@@ -310,5 +315,5 @@ def prepare_corpus(P_count=1000, U_count=3000):
 # execute
 # ------------------
 
-P, U, X_test, y_test, vectorizer, selector = prepare_corpus(4000, 8000)  # 4000 VS 8000
+P, U, X_test, y_test, vectorizer, selector = prepare_corpus(1.0)  # 4000 VS 8000
 test_all(P, U, X_test, y_test, sample_sentences=True)
