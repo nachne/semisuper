@@ -6,8 +6,7 @@ from scipy.sparse import csr_matrix, vstack
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, basic_pipeline, ss_techniques
 from semisuper.helpers import num_rows, unsparsify, eval_model
-from basic_pipeline import identitySelector
-from semisuper.basic_pipeline import percentile_selector
+from semisuper.basic_pipeline import identitySelector, percentile_selector, factorization
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
