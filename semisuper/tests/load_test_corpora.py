@@ -3,15 +3,19 @@ import os.path
 import re
 
 from sklearn.model_selection import train_test_split
+from sklearn.datasets import fetch_20newsgroups
+import numpy as np
 
 
 # ----------------------------------------------------------------
 # top-level for getting noisy training and validation data
 # ----------------------------------------------------------------
 
+# ------------------------------
+# for PU
 
-def P_U_p_n_uci(neg_noise=0.05, pos_in_u=0.6, test_size=0.1):
-    P, N = pos_neg_uci()
+def P_U_p_n_uci_sentences(neg_noise=0.05, pos_in_u=0.6, test_size=0.1):
+    P, N = pos_neg_sentences()
     return mixed_pu(P, N, neg_noise=neg_noise, pos_in_u=pos_in_u, test_size=test_size)
 
 
@@ -25,12 +29,57 @@ def P_U_p_n_sms_spam(neg_noise=0.05, pos_in_u=0.6, test_size=0.1):
     return mixed_pu(P, N, neg_noise=neg_noise, pos_in_u=pos_in_u, test_size=test_size)
 
 
+def list_P_U_p_n_20_newsgroups(neg_noise=0.05, pos_in_u=0.6, test_size=0.1, ratio=0.5):
+    all_categories = pos_neg_20_newsgroups(ratio=ratio)
+
+    for (P, N) in all_categories:
+        yield mixed_pu(P, N, neg_noise=neg_noise, pos_in_u=pos_in_u, test_size=test_size)
+
+
+# ------------------------------
+# for Semi-Supervised
+
+def P_N_U_p_n_uci_sentences(neg_noise=0.05, pos_in_u=0.6, neg_in_u=0.6, test_size=0.1):
+    P, N = pos_neg_sentences()
+    return mixed_pnu(P, N, neg_noise=neg_noise, pos_in_u=pos_in_u, neg_in_u=neg_in_u, test_size=test_size)
+
+
+def P_N_U_p_n_amazon(neg_noise=0.05, pos_in_u=0.6, neg_in_u=0.6, test_size=0.1):
+    P, N = pos_neg_amazon()
+    return mixed_pnu(P, N, neg_noise=neg_noise, pos_in_u=pos_in_u, neg_in_u=neg_in_u, test_size=test_size)
+
+
+def P_N_U_p_n_sms_spam(neg_noise=0.05, pos_in_u=0.6, neg_in_u=0.6, test_size=0.1):
+    P, N = pos_neg_sms_spam()
+    return mixed_pnu(P, N, neg_noise=neg_noise, pos_in_u=pos_in_u, neg_in_u=neg_in_u, test_size=test_size)
+
+
+def list_P_N_U_p_n_20_newsgroups(neg_noise=0.05, pos_in_u=0.6, neg_in_u=0.6, test_size=0.1, ratio=0.5):
+    all_categories = pos_neg_20_newsgroups(ratio=ratio)
+
+    for (P, N) in all_categories:
+        yield mixed_pnu(P, N, neg_noise=neg_noise, pos_in_u=pos_in_u, neg_in_u=neg_in_u, test_size=test_size)
+
+
 # ----------------------------------------------------------------
 # loader functions
 # ----------------------------------------------------------------
 
+def pos_neg_20_newsgroups(ratio=0.5):
+    ng = fetch_20newsgroups(subset="all", remove=("headers",))
 
-def pos_neg_uci():
+    X = np.array(ng.data)
+    y = np.array(ng.target)
+
+    X, _, y, _ = train_test_split(X, y, train_size=ratio)
+
+    for category in np.unique(y):
+        P = X[np.where(y == category)]
+        N = X[np.where(y != category)]
+        yield P, N
+
+
+def pos_neg_sentences():
     def file_path(file_relative):
         """return the correct file path given the file's path relative to helpers"""
         return os.path.join(os.path.dirname(__file__), file_relative)
@@ -144,7 +193,27 @@ def mixed_pu(P, N, neg_noise=0.05, pos_in_u=0.6, test_size=0.2):
     P_P, P_U = train_test_split(P_train, test_size=pos_in_u)
     N_U, N_noise = train_test_split(N_train, test_size=neg_noise * (len(P) / len(N)))
 
-    P_ = P_P + N_noise
-    U_ = P_U + N_U
+    P_ = np.concatenate((P_P, N_noise))
+    U_ = np.concatenate((P_U, N_U))
 
-    return P_, U_, P_test, N_test
+    return P_, U_, np.array(P_test), np.array(N_test)
+
+
+def mixed_pnu(P, N, neg_noise=0.05, pos_in_u=0.6, neg_in_u=0.6, test_size=0.2):
+    """returns P with optional negative noise, U with pos_in_u of P, and positive and negative validation set"""
+
+    print("\nParameters for training data:\n",
+          100 * pos_in_u, "% of positive documents are hidden in unlabelled set U.\n",
+          100 * pos_in_u, "% of negative documents are hidden in unlabelled set U.\n",
+          100 * neg_noise, "% of P is actually negative, to simulate noise.\n")
+
+    P_train, P_test = train_test_split(P, test_size=test_size)
+    N_train, N_test = train_test_split(N, test_size=test_size)
+    P_P, P_U = train_test_split(P_train, test_size=pos_in_u)
+    N_N, N_U = train_test_split(N_train, test_size=neg_in_u)
+    N_N, N_noise = train_test_split(N_train, test_size=neg_noise * (len(P) / len(N)))
+
+    P_ = np.concatenate((P_P, N_noise))
+    U_ = np.concatenate((P_U, N_U))
+
+    return P_, U_, np.array(P_test), np.array(N_test)

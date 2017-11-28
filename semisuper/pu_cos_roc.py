@@ -2,7 +2,7 @@ from numpy import concatenate, ones, zeros, vstack
 from scipy import vstack
 from semisuper.basic_pipeline import train_clf
 from semisuper.helpers import partition_pos_neg, num_rows, label2num
-from semisuper.helpers import unsparsify
+from semisuper.helpers import densify
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize

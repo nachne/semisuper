@@ -87,7 +87,7 @@ def neg_self_training(P, N, U, clf=None, verbose=True):
 
     model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
-    ypU = model.predict_proba(U)
+    ypU = model.predict(U)
     U, RN = partition_pos_neg(U, ypU)
 
     iteration = 0
@@ -104,7 +104,7 @@ def neg_self_training(P, N, U, clf=None, verbose=True):
         if not np.size(U):
             break
 
-        ypU = model.predict_proba(U)
+        ypU = model.predict(U)
         U, RN = partition_pos_neg(U, ypU)
 
     print("Returning final model after", iteration, "iterations.")
@@ -112,10 +112,7 @@ def neg_self_training(P, N, U, clf=None, verbose=True):
 
 neg_self_training_logit = neg_self_training
 
-def neg_self_training_mlp(P, N, U, activation="relu", verbose=True):
-    return neg_self_training(P, N, U, clf=MLPClassifier(activation=activation), verbose=verbose)
-
-def neg_self_training_sgd(P, N, U, loss="squared_hinge", n_jobs=2, verbose=True):
+def neg_self_training_sgd(P, N, U, loss="modified_huber", n_jobs=min(16, multi.cpu_count()), verbose=True):
     return neg_self_training(P, N, U, clf=SGDClassifier(loss=loss, n_jobs=n_jobs), verbose=verbose)
 
 def iterate_linearSVC(P, N, U, verbose=True):

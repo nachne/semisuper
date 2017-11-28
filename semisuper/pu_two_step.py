@@ -102,8 +102,8 @@ def i_EM(P, U, max_imbalance=10.0, max_pos_ratio=1.0, tolerance=0.1, verbose=Fal
 
     print("Running I-EM")
 
-    if num_rows(U) > max_imbalance * num_rows(P):
-        U = np.array(random.sample(list(U), int(max_imbalance * num_rows(P))))
+    # if num_rows(U) > max_imbalance * num_rows(P):
+    #     U = np.array(random.sample(list(U), int(max_imbalance * num_rows(P))))
 
     model = iterate_EM(P, U, tolerance=tolerance, max_pos_ratio=max_pos_ratio, clf_selection=False, verbose=verbose)
 
@@ -406,6 +406,8 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
         Q, W = partition_pos_neg(Q, y_U)
 
     RN = np.concatenate((RN, W))
+    model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
+
     if verbose: print("Iterative SVM converged. Reliable negative examples:", num_rows(RN))
 
     if clf_selection:

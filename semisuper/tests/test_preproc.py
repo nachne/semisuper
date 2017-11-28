@@ -1,7 +1,7 @@
 import random
 
 from semisuper import loaders, transformers
-from semisuper.helpers import identity, unsparsify
+from semisuper.helpers import identity, densify
 from basic_pipeline import identitySelector
 from semisuper.basic_pipeline import factorization, vectorizer, percentile_selector
 from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
@@ -91,7 +91,7 @@ for sel in sparse:
 
 for sel in dense:
     start_time = time.time()
-    factorization(sel, n_components).fit(unsparsify(vectorized_corpus))
+    factorization(sel, n_components).fit(densify(vectorized_corpus))
     print("fitting", sel, "took", time.time() - start_time, "secs")
 
 # sys.exit(0)

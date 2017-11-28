@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 import semisuper.basic_pipeline as basic_pipeline
 import semisuper.pu_biased_svm as biased_svm
 import semisuper.pu_two_step as two_step
-from semisuper.helpers import num_rows, unsparsify
+from semisuper.helpers import num_rows, densify
 from semisuper.loaders import sentences_civic_abstracts
 
 
@@ -64,10 +64,10 @@ def getBestModel(P_train, U_train, X_test, y_test):
                     else:
                         P_train_ = vectorizer.transform(P_train)
                         U_train_ = vectorizer.transform(U_train)
-                    P_train_ = unsparsify(P_train_)
-                    U_train_ = unsparsify(U_train_)
-                    X_train_ = unsparsify(X_train_)
-                    X_dev_ = unsparsify(X_dev_)
+                    P_train_ = densify(P_train_)
+                    U_train_ = densify(U_train_)
+                    X_train_ = densify(X_train_)
+                    X_dev_ = densify(X_dev_)
 
                     pp = {'word': wordgram, 'char': chargram}
 
@@ -127,9 +127,9 @@ def getBestModel(P_train, U_train, X_test, y_test):
         vectorizer = results['best']['vectorizer']
 
         if selector:
-            transformedTestData = unsparsify(selector.transform(vectorizer.transform(X_test)))
+            transformedTestData = densify(selector.transform(vectorizer.transform(X_test)))
         else:
-            transformedTestData = unsparsify(vectorizer.transform(X_test))
+            transformedTestData = densify(vectorizer.transform(X_test))
 
         y_pred_test = best_model.predict(transformedTestData)
 
@@ -145,13 +145,13 @@ def getBestModel(P_train, U_train, X_test, y_test):
         print('\nFitting best model on complete data (training + dev)')
 
         if selector:
-            transformedData = unsparsify(selector.fit_transform(vectorizer.fit_transform(
+            transformedData = densify(selector.fit_transform(vectorizer.fit_transform(
                     np.concatenate((P_train, U_train), 0)),
                     [1] * num_rows(P_train) + [0] * num_rows(U_train)))
-            transformedTestData = unsparsify(selector.transform(vectorizer.transform(X_test)))
+            transformedTestData = densify(selector.transform(vectorizer.transform(X_test)))
         else:
-            transformedData = unsparsify(vectorizer.fit_transform(np.concatenate((P_train, U_train), 0)))
-            transformedTestData = unsparsify(vectorizer.transform(X_test))
+            transformedData = densify(vectorizer.fit_transform(np.concatenate((P_train, U_train), 0)))
+            transformedTestData = densify(vectorizer.transform(X_test))
 
         classModel = best_model.fit(transformedData, [1] * num_rows(P_train) + [0] * num_rows(U_train))
 
@@ -166,9 +166,9 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
         print("\nAmount of unlabelled training set classified as positive:")
         if selector:
-            transformedU = unsparsify(selector.transform(vectorizer.transform(U_train)))
+            transformedU = densify(selector.transform(vectorizer.transform(U_train)))
         else:
-            transformedU = unsparsify(vectorizer.transform(U_train))
+            transformedU = densify(vectorizer.transform(U_train))
         y_predicted_U = classModel.predict(transformedU)
         print(np.sum(y_predicted_U), "/", num_rows(y_predicted_U),
               "(", np.sum(y_predicted_U)/ num_rows(y_predicted_U), ")")

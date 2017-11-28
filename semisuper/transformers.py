@@ -6,7 +6,7 @@ from nltk import WordNetLemmatizer
 from nltk import pos_tag
 from nltk import sent_tokenize
 from nltk.corpus import wordnet as wn
-from semisuper.helpers import unsparsify
+from semisuper.helpers import densify
 from semisuper.dict_matchers import HypernymMapper
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -97,14 +97,18 @@ def cleanup(sentence):
     """callable for character n-gram tfidf-vectorizer, replaces any sequence of non-word characters by a space"""
     return re.sub("[^\w-=%]+", " ", sentence).lower()
 
+
 class Densifier(BaseEstimator, TransformerMixin):
     """Makes sparse matrices dense for following pipeline steps"""
+
     def __init__(self):
         return
+
     def fit(self, X=None, y=None):
         return self
+
     def transform(self, X):
-        return unsparsify(X)
+        return densify(X)
 
 
 def map_regex_concepts(token):
@@ -226,14 +230,14 @@ class TextStats(BaseEstimator, TransformerMixin):
     """
 
     key_dict = {'inverse_token_count': 'inverse_token_count',
-                'inverse_length': 'inverse_length'}
+                'inverse_length'     : 'inverse_length'}
 
     def fit(self, X=None, y=None):
         return self
 
     def transform(self, sentences):
         for sentence in sentences:
-            yield {'inverse_length': (1.0 / len(sentence) if sentence else 1.0),
+            yield {'inverse_length'     : (1.0 / len(sentence) if sentence else 1.0),
                    'inverse_token_count': (1.0 / len(re.split("\s+", sentence)))}
 
     def get_feature_names(self):

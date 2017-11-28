@@ -1,7 +1,10 @@
 import semisuper.tests.load_test_corpora as test_corpus
-from numpy import concatenate
+from numpy import concatenate, shape
 from semisuper import pu_two_step, pu_biased_svm, pu_one_class_svm, basic_pipeline
-from sklearn.metrics import classification_report as clsr
+from semisuper.helpers import densify, num_rows
+from sklearn.metrics import classification_report as clsr, accuracy_score
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
 
 
 # -------------------
@@ -11,19 +14,32 @@ from sklearn.metrics import classification_report as clsr
 def prepare_corpus(data_tuple):
     P, U, P_test, N_test = data_tuple
 
-    y_P = [1] * len(P)
-    y_U = [0] * len(U)
+    y_P = [1] * num_rows(P)
+    y_U = [0] * num_rows(U)
 
     X = concatenate((P, U))
     y = concatenate((y_P, y_U))
 
-    y_P_test = [1] * len(P_test)
-    y_N_test = [0] * len(N_test)
+    y_P_test = [1] * num_rows(P_test)
+    y_N_test = [0] * num_rows(N_test)
 
     X_test = concatenate((P_test, N_test))
     y_test = concatenate((y_P_test, y_N_test))
 
-    print("P:", len(P), ", U:", len(U))
+    vectorizer = basic_pipeline.vectorizer(words=True, wordgram_range=(1, 4), chars=False, chargram_range=(2, 6),
+                                           rules=False, lemmatize=False)
+
+    print("Fitting vectorizer")
+    vectorizer.fit(P)
+
+    P = densify(vectorizer.transform(P))
+    U = densify(vectorizer.transform(U))
+    P_test = densify(vectorizer.transform(P_test))
+    N_test = densify(vectorizer.transform(N_test))
+    X = densify(vectorizer.transform(X))
+    X_test = densify(vectorizer.transform(X_test))
+
+    print("P:", shape(P), ", U:", shape(U))
 
     return P, U, X, y, X_test, y_test, P_test, y_P_test, N_test, y_N_test
 
@@ -35,49 +51,18 @@ def prepare_corpus(data_tuple):
 def train_test_all_clfs(data_tuple):
     P, U, X, y, X_test, y_test, P_test, y_P_test, N_test, y_N_test = data_tuple
 
-    print("\n\n---------------------------")
-    print("Training dummy classifier")
-    print("---------------------------\n")
-    dummy = basic_pipeline.train_clf(X, y, None)
+    sup_mnb = basic_pipeline.train_clf(X, y, MultinomialNB())
+    sup_linsvc = basic_pipeline.train_clf(X, y, LinearSVC(C=0.1))
 
-    print("\n\n---------------------------")
-    print("Training one-class SVM")
-    print("---------------------------\n")
-    one_class = pu_one_class_svm.one_class_svm(P, X_test)
-
-    print("\n\n---------------------------")
-    print("Training roc-SVM classifier")
-    print("---------------------------\n")
     roc_svm = pu_two_step.roc_SVM(P, U)
-
-    print("\n\n---------------------------")
-    print("Training CR_SVM classifier")
-    print("---------------------------\n")
     cr_svm = pu_two_step.cr_SVM(P, U, noise_lvl=0.4)
 
-    print("\n\n---------------------------")
-    print("Training I-EM classifier")
-    print("---------------------------\n")
     i_em = pu_two_step.i_EM(P, U)
-
-    print("\n\n---------------------------")
-    print("Training S-EM classifier")
-    print("---------------------------\n")
     s_em = pu_two_step.s_EM(P, U)
 
-    print("\n\n---------------------------")
-    print("Training Roc-EM classifier")
-    print("---------------------------\n")
     roc_em = pu_two_step.roc_EM(P, U)
-
-    print("\n\n---------------------------")
-    print("Training Spy-SVM classifier")
-    print("---------------------------\n")
     spy_svm = pu_two_step.spy_SVM(P, U)
 
-    print("\n\n---------------------------")
-    print("Training Biased-SVM")
-    print("---------------------------\n")
     biased_svm = pu_biased_svm.biased_SVM_weight_selection(P, U)
 
     print("\n\n-----------------------------------------------------------------------------")
@@ -85,40 +70,58 @@ def train_test_all_clfs(data_tuple):
     print("-----------------------------------------------------------------------------\n")
 
     print("---------------------------")
-    print("Dummy:")
-    print(clsr(y_test, dummy.predict(X_test)))
+    print("Supervised MNB:")
+    y_pred = sup_mnb.predict(X_test)
+    print("accuracy:", accuracy_score(y_test, y_pred))
+    print(clsr(y_test, y_pred))
 
     print("---------------------------")
-    print("One-Class SVM:")
-    print(clsr([1] * len(P_test) + [-1] * len(N_test), one_class.predict(X_test)))
+    print("Supervised SVC:")
+    y_pred = sup_linsvc.predict(X_test)
+    print("accuracy:", accuracy_score(y_test, y_pred))
+    print(clsr(y_test, y_pred))
 
     print("---------------------------")
     print("Roc-SVM:")
-    print(clsr(y_test, roc_svm.predict(X_test)))
+    y_pred = roc_svm.predict(X_test)
+    print("accuracy:", accuracy_score(y_test, y_pred))
+    print(clsr(y_test, y_pred))
 
     print("---------------------------")
     print("CR-SVM:")
-    print(clsr(y_test, cr_svm.predict(X_test)))
+    y_pred = cr_svm.predict(X_test)
+    print("accuracy:", accuracy_score(y_test, y_pred))
+    print(clsr(y_test, y_pred))
 
     print("---------------------------")
     print("I-EM:")
-    print(clsr(y_test, i_em.predict(X_test)))
+    y_pred = i_em.predict(X_test)
+    print("accuracy:", accuracy_score(y_test, y_pred))
+    print(clsr(y_test, y_pred))
 
     print("---------------------------")
     print("S-EM:")
-    print(clsr(y_test, s_em.predict(X_test)))
+    y_pred = s_em.predict(X_test)
+    print("accuracy:", accuracy_score(y_test, y_pred))
+    print(clsr(y_test, y_pred))
 
     print("---------------------------")
     print("Roc-EM:")
-    print(clsr(y_test, roc_em.predict(X_test)))
+    y_pred = roc_em.predict(X_test)
+    print("accuracy:", accuracy_score(y_test, y_pred))
+    print(clsr(y_test, y_pred))
 
     print("---------------------------")
     print("Spy-SVM:")
-    print(clsr(y_test, spy_svm.predict(X_test)))
+    y_pred = spy_svm.predict(X_test)
+    print("accuracy:", accuracy_score(y_test, y_pred))
+    print(clsr(y_test, y_pred))
 
     print("---------------------------")
     print("Biased-SVM:")
-    print(clsr(y_test, biased_svm.predict(X_test)))
+    y_pred = biased_svm.predict(X_test)
+    print("accuracy:", accuracy_score(y_test, y_pred))
+    print(clsr(y_test, y_pred))
 
     return
 
@@ -128,7 +131,25 @@ def train_test_all_clfs(data_tuple):
 # -------------------
 
 neg_noise = 0.02
-pos_in_u = 0.5
+pos_in_u = 0.4
+
+print("---------------------------")
+print("---------------------------")
+print("20 NEWSGROUPS")
+print("---------------------------")
+print("---------------------------")
+
+ratio = 1.0
+print("ONE-VS-REST PER CATEGORY,", (100.0*ratio), "% OF DATA")
+i = 0
+for tup in test_corpus.list_P_U_p_n_20_newsgroups(neg_noise=neg_noise,
+                                                  pos_in_u=pos_in_u,
+                                                  test_size=0.2,
+                                                  ratio=ratio):
+    print("---------------------------")
+    print("P := NEWSGROUP CATEGORY", i)
+    i += 1
+    train_test_all_clfs(prepare_corpus(tup))
 
 print("---------------------------")
 print("---------------------------")
@@ -152,10 +173,10 @@ train_test_all_clfs(prepare_corpus(test_corpus.P_U_p_n_sms_spam(neg_noise=neg_no
 
 print("---------------------------")
 print("---------------------------")
-print("UCI CORPUS")
+print("UCI SENTENCE CORPUS")
 print("---------------------------")
 print("---------------------------")
 
-train_test_all_clfs(prepare_corpus(test_corpus.P_U_p_n_uci(neg_noise=neg_noise,
-                                                           pos_in_u=pos_in_u,
-                                                           test_size=0.2)))
+train_test_all_clfs(prepare_corpus(test_corpus.P_U_p_n_uci_sentences(neg_noise=neg_noise,
+                                                                     pos_in_u=pos_in_u,
+                                                                     test_size=0.2)))

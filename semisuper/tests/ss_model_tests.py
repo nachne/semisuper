@@ -5,7 +5,7 @@ import numpy as np
 from scipy.sparse import csr_matrix, vstack
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, basic_pipeline, ss_techniques
-from semisuper.helpers import num_rows, unsparsify, eval_model
+from semisuper.helpers import num_rows, densify, eval_model
 from semisuper.basic_pipeline import identitySelector, percentile_selector, factorization
 
 civic, abstracts = loaders.sentences_civic_abstracts()
@@ -26,7 +26,6 @@ print("PIBOSO other sentences:", len(piboso_other))
 # ------------------
 
 def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
-
     test_neg_self_training(P, N, U, X_test, y_test, sample_sentences)
 
     # test_self_training(P, N, U, X_test, y_test, sample_sentences)
@@ -59,9 +58,9 @@ def test_supervised(P, N, U, X_test=None, y_test=None, sample_sentences=False):
           "---------\n")
 
     clfs = {
-        'sgd'    : ss_techniques.sgd,
-        'logreg' : ss_techniques.logreg,
-        'mlp'    : ss_techniques.mlp,
+        'sgd': ss_techniques.sgd,
+        # 'logreg' : ss_techniques.logreg, # grid search too slow
+        'mlp': ss_techniques.mlp,
         # 'dectree': ss_techniques.dectree,
         # 'mnb'         : ss_techniques.mnb,
         # 'randomforest': ss_techniques.randomforest
@@ -97,19 +96,12 @@ def test_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=False
         print_sentences(model, "Self-Training {} {}".format((clf or "Logistic Regression"), confidence))
     return
 
+
 def test_neg_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=False, clf=None):
     print("\n\n"
           "---------\n"
           "NEG SELF-TRAINING TEST\n"
           "---------\n")
-
-    start_time = time.time()
-    model = ss_techniques.neg_self_training(P, N, U, clf=clf)
-    print("\nIteratively expanding negative set with", (clf or "Logistic Regression"),
-          "took %s\n" % (time.time() - start_time))
-    eval_model(model, X_test, y_test)
-    if sample_sentences:
-        print_sentences(model, "Negative Self-Training {}".format((clf or "Logistic Regression")))
 
     start_time = time.time()
     model = ss_techniques.neg_self_training_sgd(P, N, U)
@@ -120,12 +112,12 @@ def test_neg_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=F
         print_sentences(model, "Negative Self-Training SGD")
 
     start_time = time.time()
-    model = ss_techniques.neg_self_training_mlp(P, N, U,)
-    print("\nIteratively expanding negative set with MLPClassifier",
+    model = ss_techniques.neg_self_training(P, N, U, clf=clf)
+    print("\nIteratively expanding negative set with", (clf or "Logistic Regression"),
           "took %s\n" % (time.time() - start_time))
     eval_model(model, X_test, y_test)
     if sample_sentences:
-        print_sentences(model, "Negative Self-Training MLP")
+        print_sentences(model, "Negative Self-Training {}".format((clf or "Logistic Regression")))
 
     return
 
@@ -276,7 +268,7 @@ def print_sentences(model, modelname=""):
           "----------------\n".format(modelname))
 
     def sort_model(sentences):
-        sent_features = unsparsify(selector.transform(vectorizer.transform(sentences)))
+        sent_features = densify(selector.transform(vectorizer.transform(sentences)))
 
         if hasattr(model, 'predict_proba'):
             return sorted(zip(model.predict_proba(sent_features),
@@ -363,11 +355,12 @@ def prepare_corpus(ratio=0.5):
 
     words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,3)
     chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
+    min_df_word, min_df_char = [10, 10]  # TODO change back to default(20,20)
     rules, lemmatize = [True, True]
 
     def print_params():
-        print("words:", words, "\tword n-gram range:", wordgram_range,
-              "\nchars:", chars, "\tchar n-gram range:", chargram_range,
+        print("words:", words, "\tword n-gram range:", wordgram_range, "\tmin_df:", min_df_word,
+              "\nchars:", chars, "\tchar n-gram range:", chargram_range, "\tmin_df:", min_df_char,
               "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
         return
 
@@ -375,26 +368,30 @@ def prepare_corpus(ratio=0.5):
 
     print("Fitting vectorizer")
     vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
-                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
+                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize,
+                                           min_df_word=min_df_word, min_df_char=min_df_char)
     vectorizer.fit(np.concatenate((P_raw, N_raw, U_raw)))
 
-    P = (vectorizer.transform(P_raw))
-    N = (vectorizer.transform(N_raw))
-    U = (vectorizer.transform(U_raw))
-    X_test = vectorizer.transform(X_test_raw)
+    # densify?
+    P = densify(vectorizer.transform(P_raw))
+    N = densify(vectorizer.transform(N_raw))
+    U = densify(vectorizer.transform(U_raw))
+    X_test = densify(vectorizer.transform(X_test_raw))
 
     print("Features before selection:", np.shape(P)[1])
 
-    selector = identitySelector()  # TODO FIXME chi2 does not help, PCA too slow
-    # selector = basic_pipeline.selector()
-    selector.fit(vstack((P, N, U)),
+    # TODO FIXME chi2 does not help, PCA too slow
+    # selector = identitySelector()
+    selector = percentile_selector(percentile=20)
+    # selector = factorization(n_components=100).train
+    selector.fit(np.concatenate((P, N, U)),
                  (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
-    P = unsparsify(selector.transform(P))
-    N = unsparsify(selector.transform(N))
-    U = unsparsify(selector.transform(U))
-    X_test = unsparsify(selector.transform(X_test))
+    P = densify(selector.transform(P))
+    N = densify(selector.transform(N))
+    U = densify(selector.transform(U))
+    X_test = densify(selector.transform(X_test))
 
-    # print("Features after selection:", np.shape(P)[1])
+    print("Features after selection:", np.shape(P)[1])
 
     return P, N, U, X_test, y_test, vectorizer, selector  # ------------------
 
@@ -402,5 +399,5 @@ def prepare_corpus(ratio=0.5):
 # execute
 # ------------------
 
-P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(1.0)
+P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(0.01)
 test_all(P, N, U, X_test, y_test, sample_sentences=True)

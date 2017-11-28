@@ -5,7 +5,7 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline, ss_techniques
-from semisuper.helpers import num_rows, unsparsify, eval_model, run_fun
+from semisuper.helpers import num_rows, densify, eval_model, run_fun
 from basic_pipeline import identitySelector
 from functools import partial
 import multiprocessing as multi
@@ -23,7 +23,7 @@ def print_sentences(model, modelname=""):
           "----------------\n".format(modelname))
 
     def sort_model(sentences):
-        sent_features = unsparsify(selector.transform(vectorizer.transform(sentences)))
+        sent_features = densify(selector.transform(vectorizer.transform(sentences)))
 
         if hasattr(model, 'predict_proba'):
             return sorted(zip(model.predict_proba(sent_features),
@@ -111,9 +111,9 @@ def prepare_corpus():
                                            chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
     vectorizer.fit(np.concatenate((P_raw, N_raw, U_raw)))
 
-    P = unsparsify(vectorizer.transform(P_raw))
-    N = unsparsify(vectorizer.transform(N_raw))
-    U = unsparsify(vectorizer.transform(U_raw))
+    P = densify(vectorizer.transform(P_raw))
+    N = densify(vectorizer.transform(N_raw))
+    U = densify(vectorizer.transform(U_raw))
     X_test = vectorizer.transform(X_test_raw)
 
     print("Features before selection:", np.shape(P)[1])
@@ -122,10 +122,10 @@ def prepare_corpus():
     # selector = basic_pipeline.selector()
     selector.fit(np.concatenate((P, N, U)),
                  (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
-    P = unsparsify(selector.transform(P))
-    N = unsparsify(selector.transform(N))
-    U = unsparsify(selector.transform(U))
-    X_test = unsparsify(selector.transform(X_test))
+    P = densify(selector.transform(P))
+    N = densify(selector.transform(N))
+    U = densify(selector.transform(U))
+    X_test = densify(selector.transform(X_test))
 
     # print("Features after selection:", np.shape(P)[1])
 

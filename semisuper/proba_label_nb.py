@@ -1,4 +1,4 @@
-from semisuper.helpers import num_rows, label2num, unsparsify, identity
+from semisuper.helpers import num_rows, label2num, densify, identity
 from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
 from semisuper.basic_pipeline import train_clf
 from sklearn.base import BaseEstimator, ClassifierMixin
@@ -39,7 +39,7 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
         """calculate class and word probabilities from labels or probabilistic labels"""
 
         yp = labels2probs(y)
-        npX = unsparsify(X)
+        npX = densify(X)
 
         self.pr_c = np.array(self.proba_c(yp))
         self.log_pr_c = np.log(self.pr_c)

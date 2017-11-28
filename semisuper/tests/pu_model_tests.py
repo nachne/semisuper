@@ -2,11 +2,12 @@ import random
 import time
 
 import numpy as np
+from scipy.sparse import csr_matrix, vstack
 
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline
-from semisuper.helpers import num_rows, unsparsify, eval_model, run_fun
-from basic_pipeline import identitySelector
+from semisuper.helpers import num_rows, densify, eval_model, run_fun
+from semisuper.basic_pipeline import identitySelector, percentile_selector, factorization
 from functools import partial
 import multiprocessing as multi
 
@@ -195,7 +196,7 @@ def print_sentences(model, modelname=""):
           "----------------\n".format(modelname))
 
     def sort_model(sentences):
-        sent_features = unsparsify(selector.transform(vectorizer.transform(sentences)))
+        sent_features = densify(selector.transform(vectorizer.transform(sentences)))
 
         if hasattr(model, 'predict_proba'):
             return sorted(zip(model.predict_proba(sent_features),
@@ -279,6 +280,7 @@ def prepare_corpus(ratio=0.5):
 
     words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,3)
     chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (2,6)
+    min_df_word, min_df_char = [20, 30] # TODO change back to default(20,20)
     rules, lemmatize = [True, True]
 
     def print_params():
@@ -291,21 +293,24 @@ def prepare_corpus(ratio=0.5):
 
     print("Fitting vectorizer")
     vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
-                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
+                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize,
+                                           min_df_word=min_df_word, min_df_char=min_df_char)
     vectorizer.fit(np.concatenate((P_raw, U_raw)))
 
-    P = unsparsify(vectorizer.transform(P_raw))
-    U = unsparsify(vectorizer.transform(U_raw))
+    P = densify(vectorizer.transform(P_raw))
+    U = densify(vectorizer.transform(U_raw))
 
     print("Features before selection:", np.shape(P)[1])
 
-    # selector = basic_pipeline.selector()
-    selector = identitySelector()
+
+    # selector = identitySelector()
+    selector = percentile_selector(percentile=20)
+    # selector = factorization(n_components=100)
     selector.fit(np.concatenate((P, U)),
                  (np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U))))))
-    P = unsparsify(selector.transform(P))
-    U = unsparsify(selector.transform(U))
-    X_test = unsparsify(selector.transform(vectorizer.transform(X_test_raw)))
+    P = densify(selector.transform(P))
+    U = densify(selector.transform(U))
+    X_test = densify(selector.transform(vectorizer.transform(X_test_raw)))
 
     print("Features after selection:", np.shape(P)[1])
 

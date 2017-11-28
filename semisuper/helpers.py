@@ -82,7 +82,7 @@ def label2num(label):
         return 0.0
 
 
-def unsparsify(X):
+def densify(X):
     if issparse(X):
         return X.todense()
     else:

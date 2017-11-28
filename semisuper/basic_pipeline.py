@@ -82,9 +82,12 @@ def vectorizer(words=True, wordgram_range=(1, 4), chars=True, chargram_range=(2,
                                         analyzer='word',
                                         min_df=min_df_word,  # TODO find reasonable value (5 <= n << 50)
                                         max_df=max_df,
-                                        tokenizer=identity, preprocessor=None, lowercase=False,
+                                        tokenizer=identity,
+                                        preprocessor=None,
+                                        lowercase=False,
                                         ngram_range=wordgram_range,
-                                        binary=binary, norm='l2' if not binary else None, use_idf=not binary))
+                                        binary=binary, norm='l2' if not binary else None,
+                                        use_idf=not binary))
                             ])),
                             ("chargrams", None if not chars else
                             FeatureNamePipeline([
@@ -95,7 +98,8 @@ def vectorizer(words=True, wordgram_range=(1, 4), chars=True, chargram_range=(2,
                                         preprocessor=partial(re.compile("[^\w\-=%]+").sub, " "),
                                         lowercase=True,
                                         ngram_range=chargram_range,
-                                        binary=binary, norm='l2' if not binary else None, use_idf=not binary))
+                                        binary=binary, norm='l2' if not binary else None,
+                                        use_idf=not binary))
                             ])),
                             ("stats", None if binary else
                             FeatureNamePipeline([
@@ -107,6 +111,9 @@ def vectorizer(words=True, wordgram_range=(1, 4), chars=True, chargram_range=(2,
 
 class identitySelector():
     """feature selector that does nothing"""
+
+    print("Feature selection: None")
+
     def __init__(self):
         return
     def fit(self, X, y=None):
@@ -117,10 +124,14 @@ class identitySelector():
 # TODO not feasible with >> 50,000 features / >> 16,000 examples
 def percentile_selector(score_func=chi2, percentile=20):
     """supervised feature selector"""
+
+    print("Feature selection: supervised,", percentile, "-th percentile in terms of", score_func)
     return SelectPercentile(score_func=score_func, percentile=percentile)
 
-def factorization(method='TruncatedSVD', n_components=1000):
+def factorization(method='TruncatedSVD', n_components=100):
     # PCA, IncrementalPCA, FactorAnalysis, FastICA, LatentDirichletAllocation, TruncatedSVD, fastica
+
+    print("Feature selection: unsupervised matrix factorization")
 
     sparse = {
         'NMF'                      : NMF,
@@ -148,7 +159,9 @@ def factorization(method='TruncatedSVD', n_components=1000):
 
     else:
 
-        return TruncatedSVD(n_components)
+        return FeatureNamePipeline([("densifier", Densifier()),
+                                    ("selector", TruncatedSVD(n_components)),
+                                    ("normalizer", StandardScaler())])
 
 
 def show_most_informative_features(model: object, text: object = None, n: object = 40) -> object:

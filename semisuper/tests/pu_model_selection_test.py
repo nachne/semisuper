@@ -1,5 +1,5 @@
 from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline, pu_model_selection
-from semisuper.helpers import num_rows, unsparsify
+from semisuper.helpers import num_rows, densify
 import random
 from sklearn.model_selection import train_test_split
 
