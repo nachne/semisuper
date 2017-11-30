@@ -31,12 +31,10 @@ hocneg_ = random.sample(hocneg, 2000)
 # Pipeline
 # ----------------------------------------------------------------
 
-min_df_word = 30
-min_df_char = 60
+min_df_word = 20
+min_df_char = 50
 n_components = 100
 print("min_df: \tword:", min_df_word, "\tchar:", min_df_char, "\tn_components:", n_components)
-
-pp = TokenizePreprocessor()
 
 v = vectorizer(words=True, wordgram_range=(1, 4),
                chars=True, chargram_range=(2, 6),
@@ -74,7 +72,7 @@ sparse = ['TruncatedSVD']
 # SparsePCA:
 # IncrementalPCA:
 # Factor Analysis:              slow
-dense = []
+dense = [] # ['PCA']
 
 # NOT:
 # MiniBatchSparsePCA:           >15h/CPU, 16GB
@@ -94,7 +92,15 @@ for sel in dense:
     factorization(sel, n_components).fit(densify(vectorized_corpus))
     print("fitting", sel, "took", time.time() - start_time, "secs")
 
-# sys.exit(0)
+sys.exit(0)
+
+# ----------------------------------------------------------------
+# Regex tests
+# ----------------------------------------------------------------
+
+
+
+pp = TokenizePreprocessor()
 
 # ----------------------------------------------------------------
 # Regex tests

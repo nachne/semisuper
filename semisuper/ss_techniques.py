@@ -125,7 +125,7 @@ def iterate_linearSVC(P, N, U, verbose=True):
                                    max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
 
 
-def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1.5, verbose=True):
+def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=10.0, verbose=True):
     """Iterate EM until estimates for U converge.
 
     Train NB with P and N to get probabilistic labels for U, or use assumed priors if passed as parameter"""
@@ -141,7 +141,7 @@ def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1
     if ypU is None:
         if verbose: print("\nBuilding classifier from Positive and Reliable Negative set")
         initial_model = build_proba_MNB(np.concatenate((P_init, N)),
-                                        [1] * num_rows(P) + [0] * num_rows(N))
+                                        np.concatenate((np.ones(num_rows(P_init)), np.zeros(num_rows(N)))))
 
         if verbose: print("\nCalculating initial probabilistic labels for Unlabelled set")
         ypU = initial_model.predict_proba(U)[:, 1]
@@ -154,11 +154,10 @@ def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1
     return model
 
 
-def iterate_knn(P, N, U):
+def iterate_knn(P, N, U, n_neighbors=7, thresh=0.6):
     P_, N_, U_ = arrays((P, N, U))
-    thresh = 0.5
 
-    knn = KNeighborsClassifier(n_neighbors=13, weights='uniform', n_jobs=multi.cpu_count() - 1)
+    knn = KNeighborsClassifier(n_neighbors=n_neighbors, weights='uniform', n_jobs=multi.cpu_count() - 1)
     knn.fit(np.concatenate((P_, N_)), np.concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
 
     y_pred = knn.predict_proba(U_)

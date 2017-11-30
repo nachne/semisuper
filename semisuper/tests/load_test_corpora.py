@@ -71,11 +71,17 @@ def pos_neg_20_newsgroups(ratio=0.5):
     X = np.array(ng.data)
     y = np.array(ng.target)
 
-    X, _, y, _ = train_test_split(X, y, train_size=ratio)
+    if ratio < 1.0:
+        X, _, y, _ = train_test_split(X, y, train_size=ratio)
 
-    for category in np.unique(y):
-        P = X[np.where(y == category)]
-        N = X[np.where(y != category)]
+    supercat_indices = [[1, 2, 3, 4, 5], [7, 8, 9, 10], [11, 12, 13, 14], [16, 17, 18, 19],
+                       # [0], [6], [15],
+                       ]
+    supercat_names = ["COMP", "REC", "SCI","TALK", "ALT", "MISC", "SOC"]
+    for i in range(len(supercat_indices)):
+        print("CATEGORY:", supercat_names[i])
+        P = X[np.where(np.isin(y, supercat_indices[i]))]
+        N = X[np.where(np.isin(y, supercat_indices[i], invert=True))]
         yield P, N
 
 
@@ -191,7 +197,7 @@ def mixed_pu(P, N, neg_noise=0.05, pos_in_u=0.6, test_size=0.2):
     P_train, P_test = train_test_split(P, test_size=test_size)
     N_train, N_test = train_test_split(N, test_size=test_size)
     P_P, P_U = train_test_split(P_train, test_size=pos_in_u)
-    N_U, N_noise = train_test_split(N_train, test_size=neg_noise * (len(P) / len(N)))
+    N_U, N_noise = train_test_split(N_train, test_size=int(neg_noise * ((1+neg_noise) * len(P_P))))
 
     P_ = np.concatenate((P_P, N_noise))
     U_ = np.concatenate((P_U, N_U))
@@ -204,16 +210,16 @@ def mixed_pnu(P, N, neg_noise=0.05, pos_in_u=0.6, neg_in_u=0.6, test_size=0.2):
 
     print("\nParameters for training data:\n",
           100 * pos_in_u, "% of positive documents are hidden in unlabelled set U.\n",
-          100 * pos_in_u, "% of negative documents are hidden in unlabelled set U.\n",
+          100 * neg_in_u, "% of negative documents are hidden in unlabelled set U.\n",
           100 * neg_noise, "% of P is actually negative, to simulate noise.\n")
 
     P_train, P_test = train_test_split(P, test_size=test_size)
     N_train, N_test = train_test_split(N, test_size=test_size)
     P_P, P_U = train_test_split(P_train, test_size=pos_in_u)
     N_N, N_U = train_test_split(N_train, test_size=neg_in_u)
-    N_N, N_noise = train_test_split(N_train, test_size=neg_noise * (len(P) / len(N)))
+    N_N, N_noise = train_test_split(N_N, test_size=int(neg_noise * ((1+neg_noise) * len(P_P))))
 
     P_ = np.concatenate((P_P, N_noise))
     U_ = np.concatenate((P_U, N_U))
 
-    return P_, U_, np.array(P_test), np.array(N_test)
+    return P_, np.array(N_N), U_, np.array(P_test), np.array(N_test)

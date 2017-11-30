@@ -5,7 +5,7 @@ import numpy as np
 from scipy.sparse import csr_matrix, vstack
 
 from sklearn.model_selection import train_test_split
-from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline
+from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline, cleanup_sources
 from semisuper.helpers import num_rows, densify, eval_model, run_fun
 from semisuper.basic_pipeline import identitySelector, percentile_selector, factorization
 from functools import partial
@@ -252,20 +252,25 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 def prepare_corpus(ratio=0.5):
-    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=0.2)
-    hocneg_train, X_test_neg = train_test_split(hocneg, test_size=0.2)
+    hocneg_ = cleanup_sources.remove_least_similar_percent(noisy=hocneg, guide=civic, ratio=1.0, percentile=15)
+    hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos, guide=hocneg_, ratio=1.0, percentile=10)
+    hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos_, guide=civic, ratio=1.0, percentile=10,
+                                                           inverse=True)
+
+    hocpos_train, X_test_pos = train_test_split(hocpos_, test_size=0.2)
+    hocneg_train, X_test_neg = train_test_split(hocneg_, test_size=0.2)
     civic_train, civic_test = train_test_split(civic, test_size=0.2)
 
-    P_raw = hocpos_train + civic_train
-    U_raw = abstracts + hocneg_train
+    P_raw = np.concatenate((hocpos_train, civic_train))
+    U_raw = np.concatenate((abstracts, hocneg_train))
 
     if ratio < 1.0:
-        P_raw = random.sample(P_raw, int(ratio * num_rows(P_raw)))
-        U_raw = random.sample(U_raw, int(ratio * num_rows(U_raw)))
-        X_test_pos = random.sample(X_test_pos, int(ratio * num_rows(X_test_pos)))
-        X_test_neg = random.sample(X_test_neg, int(ratio * num_rows(X_test_neg)))
+        P_raw, _ = train_test_split(P_raw, train_size=ratio)
+        U_raw, _ = train_test_split(U_raw, train_size=ratio)
+        X_test_pos, _ = train_test_split(X_test_pos, train_size=ratio)
+        X_test_neg, _ = train_test_split(X_test_neg, train_size=ratio)
 
-    X_test_raw = X_test_pos + X_test_neg
+    X_test_raw = np.concatenate((X_test_pos , X_test_neg))
     y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
 
     print("\nPU TRAINING", "(on", 100 * ratio, "% of available data)",
@@ -278,9 +283,9 @@ def prepare_corpus(ratio=0.5):
           , "TEST SET (HOC POS + HOC NEG):", num_rows(X_test_raw)
           )
 
-    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,3)
+    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,4)
     chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (2,6)
-    min_df_word, min_df_char = [20, 30] # TODO change back to default(20,20)
+    min_df_word, min_df_char = [20, 30]  # TODO change back to default(20,20)
     rules, lemmatize = [True, True]
 
     def print_params():
@@ -297,16 +302,15 @@ def prepare_corpus(ratio=0.5):
                                            min_df_word=min_df_word, min_df_char=min_df_char)
     vectorizer.fit(np.concatenate((P_raw, U_raw)))
 
-    P = densify(vectorizer.transform(P_raw))
-    U = densify(vectorizer.transform(U_raw))
+    P = (vectorizer.transform(P_raw))
+    U = (vectorizer.transform(U_raw))
 
     print("Features before selection:", np.shape(P)[1])
-
 
     # selector = identitySelector()
     selector = percentile_selector(percentile=20)
     # selector = factorization(n_components=100)
-    selector.fit(np.concatenate((P, U)),
+    selector.fit(vstack((P, U)),
                  (np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U))))))
     P = densify(selector.transform(P))
     U = densify(selector.transform(U))

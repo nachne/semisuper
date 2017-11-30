@@ -1,13 +1,14 @@
 import random
+from multiprocessing import cpu_count
 
 import numpy as np
-from semisuper.basic_pipeline import train_clf
-from semisuper.helpers import num_rows, arrays, partition_pos_neg, pu_measure, train_report
-from semisuper.proba_label_nb import build_proba_MNB
-from semisuper.pu_cos_roc import ranking_cos_sim, rocchio
 from sklearn import svm
 from sklearn.ensemble import BaggingClassifier
-from multiprocessing import cpu_count
+
+from semisuper.basic_pipeline import train_clf
+from semisuper.helpers import num_rows, arrays, partition_pos_neg, pu_score, train_report, select_PN_below_score
+from semisuper.proba_label_nb import build_proba_MNB
+from semisuper.pu_cos_roc import ranking_cos_sim, rocchio
 
 
 # ----------------------------------------------------------------
@@ -263,7 +264,7 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.20, alpha=16, beta=4, verbose=False)
 # SECOND STEP TECHNIQUES
 # ----------------------------------------------------------------
 
-def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_RN=1.5, clf_selection=True,
+def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_RN=10.0, clf_selection=True,
                    verbose=False):
     """second step PU method: train NB with P and RN to get probabilistic labels for U, then iterate EM"""
 
@@ -274,7 +275,9 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_
 
         if verbose: print("\nBuilding classifier from Positive and Reliable Negative set")
     initial_model = build_proba_MNB(np.concatenate((P_init, RN)),
-                                    [1] * num_rows(P_init) + [0] * num_rows(RN), verbose=verbose)
+                                    np.concatenate((np.ones(num_rows(P_init)),
+                                                   np.zeros(num_rows(RN)))),
+                                    verbose=verbose)
 
     y_P = np.array([1] * num_rows(P))
 
@@ -513,31 +516,10 @@ def choose_noise_lvl(sims_P, sims_U):
         y_P = [1] * int((1 - lvl) * num_rows(sims_P)) + \
               [0] * int((lvl) * num_rows(sims_P))
 
-        scores.append(pu_measure(y_P, y_U))
+        scores.append(pu_score(y_P, y_U))
 
     [print(x) for x in zip(lvls, scores)]
 
     return lvls[np.argmax(scores)]
 
 
-def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1, verbose=False):
-    """given the scores of positive docs, a set of unlabelled docs, and their scores, extract potential negative set"""
-
-    y_pos_sorted = np.sort(y_pos)
-
-    # choose probability threshold such that a noise_lvl-th part of spy docs is rated lower
-    threshold = y_pos_sorted[int(noise_lvl * num_rows(y_pos_sorted))]
-    if verbose: print("Threshold given noise level:", threshold)
-
-    neg_idx = np.where(y_U < threshold)
-
-    pos_idx = np.ones(num_rows(y_U), dtype=bool)
-    pos_idx[neg_idx] = False
-
-    PN = U[neg_idx]
-    if verbose: print("Unlabelled docs below threshold:", num_rows(PN), "of", num_rows(U), "\n")
-
-    U_minus_PN = U[pos_idx]
-    # print(U_minus_RN[:10])
-
-    return U_minus_PN, PN

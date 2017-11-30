@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from semisuper import loaders, basic_pipeline, ss_techniques
 from semisuper.helpers import num_rows, densify, eval_model
 from semisuper.basic_pipeline import identitySelector, percentile_selector, factorization
+from semisuper import cleanup_sources
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -26,16 +27,19 @@ print("PIBOSO other sentences:", len(piboso_other))
 # ------------------
 
 def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+    test_iterative_linearSVM(P, N, U, X_test, y_test, sample_sentences)
+
     test_neg_self_training(P, N, U, X_test, y_test, sample_sentences)
 
-    # test_self_training(P, N, U, X_test, y_test, sample_sentences)
+    test_self_training(P, N, U, X_test, y_test, sample_sentences)
+
+    # test_knn(P, N, U, X_test, y_test, sample_sentences)
+    test_em(P, N, U, X_test, y_test, sample_sentences)
 
     # supervised thingies
     test_supervised(P, N, U, X_test, y_test, sample_sentences)
     # test_svc(P, N, U, X_test, y_test, sample_sentences)
     # test_linearSVM(P, N, U, X_test, y_test, sample_sentences)
-
-    test_iterative_linearSVM(P, N, U, X_test, y_test, sample_sentences)
 
     # poly, rbf, sigmoid go wrong
     # test_iterative_SVC(P, N, U, X_test, y_test, sample_sentences, kernel="poly")
@@ -58,19 +62,20 @@ def test_supervised(P, N, U, X_test=None, y_test=None, sample_sentences=False):
           "---------\n")
 
     clfs = {
-        'sgd': ss_techniques.sgd,
+        'sgd'   : ss_techniques.sgd,
         # 'logreg' : ss_techniques.logreg, # grid search too slow
-        'mlp': ss_techniques.mlp,
+        # 'mlp': ss_techniques.mlp,
         # 'dectree': ss_techniques.dectree,
         # 'mnb'         : ss_techniques.mnb,
         # 'randomforest': ss_techniques.randomforest
+        'linsvc': ss_techniques.grid_search_linearSVM
     }
 
     for name in clfs:
         start_time = time.time()
         print("\nSupervised training with", name)
         model = clfs[name](P, N, U=None)
-        print("took", time.time() - start_time, "secs")
+        print("took", time.time() - start_time, "seconds")
         eval_model(model, X_test, y_test)
         if sample_sentences:
             print_sentences(model, name)
@@ -88,7 +93,7 @@ def test_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=False
     model = ss_techniques.self_training(P, N, U, confidence=confidence, clf=clf)
 
     print("\nIterating Self-Training with", (clf or "Logistic Regression"),
-          "confidence =", confidence, "took %s\n" % (time.time() - start_time))
+          "confidence =", confidence, "took %s\n" % (time.time() - start_time), "seconds")
 
     eval_model(model, X_test, y_test)
 
@@ -106,7 +111,7 @@ def test_neg_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=F
     start_time = time.time()
     model = ss_techniques.neg_self_training_sgd(P, N, U)
     print("\nIteratively expanding negative set with SGDClassifier",
-          "took %s\n" % (time.time() - start_time))
+          "took %s\n" % (time.time() - start_time), "seconds")
     eval_model(model, X_test, y_test)
     if sample_sentences:
         print_sentences(model, "Negative Self-Training SGD")
@@ -114,7 +119,7 @@ def test_neg_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=F
     start_time = time.time()
     model = ss_techniques.neg_self_training(P, N, U, clf=clf)
     print("\nIteratively expanding negative set with", (clf or "Logistic Regression"),
-          "took %s\n" % (time.time() - start_time))
+          "took %s\n" % (time.time() - start_time), "seconds")
     eval_model(model, X_test, y_test)
     if sample_sentences:
         print_sentences(model, "Negative Self-Training {}".format((clf or "Logistic Regression")))
@@ -324,22 +329,27 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 def prepare_corpus(ratio=0.5):
-    hocpos_train, X_test_pos = train_test_split(hocpos, test_size=0.2)
-    hocneg_train, X_test_neg = train_test_split(hocneg, test_size=0.2)
+    hocneg_ = cleanup_sources.remove_least_similar_percent(noisy=hocneg, guide=civic, ratio=1.0, percentile=15)
+    hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos, guide=hocneg_, ratio=1.0, percentile=10)
+    hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos_, guide=civic, ratio=1.0, percentile=10,
+                                                           inverse=True)
+
+    hocpos_train, X_test_pos = train_test_split(hocpos_, test_size=0.2)
+    hocneg_train, X_test_neg = train_test_split(hocneg_, test_size=0.2)
     civic_train, civic_test = train_test_split(civic, test_size=0.2)
 
-    P_raw = hocpos_train + civic_train
+    P_raw = np.concatenate((hocpos_train, civic_train))
     U_raw = abstracts
     N_raw = hocneg_train
 
     if ratio < 1.0:
-        P_raw = random.sample(P_raw, int(ratio * num_rows(P_raw)))
-        N_raw = random.sample(N_raw, int(ratio * num_rows(N_raw)))
-        U_raw = random.sample(U_raw, int(ratio * num_rows(U_raw)))
-        X_test_pos = random.sample(X_test_pos, int(ratio * num_rows(X_test_pos)))
-        X_test_neg = random.sample(X_test_neg, int(ratio * num_rows(X_test_neg)))
+        P_raw, _ = train_test_split(P_raw, train_size=ratio)
+        N_raw, _ = train_test_split(N_raw, train_size=ratio)
+        U_raw, _ = train_test_split(U_raw, train_size=ratio)
+        X_test_pos, _ = train_test_split(X_test_pos, train_size=ratio)
+        X_test_neg, _ = train_test_split(X_test_neg, train_size=ratio)
 
-    X_test_raw = X_test_pos + X_test_neg
+    X_test_raw = np.concatenate((X_test_pos, X_test_neg))
     y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
 
     print("\nSEMI-SUPERVISED TRAINING", "(on", 100 * ratio, "% of available data)",
@@ -353,9 +363,9 @@ def prepare_corpus(ratio=0.5):
           , "TEST SET (HOC POS + HOC NEG):", num_rows(X_test_raw)
           )
 
-    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,3)
-    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
-    min_df_word, min_df_char = [10, 10]  # TODO change back to default(20,20)
+    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,4)
+    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (2,6)
+    min_df_word, min_df_char = [20, 20]  # TODO change back to default(20,20)
     rules, lemmatize = [True, True]
 
     def print_params():
@@ -370,22 +380,27 @@ def prepare_corpus(ratio=0.5):
     vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
                                            chargram_range=chargram_range, rules=rules, lemmatize=lemmatize,
                                            min_df_word=min_df_word, min_df_char=min_df_char)
+
     vectorizer.fit(np.concatenate((P_raw, N_raw, U_raw)))
 
     # densify?
     P = densify(vectorizer.transform(P_raw))
     N = densify(vectorizer.transform(N_raw))
     U = densify(vectorizer.transform(U_raw))
-    X_test = densify(vectorizer.transform(X_test_raw))
+    X_test = (vectorizer.transform(X_test_raw))
 
     print("Features before selection:", np.shape(P)[1])
 
-    # TODO FIXME chi2 does not help, PCA too slow
+    # TODO FIXME find best method
     # selector = identitySelector()
     selector = percentile_selector(percentile=20)
-    # selector = factorization(n_components=100).train
+    # selector = factorization()
     selector.fit(np.concatenate((P, N, U)),
                  (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
+
+    # TODO remove
+    print(np.asarray(vectorizer.get_feature_names())[selector.get_support()])
+
     P = densify(selector.transform(P))
     N = densify(selector.transform(N))
     U = densify(selector.transform(U))
@@ -399,5 +414,5 @@ def prepare_corpus(ratio=0.5):
 # execute
 # ------------------
 
-P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(0.01)
+P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(ratio=1.0)
 test_all(P, N, U, X_test, y_test, sample_sentences=True)

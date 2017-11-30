@@ -9,9 +9,11 @@ from nltk.corpus import wordnet as wn
 from semisuper.helpers import densify
 from semisuper.dict_matchers import HypernymMapper
 from sklearn.base import BaseEstimator, TransformerMixin
+from numpy import array
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2, SelectPercentile
 from sklearn.pipeline import Pipeline
+from unidecode import unidecode
 
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
@@ -96,6 +98,19 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
 def cleanup(sentence):
     """callable for character n-gram tfidf-vectorizer, replaces any sequence of non-word characters by a space"""
     return re.sub("[^\w-=%]+", " ", sentence).lower()
+
+
+class Asciifier(BaseEstimator, TransformerMixin):
+    """replaces all non-ASCII characters by approximations"""
+
+    def __init__(self):
+        return
+
+    def fit(self, X=None, y=None):
+        return self
+
+    def transform(self, X):
+        return array([unidecode(x) for x in X])
 
 
 class Densifier(BaseEstimator, TransformerMixin):

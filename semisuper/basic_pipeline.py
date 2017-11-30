@@ -2,7 +2,7 @@ import pickle
 from operator import itemgetter
 
 from semisuper.helpers import identity
-from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline, Densifier, cleanup
+from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline, Densifier, cleanup, Asciifier
 from sklearn import naive_bayes
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -73,7 +73,9 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
 
 def vectorizer(words=True, wordgram_range=(1, 4), chars=True, chargram_range=(2, 6), binary=False, rules=True,
                lemmatize=True, min_df_word=20, min_df_char=20, max_df=1.0):
-    return FeatureUnion(n_jobs=2,
+    return FeatureNamePipeline([
+        ("asciifier", Asciifier()),
+        ("features", FeatureUnion(n_jobs=2,
                         transformer_list=[
                             ("wordgrams", None if not words else
                             FeatureNamePipeline([
@@ -106,32 +108,36 @@ def vectorizer(words=True, wordgram_range=(1, 4), chars=True, chargram_range=(2,
                                 ("stats", TextStats()),
                                 ("vect", DictVectorizer())
                             ]))
-                        ])
+                        ]))
+    ])
 
 
 class identitySelector():
     """feature selector that does nothing"""
 
-    print("Feature selection: None")
-
     def __init__(self):
+        print("Feature selection: None")
         return
+
     def fit(self, X, y=None):
         return self
+
     def transform(self, X):
         return X
+
 
 # TODO not feasible with >> 50,000 features / >> 16,000 examples
 def percentile_selector(score_func=chi2, percentile=20):
     """supervised feature selector"""
 
-    print("Feature selection: supervised,", percentile, "-th percentile in terms of", score_func)
+    print("Supervised feature selection:,", percentile, "-th percentile in terms of", score_func)
     return SelectPercentile(score_func=score_func, percentile=percentile)
 
-def factorization(method='TruncatedSVD', n_components=100):
+
+def factorization(method='TruncatedSVD', n_components=1000):
     # PCA, IncrementalPCA, FactorAnalysis, FastICA, LatentDirichletAllocation, TruncatedSVD, fastica
 
-    print("Feature selection: unsupervised matrix factorization")
+    print("Unsupervised feature selection: matrix factorization with", method, "(", n_components, "components )")
 
     sparse = {
         'NMF'                      : NMF,
@@ -143,7 +149,7 @@ def factorization(method='TruncatedSVD', n_components=100):
 
     if model is not None:
         return FeatureNamePipeline([("selector", model(n_components)),
-                                    ("normalizer", StandardScaler())]) # TODO Standard or MinMax?
+                                    ("normalizer", StandardScaler())])  # TODO Standard or MinMax?
 
     dense = {
         'PCA'           : PCA,
@@ -155,7 +161,7 @@ def factorization(method='TruncatedSVD', n_components=100):
     if model is not None:
         return FeatureNamePipeline([("densifier", Densifier()),
                                     ("selector", model(n_components)),
-                                    ("normalizer", StandardScaler())]) # TODO Standard or MinMax?
+                                    ("normalizer", StandardScaler())])  # TODO Standard or MinMax?
 
     else:
 
@@ -215,6 +221,6 @@ def show_most_informative_features(model: object, text: object = None, n: object
 
     return "\n".join(output)
 
-# ----------------------------------------------------------------
-# ----------------------------------------------------------------
-# ----------------------------------------------------------------
+    # ----------------------------------------------------------------
+    # ----------------------------------------------------------------
+    # ----------------------------------------------------------------

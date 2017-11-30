@@ -15,16 +15,6 @@ def flatten(l):
     return [item for sublist in l for item in sublist]
 
 
-def take(n, iterable):
-    """return first n elements of iterable"""
-    return list(islice(iterable, n))
-
-
-def prod(iterable):
-    """reduce iterable to the product of its elements"""
-    return reduce(mul, iterable, 1)
-
-
 def run_fun(fun):
     return fun()
 
@@ -32,10 +22,6 @@ def run_fun(fun):
 def identity(x):
     """identity function"""
     return x
-
-
-def positive(x):
-    return x > 0
 
 
 def num_rows(a):
@@ -89,7 +75,7 @@ def densify(X):
         return np.array(X)
 
 
-def pu_measure(y_P, y_U):
+def pu_score(y_P, y_U):
     """performance measure for PU problems (r^2)/Pr[f(X)=1], approximates (p*r)/Pr[Y=1]
 
     requires validation set to be partitioned into P and U before classification, labels to be 1 and 0"""
@@ -121,3 +107,25 @@ def train_report(model, P, N):
 def file_path(file_relative):
     """return the correct file path given the file's path relative to helpers"""
     return os.path.join(os.path.dirname(__file__), file_relative)
+
+
+def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1, verbose=False):
+    """given the scores of positive docs, a set of unlabelled docs, and their scores, extract potential negative set"""
+
+    y_pos_sorted = np.sort(y_pos)
+
+    # choose probability threshold such that a noise_lvl-th part of spy docs is rated lower
+    threshold = y_pos_sorted[int(noise_lvl * num_rows(y_pos_sorted))]
+    if verbose: print("Threshold given noise level:", threshold)
+
+    neg_idx = np.where(y_U <= threshold)
+
+    pos_idx = np.ones(num_rows(y_U), dtype=bool)
+    pos_idx[neg_idx] = False
+
+    PN = U[neg_idx]
+    if verbose: print("Unlabelled docs below threshold:", num_rows(PN), "of", num_rows(U), "\n")
+
+    U_minus_PN = U[pos_idx]
+
+    return U_minus_PN, PN

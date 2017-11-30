@@ -3,7 +3,7 @@ from multiprocessing import Pool, cpu_count
 
 from numpy import concatenate, zeros, ones
 from semisuper.basic_pipeline import train_clf
-from semisuper.helpers import num_rows, pu_measure, partition_pos_neg, train_report
+from semisuper.helpers import num_rows, pu_score, partition_pos_neg, train_report
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC, LinearSVC
@@ -106,7 +106,7 @@ def eval_params(Cs, X_train, y_train, P_test, U_test, kernel='linear'):
     y_P = model.predict(P_test)
     y_U = model.predict(U_test)
 
-    score = pu_measure(y_P, y_U)
+    score = pu_score(y_P, y_U)
     params = model.get_class_weights()
 
     return score, params
@@ -156,4 +156,4 @@ class BiasedSVM(LinearSVC):
 def pu_scorer(estimator, X, y):
     y_pred = estimator.predict(X)
     y_P, y_U = partition_pos_neg(y_pred, y)
-    return pu_measure(y_P, y_U)
+    return pu_score(y_P, y_U)

@@ -2,13 +2,15 @@ import random
 import time
 
 import numpy as np
+from scipy.sparse import vstack
 
 from sklearn.model_selection import train_test_split
-from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline, ss_techniques
-from semisuper.helpers import num_rows, densify, eval_model, run_fun
-from basic_pipeline import identitySelector
+from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline, ss_techniques, pu_cos_roc
+from semisuper.helpers import num_rows, densify, eval_model, run_fun, pu_score, select_PN_below_score
+from basic_pipeline import identitySelector, show_most_informative_features
 from functools import partial
 import multiprocessing as multi
+import sys
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -16,91 +18,126 @@ piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
 
-def print_sentences(model, modelname=""):
-    print("\n\n"
-          "----------------\n"
-          "{} SENTENCES\n"
-          "----------------\n".format(modelname))
+# ------------------
+# select sentences
+# ------------------
 
-    def sort_model(sentences):
-        sent_features = densify(selector.transform(vectorizer.transform(sentences)))
+def remove_P_from_U(noisy, guide, ratio=1.0, inverse=False):
+    """Remove sentences from noisy_set that are similar to guide_set according to strictest PU estimator.
 
-        if hasattr(model, 'predict_proba'):
-            return sorted(zip(model.predict_proba(sent_features),
-                              sentences),
-                          key=lambda x: x[0][1],
-                          reverse=True)
-        else:
-            return sorted(zip(model.decision_function(sent_features),
-                              sentences),
-                          key=lambda x: x[0],
-                          reverse=True)
+    if inverse is set to True, keep rather than discard them."""
 
-    def top_bot_12_model(predictions, name):
+    guide_, noisy_, vectorizer, selector = prepare_pu(guide, noisy, ratio=ratio)
 
-        if np.isscalar(predictions[0][0]):
-            pos = sum([1 for x in predictions if x[0] > 0])
-        else:
-            pos = sum([1 for x in predictions if x[0][1] > x[0][0]])
-        num = num_rows(predictions)
+    model = best_pu(guide_, noisy_)
 
-        print()
-        print(modelname, name, "prediction", pos, "/", num, "(", pos / num, ")")
-        print()
-        print(modelname, name, "top 12 (sentences with highest ranking)\n")
-        [print(x) for x in (predictions[0:12])]
-        print()
-        print(modelname, name, "bottom 12 (sentences with lowest ranking)\n")
-        [print(x) for x in (predictions[-12:])]
+    y_noisy = model.predict(selector.transform(densify(vectorizer.transform(noisy))))
 
-    civ_labelled = sort_model(civic)
-    top_bot_12_model(civ_labelled, "civic")
+    if inverse:
+        action = "keeping"
+        criterion = 1
+    else:
+        action = "discarding"
+        criterion = 0
 
-    abs_labelled = sort_model(abstracts)
-    top_bot_12_model(abs_labelled, "abstracts")
+    print(action, (100 * np.sum(y_noisy) / num_rows(y_noisy)), "% of noisy data (", np.sum(y_noisy), "sentences)")
 
-    hocpos_labelled = sort_model(hocpos)
-    top_bot_12_model(hocpos_labelled, "HoC-pos")
+    return np.array([x for (x, y) in zip(noisy, y_noisy) if y == criterion])
 
-    hocneg_labelled = sort_model(hocneg)
-    top_bot_12_model(hocneg_labelled, "HoC-neg")
+def remove_least_similar_percent(noisy, guide, ratio=1.0, percentile=10, inverse=False):
+    """Remove percentile of sentences from noisy_set that are similar to guide_set according to strictest PU estimator.
 
-    out_labelled = sort_model(piboso_outcome)
-    top_bot_12_model(out_labelled, "piboso-outcome")
+    if inverse is set to True, remove least rather than most similar."""
 
-    oth_labelled = sort_model(piboso_other)
-    top_bot_12_model(oth_labelled, "piboso-other")
+    guide_, noisy_, vectorizer, selector = prepare_pu(guide, noisy, ratio=ratio)
 
-    return
+    model = pu_cos_roc.ranking_cos_sim(guide_)
+
+    if inverse:
+        predicate = "least"
+        y_pred = model.predict_proba(noisy_)
+    else:
+        predicate = "most"
+        y_pred = -model.predict_proba(noisy_)
+
+    print("Removing", percentile, "% of noisy data", predicate, "similar to guide set"
+          ,"(", (percentile*num_rows(noisy)/100), "sentences)")
+
+    U = np.array(noisy)
+    U_minus_PN, PN = select_PN_below_score(y_pred, U, y_pred, noise_lvl=percentile/100)
+
+    print("Keeping", U_minus_PN[:10])
+    print("Discarding", PN[:10])
+
+    return U_minus_PN
 
 
-def prepare_corpus():
-    P_raw, X_test_pos = train_test_split(hocpos, test_size=0.2)
-    N_raw, X_test_neg = train_test_split(hocneg, test_size=0.2)
-    # civic_train, civic_test = train_test_split(civic, test_size=0.2)
-    # abstracts_train, abstracts_test = train_test_split(abstracts, test_size=0.01)
+# ------------------
+# model selection
+# ------------------
 
-    U_raw = civic
-    X_test_raw = np.concatenate((X_test_pos, X_test_neg))
-    y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
+def best_pu(P, U):
+    P_train, P_test = train_test_split(P, test_size=0.2)
+    U_train, U_test = train_test_split(U, test_size=0.2)
 
-    print("\nPURIFYING CIVIC SEMI-SUPERVISED"
-          "\tP: HOC POS"
-          , "(", num_rows(P_raw), ")"
-          , "\tN: HOC NEG"
-          , "(", num_rows(N_raw), ")"
-          , ",\tU: CIVIC"
-          , "(", num_rows(U_raw), ")"
-          , "TEST SET (HOC POS + HOC NEG):", num_rows(X_test_raw)
-          )
+    models = [
+        {"name": "I-EM", "model": partial(pu_two_step.i_EM, P_train, U_train)},
+        {"name": "S-EM", "model": partial(pu_two_step.s_EM, P_train, U_train)},
+        {"name": "ROC-EM", "model": partial(pu_two_step.roc_EM, P_train, U_train)},
+        {"name": "ROC-SVM", "model": partial(pu_two_step.roc_SVM, P_train, U_train)},
+        {"name": "CR-SVM", "model": partial(pu_two_step.cr_SVM, P_train, U_train)},
+        {"name": "SPY-SVM", "model": partial(pu_two_step.spy_SVM, P_train, U_train)},
+        {"name": "ROCCHIO", "model": partial(pu_two_step.rocchio, P_train, U_train)},
+        {"name": "BIASED-SVM", "model": partial(pu_biased_svm.biased_SVM_weight_selection, P_train, U_train)},
+    ]
 
-    words, wordgram_range = [False, (1, 3)]  # TODO change back to True, (1,3)
+    with multi.Pool(min(len(models), multi.cpu_count() // 4)) as p:
+        stats = list(map(partial(model_pu_score_record, P_test, U_test), models))
+
+    for s in stats:
+        print(s["name"], "\tPU-score:", s["pu_score"])
+
+    best_model = max(stats, key=lambda x: x["pu_score"])
+    print("Best PU model:", best_model["name"], "\tPU-score:", best_model["pu_score"])
+
+    return best_model["model"]
+
+
+def model_pu_score_record(P_test, U_test, m):
+    model = m['model']()
+    name = m['name']
+
+    y_P = model.predict(P_test)
+    y_U = model.predict(U_test)
+
+    score = pu_score(y_P, y_U)
+
+    return {'name': name, 'model': model, 'pu_score': score}
+
+
+# ------------------
+# preprocess
+# ------------------
+
+
+def prepare_pu(P, U, ratio=1.0):
+    """generate and select features for ratio of sentence sets"""
+
+    print("Preprocessing corpora for PU learning")
+    print("Training on", 100 * ratio, "% of data")
+    if ratio < 1.0:
+        P, _ = train_test_split(P, train_size=ratio)
+        U, _ = train_test_split(U, train_size=ratio)
+
+    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,3)
     chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
+    min_df_word, min_df_char = [20, 20]
     rules, lemmatize = [True, True]
 
     def print_params():
         print("words:", words, "\tword n-gram range:", wordgram_range,
               "\nchars:", chars, "\tchar n-gram range:", chargram_range,
+              "\nmin_df: word", min_df_word, "char:", min_df_char,
               "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
         return
 
@@ -109,42 +146,100 @@ def prepare_corpus():
     print("Fitting vectorizer")
     vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
                                            chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
-    vectorizer.fit(np.concatenate((P_raw, N_raw, U_raw)))
+    vectorizer.fit(np.concatenate((P, U)))
 
-    P = densify(vectorizer.transform(P_raw))
-    N = densify(vectorizer.transform(N_raw))
-    U = densify(vectorizer.transform(U_raw))
-    X_test = vectorizer.transform(X_test_raw)
+    bad_ = densify(vectorizer.transform(P))
+    noisy_ = densify(vectorizer.transform(U))
 
-    print("Features before selection:", np.shape(P)[1])
+    print("Features before selection:", np.shape(noisy_)[1])
 
-    selector = identitySelector()  # TODO FIXME chi2 does not help
+    # TODO FIXME choose best selector
+    # selector = identitySelector()
+    # selector = basic_pipeline.factorization()
+    selector = basic_pipeline.percentile_selector(percentile=20)
+    selector.fit(np.concatenate((bad_, noisy_)),
+                 np.concatenate((np.ones(num_rows(bad_)), -np.ones(num_rows(noisy_)))))
+
+    # TODO remove
+    print(np.asarray(vectorizer.get_feature_names())[selector.get_support()])
+
+    bad_ = densify(selector.transform(bad_))
+    noisy_ = densify(selector.transform(noisy_))
+
+    return bad_, noisy_, vectorizer, selector
+
+
+def prepare_corpus(ratio=0.5):
+    hocpos_train, hocpos_test = train_test_split(hocpos, test_size=0.2)
+
+    hocneg_train, hocneg_test = train_test_split(hocneg, test_size=0.2)
+    civic_train, civic_test = train_test_split(civic, test_size=0.2)
+    abstracts_train, abstracts_test = train_test_split(abstracts, test_size=0.2)
+
+    if ratio < 1.0:
+        hocpos_train = random.sample(hocpos_train, int(ratio * num_rows(hocpos_train)))
+        hocneg_train = random.sample(hocneg_train, int(ratio * num_rows(hocneg_train)))
+        civic_train = random.sample(civic_train, int(ratio * num_rows(civic_train)))
+        abstracts_train = random.sample(abstracts_train, int(ratio * num_rows(abstracts_train)))
+
+    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,3)
+    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
+    min_df_word, min_df_char = [20, 20]
+    rules, lemmatize = [True, True]
+
+    def print_params():
+        print("words:", words, "\tword n-gram range:", wordgram_range,
+              "\nchars:", chars, "\tchar n-gram range:", chargram_range,
+              "\nmin_df: word", min_df_word, "char:", min_df_char,
+              "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
+        return
+
+    print_params()
+
+    print("Fitting vectorizer")
+    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
+                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
+    vectorizer.fit(np.concatenate((civic_train, hocpos_train, hocneg_train, abstracts_train)))
+
+    hocpos_train = densify(vectorizer.transform(hocpos_train))
+    hocneg_train = densify(vectorizer.transform(hocneg_train))
+    civic_train = densify(vectorizer.transform(civic_train))
+    abstracts_train = densify(vectorizer.transform(abstracts_train))
+
+    print("Features before selection:", np.shape(hocpos_train)[1])
+
+    # selector = identitySelector()
     # selector = basic_pipeline.selector()
-    selector.fit(np.concatenate((P, N, U)),
-                 (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
-    P = densify(selector.transform(P))
-    N = densify(selector.transform(N))
-    U = densify(selector.transform(U))
-    X_test = densify(selector.transform(X_test))
+    selector = basic_pipeline.percentile_selector(percentile=20)
+    selector.fit(np.concatenate((civic_train, hocneg_train, hocpos_train, abstracts_train)),
+                 (np.concatenate((np.ones(num_rows(civic_train)),
+                                  -np.ones(num_rows(hocneg_train)),
+                                  np.zeros(num_rows(hocpos_train)),
+                                  2 * np.ones(num_rows(abstracts_train))))))
+
+    # TODO adjust classes to use as P, N, U
+    P = densify(selector.transform(civic_train))
+    P_test = densify(selector.transform(densify(vectorizer.transform(civic_test))))
+
+    N = densify(selector.transform(hocpos_train))
+    N_test = densify(selector.transform(densify(vectorizer.transform(hocpos_test))))
+
+    U = densify(selector.transform(hocneg_train))
+
+    print("\nPURIFYING SOURCES SEMI-SUPERVISED (", ratio, "% of data )"
+          , "\tHOC POS", "(N)"
+          , "(", num_rows(hocpos_train), ")"
+          , "\tHOC NEG", "(U)"
+          , "(", num_rows(hocneg_train), ")"
+          , ",\tCIVIC", "(P)"
+          , "(", num_rows(civic_train), ")"
+          , "\tABSTRACTS"  # , "(N)"
+          , "(", num_rows(abstracts_train), ")"
+          )
+
+    X_test = np.concatenate((P_test, N_test))
+    y_test = np.concatenate((np.ones(num_rows(P_test)), np.zeros(num_rows(N_test))))
 
     # print("Features after selection:", np.shape(P)[1])
 
-    return P, N, U, X_test, y_test, vectorizer, selector  # ------------------
-
-# ------------------
-# execute
-# ------------------
-
-P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus()
-
-it_lin_svc = ss_techniques.iterate_linearSVC(P,N,U)
-eval_model(it_lin_svc, X_test, y_test)
-print_sentences(it_lin_svc, "ITERATIVE LINEAR SVC")
-
-em = ss_techniques.EM(P,N,U)
-eval_model(it_lin_svc, X_test, y_test)
-print_sentences(it_lin_svc, "EM")
-
-knn = ss_techniques.iterate_knn(P,N,U)
-eval_model(it_lin_svc, X_test, y_test)
-print_sentences(it_lin_svc, "ITERATIVE KNN")
+    return P, N, U, X_test, y_test, vectorizer, selector
