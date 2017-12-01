@@ -48,53 +48,6 @@ pppl = Pipeline([
 ])
 
 # ----------------------------------------------------------------
-# vectorization and selection performance
-# ----------------------------------------------------------------
-
-# test_corpus = np.concatenate((civic_, abstracts_, hocpos_, hocneg_))
-test_corpus = np.concatenate((civic, abstracts, hocpos, hocneg))
-
-print("Training preprocessing pipeline")
-
-start_time = time.time()
-v.fit(test_corpus)
-print("vectorizing took", time.time() - start_time, "secs.")
-
-start_time = time.time()
-vectorized_corpus = v.transform(test_corpus)
-print("transforming took", time.time() - start_time, "secs. \t", np.shape(vectorized_corpus)[1], "features")
-
-# TruncatedSVD:                 ok              3.5min at cutoff 50/100
-# LatentDirichletAllocation:    few topics!
-# 'NMF':                        slow
-sparse = ['TruncatedSVD']
-# 'PCA':                        RAM
-# SparsePCA:
-# IncrementalPCA:
-# Factor Analysis:              slow
-dense = [] # ['PCA']
-
-# NOT:
-# MiniBatchSparsePCA:           >15h/CPU, 16GB
-
-# start_time = time.time()
-# LatentDirichletAllocation(n_topics=10, n_jobs=-1).fit(vectorized_corpus)
-# print("fitting LDA took", time.time() - start_time, "secs")
-
-
-for sel in sparse:
-    start_time = time.time()
-    factorization(sel, n_components).fit(vectorized_corpus)
-    print("fitting", sel, "took", time.time() - start_time, "secs")
-
-for sel in dense:
-    start_time = time.time()
-    factorization(sel, n_components).fit(densify(vectorized_corpus))
-    print("fitting", sel, "took", time.time() - start_time, "secs")
-
-sys.exit(0)
-
-# ----------------------------------------------------------------
 # Regex tests
 # ----------------------------------------------------------------
 
@@ -193,3 +146,51 @@ print("\n----------------------------------------------------------------",
  for x in civic_[1:10]]
 
 [print(x, "\n", pp.transform([x]), "\n") for x in abstracts_[1:10]]
+
+
+
+# ----------------------------------------------------------------
+# vectorization and selection performance
+# ----------------------------------------------------------------
+
+# test_corpus = np.concatenate((civic_, abstracts_, hocpos_, hocneg_))
+test_corpus = np.concatenate((civic, abstracts, hocpos, hocneg))
+
+print("Training preprocessing pipeline")
+
+start_time = time.time()
+v.fit(test_corpus)
+print("vectorizing took", time.time() - start_time, "secs.")
+
+start_time = time.time()
+vectorized_corpus = v.transform(test_corpus)
+print("transforming took", time.time() - start_time, "secs. \t", np.shape(vectorized_corpus)[1], "features")
+
+# TruncatedSVD:                 ok              3.5min at cutoff 50/100
+# LatentDirichletAllocation:    few topics!
+# 'NMF':                        slow
+sparse = [] #['TruncatedSVD']
+# 'PCA':                        RAM
+# SparsePCA:
+# IncrementalPCA:
+# Factor Analysis:              slow
+dense = [] # ['PCA']
+
+# NOT:
+# MiniBatchSparsePCA:           >15h/CPU, 16GB
+
+# start_time = time.time()
+# LatentDirichletAllocation(n_topics=10, n_jobs=-1).fit(vectorized_corpus)
+# print("fitting LDA took", time.time() - start_time, "secs")
+
+
+for sel in sparse:
+    start_time = time.time()
+    factorization(sel, n_components).fit(vectorized_corpus)
+    print("fitting", sel, "took", time.time() - start_time, "secs")
+
+for sel in dense:
+    start_time = time.time()
+    factorization(sel, n_components).fit(densify(vectorized_corpus))
+    print("fitting", sel, "took", time.time() - start_time, "secs")
+

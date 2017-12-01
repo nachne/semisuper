@@ -1,12 +1,11 @@
-import random
 import time
 
 import numpy as np
-from scipy.sparse import csr_matrix, vstack
+from scipy.sparse import vstack
 from sklearn.model_selection import train_test_split
 from semisuper import loaders, basic_pipeline, ss_techniques
 from semisuper.helpers import num_rows, densify, eval_model
-from semisuper.basic_pipeline import identitySelector, percentile_selector, factorization
+from semisuper.basic_pipeline import identitySelector, percentile_selector
 from semisuper import cleanup_sources
 
 civic, abstracts = loaders.sentences_civic_abstracts()
@@ -62,13 +61,13 @@ def test_supervised(P, N, U, X_test=None, y_test=None, sample_sentences=False):
           "---------\n")
 
     clfs = {
-        'sgd'   : ss_techniques.sgd,
+        'sgd': ss_techniques.sgd,
         # 'logreg' : ss_techniques.logreg, # grid search too slow
         # 'mlp': ss_techniques.mlp,
         # 'dectree': ss_techniques.dectree,
         # 'mnb'         : ss_techniques.mnb,
         # 'randomforest': ss_techniques.randomforest
-        'linsvc': ss_techniques.grid_search_linearSVM
+        # 'linsvc': ss_techniques.grid_search_linearSVM
     }
 
     for name in clfs:
@@ -329,18 +328,35 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 def prepare_corpus(ratio=0.5):
-    hocneg_ = cleanup_sources.remove_least_similar_percent(noisy=hocneg, guide=civic, ratio=1.0, percentile=15)
-    hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos, guide=hocneg_, ratio=1.0, percentile=10)
-    hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos_, guide=civic, ratio=1.0, percentile=10,
-                                                           inverse=True)
+    # remove worst percentage
+    # print("\nRemoving CIViC-like sentences from HoC[neg]\n")
+    # hocneg_ = cleanup_sources.remove_least_similar_percent(noisy=hocneg, guide=civic, ratio=ratio, percentile=15)
+    # print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
+    # hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos, guide=hocneg_, ratio=ratio, percentile=10)
+    # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
+    # hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos_, guide=civic, ratio=ratio, percentile=10,
+    #                                                        inverse=True)
 
-    hocpos_train, X_test_pos = train_test_split(hocpos_, test_size=0.2)
-    hocneg_train, X_test_neg = train_test_split(hocneg_, test_size=0.2)
+    # remove what is ambiguous according to PU training
+    print("\nRemoving CIViC-like sentences from HoC[neg]\n")
+    hocneg_ = cleanup_sources.remove_P_from_U(noisy=hocneg, guide=civic, ratio=ratio)
+
+    print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
+    hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=hocneg_)
+
+    # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
+    # hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=civic, ratio=ratio, inverse=True)
+
+    hocpos_train, hocpos_test = train_test_split(hocpos_, test_size=0.2)
     civic_train, civic_test = train_test_split(civic, test_size=0.2)
+
+    hocneg_train, X_test_neg = train_test_split(hocneg_, test_size=0.2)
 
     P_raw = np.concatenate((hocpos_train, civic_train))
     U_raw = abstracts
     N_raw = hocneg_train
+
+    X_test_pos = np.concatenate((hocpos_test, civic_test))
 
     if ratio < 1.0:
         P_raw, _ = train_test_split(P_raw, train_size=ratio)
@@ -353,14 +369,10 @@ def prepare_corpus(ratio=0.5):
     y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
 
     print("\nSEMI-SUPERVISED TRAINING", "(on", 100 * ratio, "% of available data)",
-          "\tP: HOC POS"
-          , "+ CIVIC"
-          , "(", num_rows(P_raw), ")"
-          , "\tN: HOC NEG"
-          , "(", num_rows(N_raw), ")"
-          , "\tU: ABSTRACTS"
-          , "(", num_rows(U_raw), ")"
-          , "TEST SET (HOC POS + HOC NEG):", num_rows(X_test_raw)
+          "\tP: HOC POS + CIVIC (", num_rows(P_raw), ")",
+          "\tN: HOC NEG (", num_rows(N_raw), ")",
+          "\tU: ABSTRACTS (", num_rows(U_raw), ")",
+          "\tTEST SET (HOC POS + CIVIC + HOC NEG):", num_rows(X_test_raw)
           )
 
     words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,4)
@@ -377,38 +389,38 @@ def prepare_corpus(ratio=0.5):
     print_params()
 
     print("Fitting vectorizer")
-    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
-                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize,
-                                           min_df_word=min_df_word, min_df_char=min_df_char)
+    vec = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
+                                    chargram_range=chargram_range, rules=rules, lemmatize=lemmatize,
+                                    min_df_word=min_df_word, min_df_char=min_df_char)
 
-    vectorizer.fit(np.concatenate((P_raw, N_raw, U_raw)))
+    vec.fit(np.concatenate((P_raw, N_raw, U_raw)))
 
     # densify?
-    P = densify(vectorizer.transform(P_raw))
-    N = densify(vectorizer.transform(N_raw))
-    U = densify(vectorizer.transform(U_raw))
-    X_test = (vectorizer.transform(X_test_raw))
+    P = vec.transform(P_raw)
+    N = vec.transform(N_raw)
+    U = vec.transform(U_raw)
+    X_test = vec.transform(X_test_raw)
 
     print("Features before selection:", np.shape(P)[1])
 
     # TODO FIXME find best method
     # selector = identitySelector()
-    selector = percentile_selector(percentile=20)
+    sel = percentile_selector(percentile=20)
     # selector = factorization()
-    selector.fit(np.concatenate((P, N, U)),
-                 (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
+    sel.fit(vstack((P, N, U)),
+            (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
 
     # TODO remove
-    print(np.asarray(vectorizer.get_feature_names())[selector.get_support()])
+    print(np.asarray(vec.get_feature_names())[sel.get_support()])
 
-    P = densify(selector.transform(P))
-    N = densify(selector.transform(N))
-    U = densify(selector.transform(U))
-    X_test = densify(selector.transform(X_test))
+    P = densify(sel.transform(P))
+    N = densify(sel.transform(N))
+    U = densify(sel.transform(U))
+    X_test = densify(sel.transform(X_test))
 
     print("Features after selection:", np.shape(P)[1])
 
-    return P, N, U, X_test, y_test, vectorizer, selector  # ------------------
+    return P, N, U, X_test, y_test, vec, sel  # ------------------
 
 
 # execute

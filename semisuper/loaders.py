@@ -72,8 +72,8 @@ def load_civic_abstracts(verbose=False):
         print("Downloading summaries...")
         civic = read_civic()
 
-        print("Downloading abstracts...")
         pm_ids = get_pm_ids(civic)
+        print("Downloading abstracts... (", len(pm_ids), "unique PMIDs )")
         abstracts = get_abstracts(pm_ids)
 
         with open(file_path("./pickles/civic_abstracts.pickle"), "wb") as f:

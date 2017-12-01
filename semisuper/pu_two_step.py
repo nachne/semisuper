@@ -1,5 +1,6 @@
 import random
 from multiprocessing import cpu_count
+import warnings
 
 import numpy as np
 from sklearn import svm
@@ -279,6 +280,10 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_
                                                    np.zeros(num_rows(RN)))),
                                     verbose=verbose)
 
+    if num_rows(U) == 0:
+        warnings.warn("EM: All of U was classified as negative.")
+        return initial_model
+
     y_P = np.array([1] * num_rows(P))
 
     if verbose: print("\nCalculating initial probabilistic labels for Reliable Negative and Unlabelled set")
@@ -375,14 +380,19 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
 
     initial_model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
 
+    if num_rows(U) == 0:
+        warnings.warn("SVM: All of U was classified as negative.")
+        return initial_model
+
     if verbose: print("Predicting U with initial SVM, adding negatively classified docs to RN for iteration")
+
     y_U = initial_model.predict(U)
     Q, W = partition_pos_neg(U, y_U)
     iteration = 0
     model = None
 
     if num_rows(Q) == 0 or num_rows(W) == 0:
-        print("WARNING Returning initial SVM because all of U was assigned label", y_U[0])
+        warnings.warn("Returning initial SVM because all of U was assigned label", y_U[0])
         return initial_model
 
     # iterate SVM, each turn augmenting RN by the documents in Q classified negative

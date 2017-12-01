@@ -1,16 +1,12 @@
+import multiprocessing as multi
 import random
-import time
+from functools import partial
 
 import numpy as np
-from scipy.sparse import vstack
-
 from sklearn.model_selection import train_test_split
-from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline, ss_techniques, pu_cos_roc
-from semisuper.helpers import num_rows, densify, eval_model, run_fun, pu_score, select_PN_below_score
-from basic_pipeline import identitySelector, show_most_informative_features
-from functools import partial
-import multiprocessing as multi
-import sys
+
+from semisuper import loaders, pu_two_step, basic_pipeline, pu_cos_roc, pu_biased_svm
+from semisuper.helpers import num_rows, densify, pu_score, select_PN_below_score
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -22,7 +18,7 @@ piboso_outcome = loaders.sentences_piboso_outcome()
 # select sentences
 # ------------------
 
-def remove_P_from_U(noisy, guide, ratio=1.0, inverse=False):
+def remove_P_from_U(noisy, guide, ratio=1.0, inverse=False, verbose=True):
     """Remove sentences from noisy_set that are similar to guide_set according to strictest PU estimator.
 
     if inverse is set to True, keep rather than discard them."""
@@ -34,17 +30,26 @@ def remove_P_from_U(noisy, guide, ratio=1.0, inverse=False):
     y_noisy = model.predict(selector.transform(densify(vectorizer.transform(noisy))))
 
     if inverse:
-        action = "keeping"
+        action = "Keeping"
         criterion = 1
     else:
-        action = "discarding"
+        action = "Discarding"
         criterion = 0
 
-    print(action, (100 * np.sum(y_noisy) / num_rows(y_noisy)), "% of noisy data (", np.sum(y_noisy), "sentences)")
+    print(action, (100 * np.sum(y_noisy) / num_rows(y_noisy)), "% of noisy data (", np.sum(y_noisy), "sentences )",
+          "as per result of PU learning")
 
-    return np.array([x for (x, y) in zip(noisy, y_noisy) if y == criterion])
+    keeping = np.array([x for (x, y) in zip(noisy, y_noisy) if y == criterion])
 
-def remove_least_similar_percent(noisy, guide, ratio=1.0, percentile=10, inverse=False):
+    if verbose:
+        discarding = [x for (x, y) in zip(noisy, y_noisy) if y != criterion]
+        print("Keeping", random.sample(keeping.tolist(), 10))
+        print("Discarding", random.sample(discarding, 10))
+
+    return keeping
+
+
+def remove_least_similar_percent(noisy, guide, ratio=1.0, percentile=10, inverse=False, verbose=True):
     """Remove percentile of sentences from noisy_set that are similar to guide_set according to strictest PU estimator.
 
     if inverse is set to True, remove least rather than most similar."""
@@ -60,14 +65,15 @@ def remove_least_similar_percent(noisy, guide, ratio=1.0, percentile=10, inverse
         predicate = "most"
         y_pred = -model.predict_proba(noisy_)
 
-    print("Removing", percentile, "% of noisy data", predicate, "similar to guide set"
-          ,"(", (percentile*num_rows(noisy)/100), "sentences)")
+    print("Removing", percentile, "% of noisy data", predicate, "similar to guide set (cos-similarity)"
+          , "(", (percentile * num_rows(noisy) / 100), "sentences )")
 
     U = np.array(noisy)
-    U_minus_PN, PN = select_PN_below_score(y_pred, U, y_pred, noise_lvl=percentile/100)
+    U_minus_PN, PN = select_PN_below_score(y_pred, U, y_pred, noise_lvl=percentile / 100)
 
-    print("Keeping", U_minus_PN[:10])
-    print("Discarding", PN[:10])
+    if verbose:
+        print("Keeping", random.sample(U_minus_PN, 10))
+        print("Discarding", random.sample(PN, 10))
 
     return U_minus_PN
 
@@ -83,12 +89,12 @@ def best_pu(P, U):
     models = [
         {"name": "I-EM", "model": partial(pu_two_step.i_EM, P_train, U_train)},
         {"name": "S-EM", "model": partial(pu_two_step.s_EM, P_train, U_train)},
-        {"name": "ROC-EM", "model": partial(pu_two_step.roc_EM, P_train, U_train)},
+        # {"name": "ROC-EM", "model": partial(pu_two_step.roc_EM, P_train, U_train)},
         {"name": "ROC-SVM", "model": partial(pu_two_step.roc_SVM, P_train, U_train)},
         {"name": "CR-SVM", "model": partial(pu_two_step.cr_SVM, P_train, U_train)},
-        {"name": "SPY-SVM", "model": partial(pu_two_step.spy_SVM, P_train, U_train)},
-        {"name": "ROCCHIO", "model": partial(pu_two_step.rocchio, P_train, U_train)},
-        {"name": "BIASED-SVM", "model": partial(pu_biased_svm.biased_SVM_weight_selection, P_train, U_train)},
+        # {"name": "SPY-SVM", "model": partial(pu_two_step.spy_SVM, P_train, U_train)},
+        # {"name": "ROCCHIO", "model": partial(pu_two_step.rocchio, P_train, U_train)},
+        # {"name": "BIASED-SVM", "model": partial(pu_biased_svm.biased_SVM_weight_selection, P_train, U_train)},
     ]
 
     with multi.Pool(min(len(models), multi.cpu_count() // 4)) as p:
