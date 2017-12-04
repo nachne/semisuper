@@ -11,12 +11,11 @@ from sklearn.metrics import classification_report, precision_recall_fscore_suppo
 from sklearn.model_selection import train_test_split
 
 import semisuper.basic_pipeline as basic_pipeline
-import semisuper.pu_biased_svm as biased_svm
-import semisuper.pu_two_step as two_step
+import semisuper.ss_techniques as ss
 from semisuper.helpers import num_rows, densify
 
 
-def getBestModel(P_train, U_train, X_test, y_test):
+def getBestModel(P_train, N_train, U_train, X_test, y_test):
     """Evaluate parameter combinations, save results and return pipeline with best model"""
 
     print("\nEvaluating parameter ranges for preprocessor and classifiers")
@@ -24,8 +23,8 @@ def getBestModel(P_train, U_train, X_test, y_test):
     # splitting test set (should have true labels) in test and dev set
     X_test, X_dev, y_test, y_dev = train_test_split(X_test, y_test, test_size=0.5)
 
-    X_train = np.concatenate((P_train, U_train), 0)
-    y_train = np.concatenate((np.ones(num_rows(P_train)), np.zeros(num_rows(U_train))))
+    X_train = np.concatenate((P_train, N_train, U_train))
+    y_train = np.concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U_train))))
 
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
@@ -59,12 +58,15 @@ def getBestModel(P_train, U_train, X_test, y_test):
                                                                               chargram_range=chargram, lemmatize=l)
                     if selector:
                         P_train_ = selector.transform(vectorizer.transform(P_train))
+                        N_train_ = selector.transform(vectorizer.transform(N_train))
                         U_train_ = selector.transform(vectorizer.transform(U_train))
                     else:
                         P_train_ = vectorizer.transform(P_train)
+                        N_train_ = vectorizer.transform(N_train)
                         U_train_ = vectorizer.transform(U_train)
 
                     P_train_ = densify(P_train_)
+                    N_train_ = densify(N_train_)
                     U_train_ = densify(U_train_)
                     X_train_ = densify(X_train_)
                     X_dev_ = densify(X_dev_)
@@ -73,31 +75,15 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
                     # fit models
                     iteration = [
-                        # {'name': 'i-em', 'model': partial(two_step.i_EM, P_train_, U_train_)},
-                        # {'name' : 's-em spy=0.1',
-                        #  'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
-                        # {'name' : 's-em spy=0.2',
-                        #  'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
-                        {'name': 'roc-svm', 'model': partial(two_step.roc_SVM, P_train_, U_train_)},
-                        {'name' : 'cr_svm noise=0.1',
-                         'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.1)},
-                        {'name' : 'cr_svm noise=0.2',
-                         'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.2)},
-                        # {'name': 'roc_em', 'model': partial(two_step.roc_EM, P_train_, U_train_)},
-                        # {'name' : 'spy_svm spy=0.1',
-                        #  'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
-                        # {'name' : 'spy_svm spy=0.2',
-                        #  'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
-                        {'name' : 'biased-svm',
-                         'model': partial(biased_svm.biased_SVM_weight_selection, P_train_, U_train_)},
-                        # {'name' : 'bagging-svm',
-                        #  'model': biased_svm.biased_SVM_grid_search(P_train_, U_train_)}
+                        {'name': 'neg-linSVC', 'model': partial(ss.iterate_linearSVC, P_train_, N_train_, U_train_)},
+                        {'name': 'neg-SGD', 'model': partial(ss.neg_self_training_sgd, P_train_, N_train_, U_train_)},
+                        {'name': 'self-logit', 'model': partial(ss.self_training, P_train_, N_train_, U_train_)},
                     ]
 
                     # eval models
                     # TODO multiprocessing; breaks on macOS but not on Linux
                     with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
-                        iter_stats = list(map(partial(model_eval_record, X_dev_, y_dev), iteration))
+                        iter_stats = list(p.map(partial(model_eval_record, X_dev_, y_dev), iteration))
 
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
@@ -163,7 +149,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
 
 def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_range=None, featureSelect=True,
-                     chargram_range=None, lemmatize=True, min_df_char=20, min_df_word=None, max_df=1.0):
+                     chargram_range=None, lemmatize=True, min_df_char=20, min_df_word=20, max_df=1.0):
     """prepare training and test vectors and vectorizer for validating classifiers
     :param min_df_char:
     """
