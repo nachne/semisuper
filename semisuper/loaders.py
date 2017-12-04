@@ -5,11 +5,13 @@ import pickle
 import re
 
 import pandas as pd
-from semisuper import transformers
 from Bio import Medline, Entrez
+
+from semisuper import transformers
 from semisuper.helpers import flatten
 
 # needed for querying PubMed API
+
 Entrez.email = 'wackerbm@informatik.hu-berlin.de'
 
 
@@ -100,10 +102,12 @@ def get_abstracts(idlist):
     """download abstracts from PubMed for a list of PubMed IDs"""
     handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
     records = Medline.parse(handle)
-    df = pd.DataFrame(columns=["abstract"])
+    df = pd.DataFrame(columns=["pmid", "title", "authors", "date", "abstract"])
     for rec in records:
         try:
-            df = df.append(pd.DataFrame([[rec["AB"]]], columns=['abstract']), ignore_index=True)
+            df = df.append(pd.DataFrame([[rec[idx] for idx in ["PMID", "TI", "AU", "DATE", "AB"]]],
+                                        columns=["pmid", "title", "authors", "date", "abstract"]),
+                           ignore_index=True)
         except Exception:
             pass
     return df
@@ -176,11 +180,11 @@ def sentences_piboso(include, exclude=None):
 
 def piboso_category_offset(category):
     """maps category names to their line offset in PIBOSO file"""
-    indices = {"background": 0,
+    indices = {"background"  : 0,
                "intervention": 1,
-               "population": 2,
-               "outcome": 3,
-               "other": 4,
+               "population"  : 2,
+               "outcome"     : 3,
+               "other"       : 4,
                "study design": 5,
                "study_design": 5}
     return indices[category]
@@ -194,3 +198,4 @@ def piboso_category_offset(category):
 def file_path(file_relative):
     """return the correct file path given the file's path relative to calling script"""
     return os.path.join(os.path.dirname(__file__), file_relative)
+

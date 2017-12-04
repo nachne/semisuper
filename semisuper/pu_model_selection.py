@@ -64,6 +64,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
                     else:
                         P_train_ = vectorizer.transform(P_train)
                         U_train_ = vectorizer.transform(U_train)
+
                     P_train_ = densify(P_train_)
                     U_train_ = densify(U_train_)
                     X_train_ = densify(X_train_)
@@ -194,7 +195,7 @@ def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_rang
 
     selector = None
     if featureSelect:
-        selector = basic_pipeline.factorization()
+        selector = basic_pipeline.percentile_selector()
         selector.fit(transformedTrainData, trainLabels)
         transformedTrainData = selector.transform(transformedTrainData)
         transformedTestData = selector.transform(transformedTestData)

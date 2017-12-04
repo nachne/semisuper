@@ -1,12 +1,10 @@
 import time
 
 import numpy as np
-from scipy.sparse import vstack
-from sklearn.model_selection import train_test_split
-from semisuper import loaders, basic_pipeline, ss_techniques
+
+from cleanup_sources import vectorized_clean_pnu
+from semisuper import loaders, ss_techniques
 from semisuper.helpers import num_rows, densify, eval_model
-from semisuper.basic_pipeline import identitySelector, percentile_selector
-from semisuper import cleanup_sources
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -25,7 +23,7 @@ print("PIBOSO other sentences:", len(piboso_other))
 # model testers
 # ------------------
 
-def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False):
+def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False, outpath=None):
     test_iterative_linearSVM(P, N, U, X_test, y_test, sample_sentences)
 
     test_neg_self_training(P, N, U, X_test, y_test, sample_sentences)
@@ -327,105 +325,11 @@ def print_sentences(model, modelname=""):
 # prepare corpus, vectors, vectorizer, selector
 # ------------------
 
-def prepare_corpus(ratio=0.5):
-    # remove worst percentage
-    # print("\nRemoving CIViC-like sentences from HoC[neg]\n")
-    # hocneg_ = cleanup_sources.remove_least_similar_percent(noisy=hocneg, guide=civic, ratio=ratio, percentile=15)
-    # print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
-    # hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos, guide=hocneg_, ratio=ratio, percentile=10)
-    # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
-    # hocpos_ = cleanup_sources.remove_least_similar_percent(noisy=hocpos_, guide=civic, ratio=ratio, percentile=10,
-    #                                                        inverse=True)
 
-    # remove what is ambiguous according to PU training
-    print("\nRemoving CIViC-like sentences from HoC[neg]\n")
-    hocneg_ = cleanup_sources.remove_P_from_U(noisy=hocneg, guide=civic, ratio=ratio)
-
-    print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
-    hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=hocneg_, ratio=ratio)
-
-    # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
-    # hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=civic, ratio=ratio, inverse=True)
-
-    hocpos_train, hocpos_test = train_test_split(hocpos_, test_size=0.2)
-    civic_train, civic_test = train_test_split(civic, test_size=0.2)
-
-    hocneg_train, X_test_neg = train_test_split(hocneg_, test_size=0.2)
-
-    P_raw = np.concatenate((hocpos_train, civic_train))
-    U_raw = abstracts
-    N_raw = hocneg_train
-
-    X_test_pos = np.concatenate((hocpos_test, civic_test))
-
-    if ratio < 1.0:
-        P_raw, _ = train_test_split(P_raw, train_size=ratio)
-        N_raw, _ = train_test_split(N_raw, train_size=ratio)
-        U_raw, _ = train_test_split(U_raw, train_size=ratio)
-        X_test_pos, _ = train_test_split(X_test_pos, train_size=ratio)
-        X_test_neg, _ = train_test_split(X_test_neg, train_size=ratio)
-
-    X_test_raw = np.concatenate((X_test_pos, X_test_neg))
-    y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
-
-    print("\nSEMI-SUPERVISED TRAINING", "(on", 100 * ratio, "% of available data)",
-          "\tP: HOC POS + CIVIC (", num_rows(P_raw), ")",
-          "\tN: HOC NEG (", num_rows(N_raw), ")",
-          "\tU: ABSTRACTS (", num_rows(U_raw), ")",
-          "\tTEST SET (HOC POS + CIVIC + HOC NEG):", num_rows(X_test_raw)
-          )
-
-    # wordgram_range = (1, 4)  # TODO change back to (1,4)
-    # chargram_range = (2, 6)  # TODO change back to (2,6)
-    # min_df_word, min_df_char = [20, 20]  # TODO change back to default(20,20)
-    # rules, lemmatize = [True, True]
-    #
-    # def print_params():
-    #     print("word n-gram range:", wordgram_range, "\tmin_df:", min_df_word,
-    #           "\nchar n-gram range:", chargram_range, "\tmin_df:", min_df_char,
-    #           "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
-    #     return
-    #
-    # print_params()
-    #
-    # print("Fitting vectorizer")
-    # vec = basic_pipeline.vectorizer(wordgrams=wordgram_range,
-    #                                 chargrams=chargram_range, rules=rules, lemmatize=lemmatize,
-    #                                 min_df_word=min_df_word, min_df_char=min_df_char)
-    vec = basic_pipeline.vectorizer()
-    vec.fit(np.concatenate((P_raw, N_raw, U_raw)))
-
-    # densify?
-    P = vec.transform(P_raw)
-    N = vec.transform(N_raw)
-    U = vec.transform(U_raw)
-    X_test = vec.transform(X_test_raw)
-
-    print("Features before selection:", np.shape(P)[1])
-
-    # TODO FIXME find best method
-    # sel = identitySelector()
-    # sel = percentile_selector()
-    sel = basic_pipeline.factorization('LatentDirichletAllocation')
-    sel.fit(vstack((P, N, U)),
-            (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
-
-    # TODO remove
-    print(sel.perplexity(vstack((P, N, U))))
-    # print(np.asarray(vec.get_feature_names())[sel.get_support()])
-
-    P = densify(sel.transform(P))
-    N = densify(sel.transform(N))
-    U = densify(sel.transform(U))
-    X_test = densify(sel.transform(X_test))
-
-    print("Features after selection:", np.shape(P)[1])
-
-    return P, N, U, X_test, y_test, vec, sel  # ------------------
-
-
-# execute
+# ------------------
+#  execute
 # ------------------
 
-P, N, U, X_test, y_test, vectorizer, selector = prepare_corpus(ratio=1.0)
+
+P, N, U, X_test, y_test, vectorizer, selector = vectorized_clean_pnu(ratio=1.0)
 test_all(P, N, U, X_test, y_test, sample_sentences=True)

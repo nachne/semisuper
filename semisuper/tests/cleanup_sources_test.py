@@ -85,19 +85,19 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 print("\nHOCNEG MINUS CIVIC\n")
-_ = remove_least_similar_percent(hocneg, civic, ratio=1.0, percentile=20)
+_ = remove_least_similar_percent(civic, hocneg, ratio=1.0, percentile=20)
 
 print("\nCIVIC MINUS HOCPOS\n")
-civic_ = remove_least_similar_percent(civic, hocpos, ratio=1.0, inverse=True)
+civic_ = remove_least_similar_percent(hocpos, civic, ratio=1.0, inverse=True)
 
 print("\nHOCPOS MINUS CIVIC\n")
-hocpos_ = remove_least_similar_percent(hocpos, civic, ratio=1.0, inverse=True)
+hocpos_ = remove_least_similar_percent(civic, hocpos, ratio=1.0, inverse=True)
 
 print("\nCIVIC MINUS HOCPOS'\n")
-_ = remove_least_similar_percent(civic, hocpos_, ratio=1.0, inverse=True)
+_ = remove_least_similar_percent(hocpos_, civic, ratio=1.0, inverse=True)
 
 print("\nHOCPOS MINUS CIVIC'\n")
-_ = remove_least_similar_percent(hocpos, civic_, ratio=1.0, inverse=True)
+_ = remove_least_similar_percent(civic_, hocpos, ratio=1.0, inverse=True)
 
 sys.exit()
 
