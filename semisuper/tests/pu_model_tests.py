@@ -322,7 +322,7 @@ def prepare_corpus(ratio=0.5):
     print("Features before selection:", np.shape(P)[1])
 
     # sel = identitySelector()
-    sel = percentile_selector(percentile=20)
+    sel = percentile_selector()
     # sel = basic_pipeline.factorization('LatentDirichletAllocation')
 
     sel.fit(vstack((P, U)),

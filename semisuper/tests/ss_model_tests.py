@@ -405,14 +405,13 @@ def prepare_corpus(ratio=0.5):
 
     # TODO FIXME find best method
     # sel = identitySelector()
-    sel = percentile_selector(percentile=20)
-    # sel = basic_pipeline.factorization('LatentDirichletAllocation')
+    # sel = percentile_selector()
+    sel = basic_pipeline.factorization('LatentDirichletAllocation')
     sel.fit(vstack((P, N, U)),
             (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
 
-    print(sel.perplexity(vstack((P, N, U))))
-
     # TODO remove
+    print(sel.perplexity(vstack((P, N, U))))
     # print(np.asarray(vec.get_feature_names())[sel.get_support()])
 
     P = densify(sel.transform(P))

@@ -146,14 +146,14 @@ def factorization(method='TruncatedSVD', n_components=10):
         'LatentDirichletAllocation': LatentDirichletAllocation(n_topics=n_components,
                                                                n_jobs=-1,
                                                                learning_method='online'),
-        'TruncatedSVD'             : TruncatedSVD(n_components)
+        'TruncatedSVD'             : FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
+                                    ("normalizer", StandardScaler())])
     }
 
     model = sparse.get(method, None)
 
     if model is not None:
-        return FeatureNamePipeline([("selector", model),
-                                    ("normalizer", StandardScaler())])  # TODO Standard or MinMax?
+        return model
 
     dense = {
         'PCA'           : PCA(n_components),

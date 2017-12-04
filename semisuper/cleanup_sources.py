@@ -170,11 +170,12 @@ def prepare_pu(P, U, ratio=1.0):
     # TODO FIXME choose best selector
     # sel = identitySelector()
     # sel = basic_pipeline.factorization()
-    sel = basic_pipeline.percentile_selector(percentile=20)
-    # sel = basic_pipeline.factorization('LatentDirichletAllocation')
+    # sel = basic_pipeline.percentile_selector()
+    sel = basic_pipeline.factorization('LatentDirichletAllocation')
     sel.fit(vstack((P_, U_)),
             np.concatenate((np.ones(num_rows(P_)), -np.ones(num_rows(U_)))))
 
+    # TODO remove
     print(sel.perplexity(vstack((P, U))))
 
     P_ = densify(sel.transform(P_))
