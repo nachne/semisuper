@@ -27,8 +27,7 @@ def prepare_corpus_pu(data_tuple):
     X_test = concatenate((P_test, N_test))
     y_test = concatenate((y_P_test, y_N_test))
 
-    vectorizer = basic_pipeline.vectorizer(words=True, wordgram_range=(1, 3), chars=False, chargram_range=(2, 6),
-                                           rules=False, lemmatize=False)
+    vectorizer = basic_pipeline.vectorizer(chargrams=(2, 6), wordgrams=(1, 3), lemmatize=False, rules=False)
 
     print("Fitting vectorizer")
     vectorizer.fit(P)
@@ -60,9 +59,8 @@ def prepare_corpus_ss(data_tuple):
     X_test = concatenate((P_test, N_test))
     y_test = concatenate((y_P_test, y_N_test))
 
-    vectorizer = basic_pipeline.vectorizer(words=True, wordgram_range=(1, 3), chars=False, chargram_range=(2, 6),
-                                           min_df_word=0.01, min_df_char=0.01,
-                                           rules=False, lemmatize=False)
+    vectorizer = basic_pipeline.vectorizer(chargrams=(2, 6), min_df_char=0.01, wordgrams=(1, 3), min_df_word=0.01,
+                                           lemmatize=False, rules=False)
 
     print("Fitting vectorizer")
     vectorizer.fit(P)

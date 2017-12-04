@@ -2,7 +2,8 @@ import pickle
 from operator import itemgetter
 
 from semisuper.helpers import identity
-from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline, Densifier, cleanup, Asciifier
+from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline, Densifier, cleanup, \
+    TextNormalizer
 from sklearn import naive_bayes
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -10,8 +11,11 @@ from sklearn.feature_selection import SelectPercentile, chi2
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import Binarizer, MinMaxScaler, StandardScaler
 from sklearn.decomposition import *
+from sklearn.base import BaseEstimator, TransformerMixin
 from functools import partial
 import re
+from gensim import corpora
+from gensim.models.ldamulticore import LdaMulticore
 
 
 def train_clf(X_vec, y, classifier, binary=False, verbose=False):
@@ -53,8 +57,7 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
         clf = classifier
 
     model = Pipeline([
-        ('features', vectorizer(words=words, wordgram_range=wordgram_range, chars=chars, chargram_range=chargram_range,
-                                binary=binary)),
+        ('features', vectorizer(chargrams=chargram_range, wordgrams=wordgram_range, binary=binary)),
         ('selector', None if not selection else
         # selector(score_func=score_func, percentile=percentile)),
         factorization()),
@@ -71,44 +74,44 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
     return model
 
 
-def vectorizer(words=True, wordgram_range=(1, 4), chars=True, chargram_range=(2, 6), binary=False, rules=True,
-               lemmatize=True, min_df_word=20, min_df_char=20, max_df=1.0):
+def vectorizer(chargrams=(2, 6), min_df_char=20, wordgrams=None, min_df_word=20, lemmatize=False, rules=True,
+               max_df=1.0, binary=False):
     return FeatureNamePipeline([
-        ("asciifier", Asciifier()),
+        ("text_normalizer", TextNormalizer()),
         ("features", FeatureUnion(n_jobs=2,
-                        transformer_list=[
-                            ("wordgrams", None if not words else
-                            FeatureNamePipeline([
-                                ("preprocessor", TokenizePreprocessor(rules=rules, lemmatize=lemmatize)),
-                                ("word_tfidf", TfidfVectorizer(
-                                        analyzer='word',
-                                        min_df=min_df_word,  # TODO find reasonable value (5 <= n << 50)
-                                        max_df=max_df,
-                                        tokenizer=identity,
-                                        preprocessor=None,
-                                        lowercase=False,
-                                        ngram_range=wordgram_range,
-                                        binary=binary, norm='l2' if not binary else None,
-                                        use_idf=not binary))
-                            ])),
-                            ("chargrams", None if not chars else
-                            FeatureNamePipeline([
-                                ("char_tfidf", TfidfVectorizer(
-                                        analyzer='char',
-                                        min_df=min_df_char,
-                                        max_df=max_df,
-                                        preprocessor=partial(re.compile("[^\w\-=%]+").sub, " "),
-                                        lowercase=True,
-                                        ngram_range=chargram_range,
-                                        binary=binary, norm='l2' if not binary else None,
-                                        use_idf=not binary))
-                            ])),
-                            ("stats", None if binary else
-                            FeatureNamePipeline([
-                                ("stats", TextStats()),
-                                ("vect", DictVectorizer())
-                            ]))
-                        ]))
+                                  transformer_list=[
+                                      ("wordgrams", None if wordgrams is None else
+                                      FeatureNamePipeline([
+                                          ("preprocessor", TokenizePreprocessor(rules=rules, lemmatize=lemmatize)),
+                                          ("word_tfidf", TfidfVectorizer(
+                                                  analyzer='word',
+                                                  min_df=min_df_word,  # TODO find reasonable value (5 <= n << 50)
+                                                  max_df=max_df,
+                                                  tokenizer=identity,
+                                                  preprocessor=None,
+                                                  lowercase=False,
+                                                  ngram_range=wordgrams,
+                                                  binary=binary, norm='l2' if not binary else None,
+                                                  use_idf=not binary))
+                                      ])),
+                                      ("chargrams", None if chargrams is None else
+                                      FeatureNamePipeline([
+                                          ("char_tfidf", TfidfVectorizer(
+                                                  analyzer='char',
+                                                  min_df=min_df_char,
+                                                  max_df=max_df,
+                                                  preprocessor=partial(re.compile("[^\w\-=%]+").sub, " "),
+                                                  lowercase=True,
+                                                  ngram_range=chargrams,
+                                                  binary=binary, norm='l2' if not binary else None,
+                                                  use_idf=not binary))
+                                      ])),
+                                      ("stats", None if binary else
+                                      FeatureNamePipeline([
+                                          ("stats", TextStats()),
+                                          ("vect", DictVectorizer())
+                                      ]))
+                                  ]))
     ])
 
 
@@ -134,39 +137,39 @@ def percentile_selector(score_func=chi2, percentile=20):
     return SelectPercentile(score_func=score_func, percentile=percentile)
 
 
-def factorization(method='TruncatedSVD', n_components=1000):
+def factorization(method='TruncatedSVD', n_components=10):
     # PCA, IncrementalPCA, FactorAnalysis, FastICA, LatentDirichletAllocation, TruncatedSVD, fastica
 
     print("Unsupervised feature selection: matrix factorization with", method, "(", n_components, "components )")
 
     sparse = {
-        'NMF'                      : NMF,
-        'LatentDirichletAllocation': LatentDirichletAllocation,
-        'TruncatedSVD'             : TruncatedSVD
+        'LatentDirichletAllocation': LatentDirichletAllocation(n_topics=n_components,
+                                                               n_jobs=-1,
+                                                               learning_method='online'),
+        'TruncatedSVD'             : TruncatedSVD(n_components)
     }
 
     model = sparse.get(method, None)
 
     if model is not None:
-        return FeatureNamePipeline([("selector", model(n_components)),
+        return FeatureNamePipeline([("selector", model),
                                     ("normalizer", StandardScaler())])  # TODO Standard or MinMax?
 
     dense = {
-        'PCA'           : PCA,
-        'FactorAnalysis': FactorAnalysis
+        'PCA'           : PCA(n_components),
+        'FactorAnalysis': FactorAnalysis(n_components)
     }
 
     model = dense.get(method, None)
 
     if model is not None:
         return FeatureNamePipeline([("densifier", Densifier()),
-                                    ("selector", model(n_components)),
+                                    ("selector", model),
                                     ("normalizer", StandardScaler())])  # TODO Standard or MinMax?
 
     else:
 
-        return FeatureNamePipeline([("densifier", Densifier()),
-                                    ("selector", TruncatedSVD(n_components)),
+        return FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
                                     ("normalizer", StandardScaler())])
 
 

@@ -184,10 +184,8 @@ def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_rang
 
     print("Fitting vectorizer, preparing training and test data")
 
-    vectorizer = basic_pipeline.vectorizer(words=True if wordgram_range else False, wordgram_range=wordgram_range,
-                                           chars=True if chargram_range else False, chargram_range=chargram_range,
-                                           rules=rules, lemmatize=lemmatize, min_df_word=min_df_word,
-                                           min_df_char=min_df_char)
+    vectorizer = basic_pipeline.vectorizer(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
+                                           min_df_word=min_df_word, lemmatize=lemmatize, rules=rules)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)

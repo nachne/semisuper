@@ -100,16 +100,31 @@ def cleanup(sentence):
     return re.sub("[^\w-=%]+", " ", sentence).lower()
 
 
-class Asciifier(BaseEstimator, TransformerMixin):
-    """replaces all non-ASCII characters by approximations"""
+class TextNormalizer(BaseEstimator, TransformerMixin):
+    """replaces all non-ASCII characters by approximations, all numbers by 1"""
 
     def __init__(self):
+        self.num = re.compile("(\d+(,\d\d\d)*)|(\d*\.\d+)+")
+        self.heading = re.compile(
+            "^(AIMS?|BACKGROUNDS?|METHODS?|RESULTS?|CONCLUSIONS?|PATIENTS?|FINDINGS?|FUNDINGS?)[:.]? ")
         return
 
     def fit(self, X=None, y=None):
         return self
 
     def transform(self, X):
+        # TODO check if these help
+        return array(
+                # replace all numbers by "1"
+                [
+                    self.num.sub("1",
+                                 # remove headings
+                                 # self.heading.sub("",
+                                 unidecode(x)
+                                 )
+                    # )
+                    for x in X])
+
         return array([unidecode(x) for x in X])
 
 
@@ -174,7 +189,7 @@ regex_concept_dict = [
                 "[Mm]illion(th)?|[Bb]illion(th)?|"
                 "[Tt]welv(e|th)|[Hh]undred(th)?|[Tt]housand(th)?|"
                 "[Ff]irst|[Ss]econd|[Tt]hird|\d*1st|\d*2nd|\d*3rd|\d+-?th)-?)+$"), "_num_"),
-    (re.compile("^~?-?\d+(,\d+)?$"), "_num_"),  # int (+ or -)
+    (re.compile("^~?-?\d+(,\d\d\d)*$"), "_num_"),  # int (+ or -)
     (re.compile("^~?-?((-?\d*[·.]\d+$|^-?\d+[·.]\d*)(\+/-)?)+$"), "_num_"),  # float (+ or -)
     # misc. abbrevs
     (re.compile("^[Vv]\.?[Ss]\.?$|^[Vv]ersus$"), "vs"),

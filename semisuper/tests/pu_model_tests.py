@@ -266,7 +266,7 @@ def prepare_corpus(ratio=0.5):
     hocneg_ = cleanup_sources.remove_P_from_U(noisy=hocneg, guide=civic, ratio=ratio)
 
     print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
-    hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=hocneg_)
+    hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=hocneg_, ratio=ratio)
 
     # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
     # hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=civic, ratio=ratio, inverse=True)
@@ -296,23 +296,24 @@ def prepare_corpus(ratio=0.5):
           "\tTEST SET (HOC POS + CIVIC + HOC NEG):", num_rows(X_test_raw)
           )
 
-    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,4)
-    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (2,6)
-    min_df_word, min_df_char = [20, 30]  # TODO change back to default(20,20)
-    rules, lemmatize = [True, True]
-
-    def print_params():
-        print("words:", words, "\tword n-gram range:", wordgram_range,
-              "\nchars:", chars, "\tchar n-gram range:", chargram_range,
-              "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
-        return
-
-    print_params()
-
-    print("Fitting vectorizer")
-    vec = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
-                                    chargram_range=chargram_range, rules=rules, lemmatize=lemmatize,
-                                    min_df_word=min_df_word, min_df_char=min_df_char)
+    # wordgram_range = (1, 4) # TODO change back to True, (1,4)
+    # chargram_range = (2, 6) # TODO change back to True, (2,6)
+    # min_df_word, min_df_char = [20, 30]  # TODO change back to default(20,20)
+    # rules, lemmatize = [True, True]
+    #
+    # def print_params():
+    #     print("word n-gram range:", wordgram_range,
+    #           "\nchar n-gram range:", chargram_range,
+    #           "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
+    #     return
+    #
+    # print_params()
+    #
+    # print("Fitting vectorizer")
+    # vec = basic_pipeline.vectorizer(wordgrams=wordgram_range,
+    #                                 chargrams=chargram_range, rules=rules, lemmatize=lemmatize,
+    #                                 min_df_word=min_df_word, min_df_char=min_df_char)
+    vec = basic_pipeline.vectorizer()
     vec.fit(np.concatenate((P_raw, U_raw)))
 
     P = vec.transform(P_raw)
@@ -320,8 +321,9 @@ def prepare_corpus(ratio=0.5):
 
     print("Features before selection:", np.shape(P)[1])
 
-    # selector = identitySelector()
+    # sel = identitySelector()
     sel = percentile_selector(percentile=20)
+    # sel = basic_pipeline.factorization('LatentDirichletAllocation')
 
     sel.fit(vstack((P, U)),
             (np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U))))))

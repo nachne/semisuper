@@ -3,7 +3,10 @@ import random
 from functools import partial
 
 import numpy as np
+from scipy.sparse import vstack
 from sklearn.model_selection import train_test_split
+
+from sklearn.svm import LinearSVC
 
 from semisuper import loaders, pu_two_step, basic_pipeline, pu_cos_roc, pu_biased_svm
 from semisuper.helpers import num_rows, densify, pu_score, select_PN_below_score
@@ -87,14 +90,18 @@ def best_pu(P, U):
     U_train, U_test = train_test_split(U, test_size=0.2)
 
     models = [
-        {"name": "I-EM", "model": partial(pu_two_step.i_EM, P_train, U_train)},
-        {"name": "S-EM", "model": partial(pu_two_step.s_EM, P_train, U_train)},
+        # {"name": "I-EM", "model": partial(pu_two_step.i_EM, P_train, U_train)},
+        # {"name": "S-EM", "model": partial(pu_two_step.s_EM, P_train, U_train)},
         # {"name": "ROC-EM", "model": partial(pu_two_step.roc_EM, P_train, U_train)},
         {"name": "ROC-SVM", "model": partial(pu_two_step.roc_SVM, P_train, U_train)},
         {"name": "CR-SVM", "model": partial(pu_two_step.cr_SVM, P_train, U_train)},
         # {"name": "SPY-SVM", "model": partial(pu_two_step.spy_SVM, P_train, U_train)},
         # {"name": "ROCCHIO", "model": partial(pu_two_step.rocchio, P_train, U_train)},
         # {"name": "BIASED-SVM", "model": partial(pu_biased_svm.biased_SVM_weight_selection, P_train, U_train)},
+        # {"name": "supervised SVC", "model": partial(LinearSVC().fit,
+        #                                             np.concatenate((P_train, U_train)),
+        #                                             np.concatenate((np.ones(num_rows(P_train)),
+        #                                                             np.zeros(num_rows(U_train)))))}
     ]
 
     with multi.Pool(min(len(models), multi.cpu_count() // 4)) as p:
@@ -135,46 +142,47 @@ def prepare_pu(P, U, ratio=1.0):
         P, _ = train_test_split(P, train_size=ratio)
         U, _ = train_test_split(U, train_size=ratio)
 
-    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,3)
-    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
-    min_df_word, min_df_char = [20, 20]
-    rules, lemmatize = [True, True]
+    # wordgram_range = (1, 4)  # TODO change back to (1,3)
+    # chargram_range = (2, 6)  # TODO change back to (3,6)
+    # min_df_word, min_df_char = [20, 20]
+    # rules, lemmatize = [True, True]
+    #
+    # def print_params():
+    #     print("word n-gram range:", wordgram_range,
+    #           "\nchar n-gram range:", chargram_range,
+    #           "\nmin_df: word", min_df_word, "char:", min_df_char,
+    #           "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
+    #     return
+    #
+    # print_params()
+    #
+    # print("Fitting vectorizer")
+    # vec = basic_pipeline.vectorizer(wordgrams=wordgram_range,
+    #                                 chargrams=chargram_range, rules=rules, lemmatize=lemmatize)
+    vec = basic_pipeline.vectorizer()
+    vec.fit(np.concatenate((P, U)))
 
-    def print_params():
-        print("words:", words, "\tword n-gram range:", wordgram_range,
-              "\nchars:", chars, "\tchar n-gram range:", chargram_range,
-              "\nmin_df: word", min_df_word, "char:", min_df_char,
-              "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
-        return
+    P_ = vec.transform(P)
+    U_ = vec.transform(U)
 
-    print_params()
-
-    print("Fitting vectorizer")
-    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
-                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
-    vectorizer.fit(np.concatenate((P, U)))
-
-    bad_ = densify(vectorizer.transform(P))
-    noisy_ = densify(vectorizer.transform(U))
-
-    print("Features before selection:", np.shape(noisy_)[1])
+    print("Features before selection:", np.shape(U_)[1])
 
     # TODO FIXME choose best selector
-    # selector = identitySelector()
-    # selector = basic_pipeline.factorization()
-    selector = basic_pipeline.percentile_selector(percentile=20)
-    selector.fit(np.concatenate((bad_, noisy_)),
-                 np.concatenate((np.ones(num_rows(bad_)), -np.ones(num_rows(noisy_)))))
+    # sel = identitySelector()
+    # sel = basic_pipeline.factorization()
+    sel = basic_pipeline.percentile_selector(percentile=20)
+    # sel = basic_pipeline.factorization('LatentDirichletAllocation')
+    sel.fit(vstack((P_, U_)),
+            np.concatenate((np.ones(num_rows(P_)), -np.ones(num_rows(U_)))))
 
-    # TODO remove
-    print(np.asarray(vectorizer.get_feature_names())[selector.get_support()])
+    print(sel.perplexity(vstack((P, U))))
 
-    bad_ = densify(selector.transform(bad_))
-    noisy_ = densify(selector.transform(noisy_))
+    P_ = densify(sel.transform(P_))
+    U_ = densify(sel.transform(U_))
 
-    return bad_, noisy_, vectorizer, selector
+    return P_, U_, vec, sel
 
-
+# TODO obsolete
 def prepare_corpus(ratio=0.5):
     hocpos_train, hocpos_test = train_test_split(hocpos, test_size=0.2)
 
@@ -188,14 +196,14 @@ def prepare_corpus(ratio=0.5):
         civic_train = random.sample(civic_train, int(ratio * num_rows(civic_train)))
         abstracts_train = random.sample(abstracts_train, int(ratio * num_rows(abstracts_train)))
 
-    words, wordgram_range = [True, (1, 4)]  # TODO change back to True, (1,3)
-    chars, chargram_range = [True, (2, 6)]  # TODO change back to True, (3,6)
+    wordgram_range = (1, 4)  # TODO change back to True, (1,3)
+    chargram_range = (2, 6)  # TODO change back to True, (3,6)
     min_df_word, min_df_char = [20, 20]
     rules, lemmatize = [True, True]
 
     def print_params():
-        print("words:", words, "\tword n-gram range:", wordgram_range,
-              "\nchars:", chars, "\tchar n-gram range:", chargram_range,
+        print("word n-gram range:", wordgram_range,
+              "\nchar n-gram range:", chargram_range,
               "\nmin_df: word", min_df_word, "char:", min_df_char,
               "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
         return
@@ -203,34 +211,34 @@ def prepare_corpus(ratio=0.5):
     print_params()
 
     print("Fitting vectorizer")
-    vectorizer = basic_pipeline.vectorizer(words=words, wordgram_range=wordgram_range, chars=chars,
-                                           chargram_range=chargram_range, rules=rules, lemmatize=lemmatize)
-    vectorizer.fit(np.concatenate((civic_train, hocpos_train, hocneg_train, abstracts_train)))
+    vec = basic_pipeline.vectorizer(chargrams=chargram_range, wordgrams=wordgram_range, lemmatize=lemmatize,
+                                           rules=rules)
+    vec.fit(np.concatenate((civic_train, hocpos_train, hocneg_train, abstracts_train)))
 
-    hocpos_train = densify(vectorizer.transform(hocpos_train))
-    hocneg_train = densify(vectorizer.transform(hocneg_train))
-    civic_train = densify(vectorizer.transform(civic_train))
-    abstracts_train = densify(vectorizer.transform(abstracts_train))
+    hocpos_train = densify(vec.transform(hocpos_train))
+    hocneg_train = densify(vec.transform(hocneg_train))
+    civic_train = densify(vec.transform(civic_train))
+    abstracts_train = densify(vec.transform(abstracts_train))
 
     print("Features before selection:", np.shape(hocpos_train)[1])
 
     # selector = identitySelector()
-    # selector = basic_pipeline.selector()
-    selector = basic_pipeline.percentile_selector(percentile=20)
-    selector.fit(np.concatenate((civic_train, hocneg_train, hocpos_train, abstracts_train)),
+    sel = basic_pipeline.percentile_selector(percentile=20)
+    sel = basic_pipeline.factorization('LatentDirichletAllocation', n_components=10)
+    sel.fit(np.concatenate((civic_train, hocneg_train, hocpos_train, abstracts_train)),
                  (np.concatenate((np.ones(num_rows(civic_train)),
                                   -np.ones(num_rows(hocneg_train)),
                                   np.zeros(num_rows(hocpos_train)),
                                   2 * np.ones(num_rows(abstracts_train))))))
 
     # TODO adjust classes to use as P, N, U
-    P = densify(selector.transform(civic_train))
-    P_test = densify(selector.transform(densify(vectorizer.transform(civic_test))))
+    P = densify(sel.transform(civic_train))
+    P_test = densify(sel.transform(densify(vec.transform(civic_test))))
 
-    N = densify(selector.transform(hocpos_train))
-    N_test = densify(selector.transform(densify(vectorizer.transform(hocpos_test))))
+    N = densify(sel.transform(hocpos_train))
+    N_test = densify(sel.transform(densify(vec.transform(hocpos_test))))
 
-    U = densify(selector.transform(hocneg_train))
+    U = densify(sel.transform(hocneg_train))
 
     print("\nPURIFYING SOURCES SEMI-SUPERVISED (", ratio, "% of data )"
           , "\tHOC POS", "(N)"
@@ -248,4 +256,4 @@ def prepare_corpus(ratio=0.5):
 
     # print("Features after selection:", np.shape(P)[1])
 
-    return P, N, U, X_test, y_test, vectorizer, selector
+    return P, N, U, X_test, y_test, vec, sel

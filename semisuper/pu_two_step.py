@@ -281,7 +281,7 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_
                                     verbose=verbose)
 
     if num_rows(U) == 0:
-        warnings.warn("EM: All of U was classified as negative.")
+        print("Warning: EM: All of U was classified as negative.")
         return initial_model
 
     y_P = np.array([1] * num_rows(P))
@@ -381,7 +381,7 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
     initial_model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
 
     if num_rows(U) == 0:
-        warnings.warn("SVM: All of U was classified as negative.")
+        print("Warning: SVM: All of U was classified as negative.")
         return initial_model
 
     if verbose: print("Predicting U with initial SVM, adding negatively classified docs to RN for iteration")
@@ -392,7 +392,7 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
     model = None
 
     if num_rows(Q) == 0 or num_rows(W) == 0:
-        warnings.warn("Returning initial SVM because all of U was assigned label", y_U[0])
+        print("Warning: Returning initial SVM because all of U was assigned label", y_U[0])
         return initial_model
 
     # iterate SVM, each turn augmenting RN by the documents in Q classified negative

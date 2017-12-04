@@ -36,10 +36,8 @@ min_df_char = 50
 n_components = 100
 print("min_df: \tword:", min_df_word, "\tchar:", min_df_char, "\tn_components:", n_components)
 
-v = vectorizer(words=True, wordgram_range=(1, 4),
-               chars=True, chargram_range=(2, 6),
-               rules=True, lemmatize=True,
-               min_df_word=min_df_word, min_df_char=min_df_char, max_df=0.95)
+v = vectorizer(chargrams=(2, 6), min_df_char=min_df_char, wordgrams=(1, 4), min_df_word=min_df_word, lemmatize=True,
+               rules=True, max_df=0.95)
 s = factorization('TruncatedSVD')
 
 pppl = Pipeline([
