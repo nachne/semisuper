@@ -8,8 +8,6 @@ from sklearn.model_selection import train_test_split
 
 from sklearn.svm import LinearSVC
 
-import basic_pipeline
-from basic_pipeline import percentile_selector
 from helpers import num_rows, densify
 
 from semisuper import loaders, pu_two_step, basic_pipeline, pu_cos_roc, pu_biased_svm
@@ -264,7 +262,7 @@ def vectorized_clean_pnu(ratio=1.0):
 
     print("Features before selection:", np.shape(P)[1])
 
-    sel = percentile_selector()
+    sel = basic_pipeline.percentile_selector()
     sel.fit(vstack((P, N, U)),
             (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
 
@@ -356,7 +354,7 @@ def vectorized_clean_pu(ratio=1.0):
     print("Features before selection:", np.shape(P)[1])
 
     # sel = identitySelector()
-    sel = percentile_selector()
+    sel = basic_pipeline.percentile_selector()
     # sel = basic_pipeline.factorization('LatentDirichletAllocation')
 
     sel.fit(vstack((P, U)),

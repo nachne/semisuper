@@ -31,7 +31,7 @@ def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False, outpath=
     test_self_training(P, N, U, X_test, y_test, sample_sentences)
 
     # test_knn(P, N, U, X_test, y_test, sample_sentences)
-    test_em(P, N, U, X_test, y_test, sample_sentences)
+    # test_em(P, N, U, X_test, y_test, sample_sentences)
 
     # supervised thingies
     test_supervised(P, N, U, X_test, y_test, sample_sentences)
@@ -113,13 +113,13 @@ def test_neg_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=F
     if sample_sentences:
         print_sentences(model, "Negative Self-Training SGD")
 
-    start_time = time.time()
-    model = ss_techniques.neg_self_training(P, N, U, clf=clf)
-    print("\nIteratively expanding negative set with", (clf or "Logistic Regression"),
-          "took %s\n" % (time.time() - start_time), "seconds")
-    eval_model(model, X_test, y_test)
-    if sample_sentences:
-        print_sentences(model, "Negative Self-Training {}".format((clf or "Logistic Regression")))
+    # start_time = time.time()
+    # model = ss_techniques.neg_self_training(P, N, U, clf=clf)
+    # print("\nIteratively expanding negative set with", (clf or "Logistic Regression"),
+    #       "took %s\n" % (time.time() - start_time), "seconds")
+    # eval_model(model, X_test, y_test)
+    # if sample_sentences:
+    #     print_sentences(model, "Negative Self-Training {}".format((clf or "Logistic Regression")))
 
     return
 
