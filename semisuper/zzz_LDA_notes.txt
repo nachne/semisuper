@@ -15,9 +15,15 @@ batch wise: different batches, different LDA results – use intersection
 
 -------------
 
+best: chi2 20-30% 
+
+PCA:
+unter 1000 components schlechtere Ergebnisse, braucht zu viel RAM für vollen Datensatz
+
 TruncatedSVD: 
 nur machbar bis min_df word/char 30/60, 100/1000 components
-deutlich schlechtere Ergebnisse
+deutlich schlechtere Ergebnisse für weniger components
+ab 1000 gut!
 
 chi2: machbar für min_df 20/20
 

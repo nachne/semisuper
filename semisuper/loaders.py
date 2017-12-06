@@ -32,9 +32,22 @@ def sentences_civic_abstracts(verbose=False):
     with multi.Pool(processes=min(multi.cpu_count(), 24)) as p:
         summary_sentences = flatten(p.map(transformers.sentence_tokenize, civic["evidence_statement"]))
         summary_authors2we = [authors2we(s) for s in set(summary_sentences)]
-        abstract_sentences = [s for s in flatten(p.map(transformers.sentence_tokenize, abstracts["abstract"]))]
+
+        with multi.Pool(processes=min(multi.cpu_count(), 24)) as p:
+            summary_sentences = flatten(p.map(transformers.sentence_tokenize, civic["evidence_statement"]))
+            summary_authors2we = [authors2we(s) for s in set(summary_sentences)]
+            abstract_sentences = [s for s in flatten(p.map(transformers.sentence_tokenize, abstracts["abstract"]))]
 
     return summary_authors2we, abstract_sentences
+
+
+def abstract_pmid_pos_sentences():
+    _, abstracts = load_civic_abstracts()
+
+    with multi.Pool(processes=min(multi.cpu_count(), 24)) as p:
+        result = flatten(p.map(pmid_pos_sentences, zip(abstracts["pmid"], abstracts["abstract"])))
+
+    return result
 
 
 def sentences_piboso_other():
@@ -105,12 +118,28 @@ def get_abstracts(idlist):
     df = pd.DataFrame(columns=["pmid", "title", "authors", "date", "abstract"])
     for rec in records:
         try:
-            df = df.append(pd.DataFrame([[rec[idx] for idx in ["PMID", "TI", "AU", "DATE", "AB"]]],
-                                        columns=["pmid", "title", "authors", "date", "abstract"]),
+            pmid = rec["PMID"]
+            ab = rec["AB"]
+            df = df.append(pd.DataFrame([[pmid, ab]],
+                                        columns=["pmid", "abstract"]),
                            ignore_index=True)
         except Exception:
             pass
     return df
+
+
+def pmid_pos_sentences(pmid_abstract):
+    """return list of tuples (pmid, sentence position, sentence)"""
+    pmid = pmid_abstract[0]
+    sentences = transformers.sentence_tokenize(pmid_abstract[1])
+    count = len(sentences)
+
+    pmid_pos_s = []
+
+    for i in range(count):
+        pmid_pos_s.append((pmid, i / count, sentences[i]))
+
+    return pmid_pos_s
 
 
 def authors2we(sentence):
@@ -198,4 +227,3 @@ def piboso_category_offset(category):
 def file_path(file_relative):
     """return the correct file path given the file's path relative to calling script"""
     return os.path.join(os.path.dirname(__file__), file_relative)
-

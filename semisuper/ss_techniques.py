@@ -1,26 +1,21 @@
+import multiprocessing as multi
 import random
 
 import numpy as np
-from scipy.sparse import csr_matrix, vstack
 from sklearn import semi_supervised
-from sklearn.neighbors import KNeighborsClassifier, kneighbors_graph
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.svm import SVC, LinearSVC
-from sklearn.ensemble import BaggingClassifier
-
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso, ElasticNet
+from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
+from sklearn.model_selection import GridSearchCV
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.naive_bayes import MultinomialNB
 
 from semisuper import pu_two_step
 from semisuper.helpers import num_rows, partition_pos_neg, partition_pos_neg_unsure, arrays
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_two_step import almost_equal
-
-import multiprocessing as multi
 
 
 # ----------------------------------------------------------------
@@ -69,6 +64,48 @@ def self_training(P, N, U, confidence=0.8, clf=None, verbose=True):
     print("Returning final model after", iteration, "iterations.")
     return model
 
+
+def self_training_lin_svc(P, N, U, confidence=0.5, clf=None, verbose=True):
+    print("Running standard Self-Training with confidence threshold", confidence,
+          "and classifier", (clf or "LinearSVC"))
+
+    if verbose: print("Training initial classifier")
+
+    if clf is not None:
+        if isinstance(clf, type):
+            model = clf()
+        else:
+            model = clf
+    else:
+        model = LinearSVC(C=1.0)
+    model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+
+    ypU = model.decision_function(U)
+    ypU = np.vstack((-ypU, ypU)).T
+    RP, RN, U = partition_pos_neg_unsure(U, ypU, confidence)
+
+    iteration = 0
+
+    while np.size(RP) or np.size(RN):
+        iteration += 1
+        if verbose:
+            print("Iteration #", iteration, "\tRP", num_rows(RP), "\tRN", num_rows(RN), "\tunclear:", num_rows(U))
+        P = np.concatenate((P, RP)) if np.size(RP) else P
+        N = np.concatenate((N, RN)) if np.size(RN) else N
+
+        model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+
+        if not np.size(U):
+            break
+
+        ypU = model.decision_function(U)
+        ypU = np.vstack((-ypU, ypU)).T
+        RP, RN, U = partition_pos_neg_unsure(U, ypU, confidence)
+
+    print("Returning final model after", iteration, "iterations.")
+    return model
+
+
 def neg_self_training(P, N, U, clf=None, verbose=True):
     """Iteratively augment negative set. Optional classifier (must implement predict_proba) and confidence threshold.
     Default: Logistic Regression"""
@@ -110,17 +147,22 @@ def neg_self_training(P, N, U, clf=None, verbose=True):
     print("Returning final model after", iteration, "iterations.")
     return model
 
+
 neg_self_training_logit = neg_self_training
+
 
 def neg_self_training_sgd(P, N, U, loss="modified_huber", n_jobs=min(16, multi.cpu_count()), verbose=True):
     return neg_self_training(P, N, U, clf=SGDClassifier(loss=loss, n_jobs=n_jobs), verbose=verbose)
 
-def iterate_linearSVC(P, N, U, verbose=True):
-    """run SVM iteratively until labels for U converge"""
+
+def iterate_linearSVC(P, N, U, C=0.5, verbose=True):
+    """run SVM iteratively until labels for U converge
+    :param C:
+    """
 
     print("Running iterative linear SVM")
 
-    return pu_two_step.iterate_SVM(P=P, U=U, RN=N,
+    return pu_two_step.iterate_SVM(P=P, U=U, RN=N, C=C,
                                    kernel=None,
                                    max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
 

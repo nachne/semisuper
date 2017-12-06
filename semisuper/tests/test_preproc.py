@@ -8,6 +8,7 @@ from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNameP
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.model_selection import train_test_split
 from sklearn.decomposition import LatentDirichletAllocation
 import numpy as np
 import time
@@ -22,10 +23,11 @@ hocpos, hocneg = loaders.sentences_HoC()
 piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
-civic_ = random.sample(civic, 2000)
-abstracts_ = random.sample(abstracts, 2000)
-hocpos_ = random.sample(hocpos, 2000)
-hocneg_ = random.sample(hocneg, 2000)
+
+civic_, _ = train_test_split(civic, test_size=0.5)
+abstracts_, _ = train_test_split(abstracts, test_size=0.5)
+hocpos_, _ = train_test_split(hocpos, test_size=0.5)
+hocneg_, _ = train_test_split(hocneg, test_size=0.5)
 
 # ----------------------------------------------------------------
 # Pipeline
@@ -145,11 +147,14 @@ print("\n----------------------------------------------------------------",
 
 [print(x, "\n", pp.transform([x]), "\n") for x in abstracts_[1:10]]
 
-
-
 # ----------------------------------------------------------------
 # vectorization and selection performance
 # ----------------------------------------------------------------
+
+civic_, _ = train_test_split(civic, test_size=0.75)
+abstracts_, _ = train_test_split(abstracts, test_size=0.75)
+hocpos_, _ = train_test_split(hocpos, test_size=0.75)
+hocneg_, _ = train_test_split(hocneg, test_size=0.75)
 
 # test_corpus = np.concatenate((civic_, abstracts_, hocpos_, hocneg_))
 test_corpus = np.concatenate((civic, abstracts, hocpos, hocneg))
@@ -164,15 +169,23 @@ start_time = time.time()
 vectorized_corpus = v.transform(test_corpus)
 print("transforming took", time.time() - start_time, "secs. \t", np.shape(vectorized_corpus)[1], "features")
 
+min_df_word = 0.001
+min_df_char = 0.001
+n_components = [10, 100, 1000]
+print("min_df: \tword:", min_df_word, "\tchar:", min_df_char, "\tn_components:", n_components)
+
+v = vectorizer(chargrams=(2, 6), min_df_char=min_df_char, wordgrams=(1, 4), min_df_word=min_df_word, lemmatize=True,
+               rules=True, max_df=0.95)
+
 # TruncatedSVD:                 ok              3.5min at cutoff 50/100
 # LatentDirichletAllocation:    few topics!
 # 'NMF':                        slow
-sparse = [] #['TruncatedSVD']
+sparse = []  # ['TruncatedSVD']
 # 'PCA':                        RAM
 # SparsePCA:
 # IncrementalPCA:
 # Factor Analysis:              slow
-dense = [] # ['PCA']
+dense = ['PCA']
 
 # NOT:
 # MiniBatchSparsePCA:           >15h/CPU, 16GB
@@ -183,12 +196,13 @@ dense = [] # ['PCA']
 
 
 for sel in sparse:
-    start_time = time.time()
-    factorization(sel, n_components).fit(vectorized_corpus)
-    print("fitting", sel, "took", time.time() - start_time, "secs")
+    for n_comps in n_components:
+        start_time = time.time()
+        factorization(sel, n_comps).fit(vectorized_corpus)
+        print("fitting", sel, "with", n_comps, "components took", time.time() - start_time, "secs")
 
 for sel in dense:
-    start_time = time.time()
-    factorization(sel, n_components).fit(densify(vectorized_corpus))
-    print("fitting", sel, "took", time.time() - start_time, "secs")
-
+    for n_comps in n_components:
+        start_time = time.time()
+        factorization(sel, n_comps).fit(densify(vectorized_corpus))
+        print("fitting", sel, "with", n_comps, "components ok", time.time() - start_time, "secs")

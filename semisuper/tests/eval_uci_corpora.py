@@ -159,7 +159,7 @@ def train_test_all_clfs_ss(data_tuple):
 
     neg_st_logreg = ss_techniques.neg_self_training(P, N, U)
     neg_st_sgd = ss_techniques.neg_self_training_sgd(P, N, U)
-    it_lin_svc = ss_techniques.iterate_linearSVC(P, N, U)
+    it_lin_svc = ss_techniques.iterate_linearSVC(P, N, U, 1.0)
     em = ss_techniques.EM(P, N, U)
     knn = ss_techniques.iterate_knn(P, N, U)
 

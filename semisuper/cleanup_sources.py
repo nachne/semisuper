@@ -90,33 +90,31 @@ def best_pu(P, U):
     U_train, U_test = train_test_split(U, test_size=0.2)
 
     models = [
-        # {"name": "I-EM", "model": partial(pu_two_step.i_EM, P_train, U_train)},
-        # {"name": "S-EM", "model": partial(pu_two_step.s_EM, P_train, U_train)},
-        # {"name": "ROC-EM", "model": partial(pu_two_step.roc_EM, P_train, U_train)},
-        {"name": "ROC-SVM", "model": partial(pu_two_step.roc_SVM, P_train, U_train)},
-        {"name": "CR-SVM", "model": partial(pu_two_step.cr_SVM, P_train, U_train)},
-        # {"name": "SPY-SVM", "model": partial(pu_two_step.spy_SVM, P_train, U_train)},
-        # {"name": "ROCCHIO", "model": partial(pu_two_step.rocchio, P_train, U_train)},
-        # {"name": "BIASED-SVM", "model": partial(pu_biased_svm.biased_SVM_weight_selection, P_train, U_train)},
-        # {"name": "supervised SVC", "model": partial(LinearSVC().fit,
-        #                                             np.concatenate((P_train, U_train)),
-        #                                             np.concatenate((np.ones(num_rows(P_train)),
-        #                                                             np.zeros(num_rows(U_train)))))}
+        # {"name": "I-EM", "model": pu_two_step.i_EM},
+        # {"name": "S-EM", "model": pu_two_step.s_EM},
+        # {"name": "ROC-EM", "model": pu_two_step.roc_EM},
+        {"name": "ROC-SVM", "model": pu_two_step.roc_SVM},
+        {"name": "CR-SVM", "model": pu_two_step.cr_SVM},
+        # {"name": "SPY-SVM", "model": pu_two_step.spy_SVM},
+        # {"name": "ROCCHIO", "model": pu_two_step.rocchio},
+        # {"name": "BIASED-SVM", "model": pu_biased_svm.biased_SVM_weight_selection},
     ]
 
-    stats = list(map(partial(model_pu_score_record, P_test, U_test), models))
+    with multi.Pool(min(multi.cpu_count(), len(models))) as p:
+        stats = list(map(partial(model_pu_score_record, P_train, U_train, P_test, U_test), models))
 
     for s in stats:
         print(s["name"], "\tPU-score:", s["pu_score"])
 
     best_model = max(stats, key=lambda x: x["pu_score"])
     print("Best PU model:", best_model["name"], "\tPU-score:", best_model["pu_score"])
+    print("Retraining best PU model on all of P and U")
 
-    return best_model["model"]
+    return best_model["model"](P, U)
 
 
-def model_pu_score_record(P_test, U_test, m):
-    model = m['model']()
+def model_pu_score_record(P_train, U_train, P_test, U_test, m):
+    model = m['model'](P_train, U_train)
     name = m['name']
 
     y_pred = model.predict(np.concatenate((P_test, U_test)))
@@ -125,7 +123,7 @@ def model_pu_score_record(P_test, U_test, m):
 
     score = pu_score(y_P, y_U)
 
-    return {'name': name, 'model': model, 'pu_score': score}
+    return {'name': name, 'model': m['model'], 'pu_score': score}
 
 
 # ------------------
@@ -142,23 +140,6 @@ def vectorize_preselection(P, U, ratio=1.0):
         P, _ = train_test_split(P, train_size=ratio)
         U, _ = train_test_split(U, train_size=ratio)
 
-    # wordgram_range = (1, 4)  # TODO change back to (1,3)
-    # chargram_range = (2, 6)  # TODO change back to (3,6)
-    # min_df_word, min_df_char = [20, 20]
-    # rules, lemmatize = [True, True]
-    #
-    # def print_params():
-    #     print("word n-gram range:", wordgram_range,
-    #           "\nchar n-gram range:", chargram_range,
-    #           "\nmin_df: word", min_df_word, "char:", min_df_char,
-    #           "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
-    #     return
-    #
-    # print_params()
-    #
-    # print("Fitting vectorizer")
-    # vec = basic_pipeline.vectorizer(wordgrams=wordgram_range,
-    #                                 chargrams=chargram_range, rules=rules, lemmatize=lemmatize)
     vec = basic_pipeline.vectorizer()
     vec.fit(np.concatenate((P, U)))
 
@@ -167,7 +148,8 @@ def vectorize_preselection(P, U, ratio=1.0):
 
     print("Features before selection:", np.shape(U_)[1])
 
-    sel = basic_pipeline.percentile_selector()
+    sel = basic_pipeline.percentile_selector('chi2', 30)
+    # sel = basic_pipeline.factorization('TruncatedSVD', 1000)
     sel.fit(vstack((P_, U_)),
             np.concatenate((np.ones(num_rows(P_)), -np.ones(num_rows(U_)))))
 
@@ -194,69 +176,38 @@ def clean_corpus_pnu(ratio=1.0):
     print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
     hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
 
+    # TODO obsolete (removes >90%) but show in paper
     # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
     # hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=civic, ratio=ratio, inverse=True)
 
-    hocpos_train, hocpos_test = train_test_split(hocpos_, test_size=0.2)
-    civic_train, civic_test = train_test_split(civic, test_size=0.2)
-
-    hocneg_train, X_test_neg = train_test_split(hocneg_, test_size=0.2)
-
-    P_raw = np.concatenate((hocpos_train, civic_train))
+    P_raw = np.concatenate((hocpos_, civic))
     U_raw = abstracts
-    N_raw = hocneg_train
-
-    X_test_pos = np.concatenate((hocpos_test, civic_test))
+    N_raw = hocneg_
 
     if ratio < 1.0:
         P_raw, _ = train_test_split(P_raw, train_size=ratio)
         N_raw, _ = train_test_split(N_raw, train_size=ratio)
         U_raw, _ = train_test_split(U_raw, train_size=ratio)
-        X_test_pos, _ = train_test_split(X_test_pos, train_size=ratio)
-        X_test_neg, _ = train_test_split(X_test_neg, train_size=ratio)
 
-    X_test_raw = np.concatenate((X_test_pos, X_test_neg))
-    y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
-
-
-    return P_raw, N_raw, U_raw, X_test_raw, y_test
+    return P_raw, N_raw, U_raw
 
 
 def vectorized_clean_pnu(ratio=1.0):
 
-    P_raw, N_raw, U_raw, X_test_raw, y_test = clean_corpus_pnu(ratio)
+    P_raw, N_raw, U_raw = clean_corpus_pnu(ratio)
 
     print("\nSEMI-SUPERVISED TRAINING", "(on", 100 * ratio, "% of available data)",
           "\tP: HOC POS + CIVIC (", num_rows(P_raw), ")",
           "\tN: HOC NEG (", num_rows(N_raw), ")",
-          "\tU: ABSTRACTS (", num_rows(U_raw), ")",
-          "\tTEST SET (HOC POS + CIVIC + HOC NEG):", num_rows(X_test_raw)
+          "\tU: ABSTRACTS (", num_rows(U_raw), ")"
           )
 
-    # wordgram_range = (1, 4)  # TODO change back to (1,4)
-    # chargram_range = (2, 6)  # TODO change back to (2,6)
-    # min_df_word, min_df_char = [20, 20]  # TODO change back to default(20,20)
-    # rules, lemmatize = [True, True]
-    #
-    # def print_params():
-    #     print("word n-gram range:", wordgram_range, "\tmin_df:", min_df_word,
-    #           "\nchar n-gram range:", chargram_range, "\tmin_df:", min_df_char,
-    #           "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
-    #     return
-    #
-    # print_params()
-    #
-    # print("Fitting vectorizer")
-    # vec = basic_pipeline.vectorizer(wordgrams=wordgram_range,
-    #                                 chargrams=chargram_range, rules=rules, lemmatize=lemmatize,
-    #                                 min_df_word=min_df_word, min_df_char=min_df_char)
     vec = basic_pipeline.vectorizer()
     vec.fit(np.concatenate((P_raw, N_raw, U_raw)))
 
     P = vec.transform(P_raw)
     N = vec.transform(N_raw)
     U = vec.transform(U_raw)
-    X_test = vec.transform(X_test_raw)
 
     print("Features before selection:", np.shape(P)[1])
 
@@ -267,11 +218,10 @@ def vectorized_clean_pnu(ratio=1.0):
     P = densify(sel.transform(P))
     N = densify(sel.transform(N))
     U = densify(sel.transform(U))
-    X_test = densify(sel.transform(X_test))
 
     print("Features after selection:", np.shape(P)[1])
 
-    return P, N, U, X_test, y_test, vec, sel
+    return P, N, U, vec, sel
 
 
 def clean_corpus_pu(ratio=1.0):

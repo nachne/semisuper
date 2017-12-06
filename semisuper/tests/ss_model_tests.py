@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 from cleanup_sources import vectorized_clean_pnu
 from semisuper import loaders, ss_techniques
@@ -27,6 +28,8 @@ def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False, outpath=
     test_iterative_linearSVM(P, N, U, X_test, y_test, sample_sentences)
 
     test_neg_self_training(P, N, U, X_test, y_test, sample_sentences)
+
+    test_self_training_linsvc(P, N, U, X_test, y_test, sample_sentences)
 
     test_self_training(P, N, U, X_test, y_test, sample_sentences)
 
@@ -99,6 +102,25 @@ def test_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=False
     return
 
 
+def test_self_training_linsvc(P, N, U, X_test=None, y_test=None, sample_sentences=False, clf=None, confidence=0.5):
+    print("\n\n"
+          "---------\n"
+          "SELF-TRAINING SVC TEST\n"
+          "---------\n")
+
+    start_time = time.time()
+
+    model = ss_techniques.self_training_lin_svc(P, N, U, confidence=confidence, clf=clf)
+
+    print("\nIterating Self-Training with", (clf or "Linear SVC"),
+          "confidence =", confidence, "took %s\n" % (time.time() - start_time), "seconds")
+
+    eval_model(model, X_test, y_test)
+
+    if sample_sentences:
+        print_sentences(model, "Self-Training {} {}".format((clf or "LinearSVC"), confidence))
+    return
+
 def test_neg_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=False, clf=None):
     print("\n\n"
           "---------\n"
@@ -151,7 +173,7 @@ def test_iterative_linearSVM(P, N, U, X_test=None, y_test=None, sample_sentences
 
     start_time = time.time()
 
-    model = ss_techniques.iterate_linearSVC(P, N, U)
+    model = ss_techniques.iterate_linearSVC(P, N, U, 1.0)
 
     print("\nIterating SVM took %s seconds\n" % (time.time() - start_time))
 
@@ -331,5 +353,10 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 
-P, N, U, X_test, y_test, vectorizer, selector = vectorized_clean_pnu(ratio=1.0)
-test_all(P, N, U, X_test, y_test, sample_sentences=True)
+P, N, U, vectorizer, selector = vectorized_clean_pnu(ratio=1.0)
+P, X_test_pos = train_test_split(P, test_size=0.2)
+N, X_test_neg = train_test_split(N, test_size=0.2)
+test_all(P, N, U,
+         X_test=np.concatenate((X_test_pos, X_test_neg)),
+         y_test=np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg)))),
+         sample_sentences=True)

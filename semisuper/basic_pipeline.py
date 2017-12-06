@@ -7,7 +7,7 @@ from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNameP
 from sklearn import naive_bayes
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_selection import SelectPercentile, chi2
+from sklearn.feature_selection import SelectPercentile, chi2, f_classif, mutual_info_classif
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import Binarizer, MinMaxScaler, StandardScaler
 from sklearn.decomposition import *
@@ -74,7 +74,7 @@ def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
     return model
 
 
-def vectorizer(chargrams=(2, 6), min_df_char=20, wordgrams=None, min_df_word=20, lemmatize=False, rules=True,
+def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, lemmatize=False, rules=True,
                max_df=1.0, binary=False):
     return FeatureNamePipeline([
         ("text_normalizer", TextNormalizer()),
@@ -130,11 +130,21 @@ class identitySelector():
 
 
 # TODO not feasible with >> 50,000 features / >> 16,000 examples
-def percentile_selector(score_func=chi2, percentile=20):
+def percentile_selector(score_func='chi2', percentile=20):
     """supervised feature selector"""
 
-    print("Supervised feature selection:,", percentile, "-th percentile in terms of", score_func)
-    return SelectPercentile(score_func=score_func, percentile=percentile)
+    funcs = {'chi2': chi2,
+             'f_classif': f_classif,
+             'f': f_classif,
+             'mutual_info_classif': mutual_info_classif,
+             'mutual_info': mutual_info_classif,
+             'm': mutual_info_classif,
+             }
+
+    func = funcs.get(score_func, chi2)
+
+    print("Supervised feature selection:,", percentile, "-th percentile in terms of", func)
+    return SelectPercentile(score_func=func, percentile=percentile)
 
 
 def factorization(method='TruncatedSVD', n_components=10):

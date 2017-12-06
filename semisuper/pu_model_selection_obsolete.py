@@ -5,6 +5,7 @@ import pickle
 import time
 from copy import deepcopy
 from functools import partial
+from itertools import product
 
 import numpy as np
 from sklearn.metrics import classification_report, precision_recall_fscore_support, accuracy_score
@@ -25,37 +26,44 @@ def getBestModel(P_train, U_train, X_test, y_test):
     X_test, X_dev, y_test, y_dev = train_test_split(X_test, y_test, test_size=0.5)
 
     X_train = np.concatenate((P_train, U_train), 0)
-    y_train = np.concatenate((np.ones(num_rows(P_train)), np.zeros(num_rows(U_train))))
+    y_train_pp = np.concatenate((np.ones(num_rows(P_train)), np.zeros(num_rows(U_train))))
 
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
     preproc_params = {
-        'df_min'        : [1],
+        'df_min'        : [0.002],
         'df_max'        : [1.0],
         'rules'         : [True],
         'lemmatize'     : [False],
-        'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [None, (2, 4), (2, 5), (2, 6)]
+        'wordgram_range': [(1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
+        'feature_select': [partial(basic_pipeline.percentile_selector, 'chi2'),
+                           partial(basic_pipeline.factorization, 'PCA', 10),
+                           partial(basic_pipeline.factorization, 'PCA', 100),
+                           partial(basic_pipeline.factorization, 'PCA', 1000), ]
     }
 
-    for wordgram in preproc_params['wordgram_range']:
-        for chargram in preproc_params['chargram_range']:
-            for r in preproc_params['rules']:
-                for l in preproc_params['lemmatize']:
+    for wordgram, chargram in product(preproc_params['wordgram_range'], preproc_params['chargram_range']):
+        for r, l in product(preproc_params['rules'], preproc_params['lemmatize']):
+            for df_min, df_max in product(preproc_params['df_min'], preproc_params['df_max']):
+                for fs in preproc_params['feature_select']:
 
                     if wordgram == None and chargram == None:
                         break
 
                     print("\n----------------------------------------------------------------",
-                          "\nwords:", wordgram, "chars:", chargram,
+                          "\nwords:", wordgram, "chars:", chargram, "feature selection:", fs,
                           "\n----------------------------------------------------------------\n")
 
                     start_time = time.time()
 
                     X_train_, X_dev_, vectorizer, selector = prepareTrainTest(trainData=X_train, testData=X_dev,
-                                                                              trainLabels=y_train, rules=r,
+                                                                              trainLabels=y_train_pp, rules=r,
                                                                               wordgram_range=wordgram,
-                                                                              featureSelect=True,
+                                                                              feature_select=fs,
+                                                                              min_df_char=df_min,
+                                                                              min_df_word=df_min,
+                                                                              max_df=df_max,
                                                                               chargram_range=chargram, lemmatize=l)
                     if selector:
                         P_train_ = selector.transform(vectorizer.transform(P_train))
@@ -97,11 +105,12 @@ def getBestModel(P_train, U_train, X_test, y_test):
                     # eval models
                     # TODO multiprocessing; breaks on macOS but not on Linux
                     with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
-                        iter_stats = list(map(partial(model_eval_record, X_dev_, y_dev), iteration))
+                        iter_stats = list(map(partial(model_eval_record, X_dev_, y_dev, U_train_), iteration))
 
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
                         m['n-grams'] = pp
+                        m['fs'] = fs()
                         if m['acc'] > results['best']['acc']:
                             results['best'] = deepcopy(m)
                             results['best']['vectorizer'] = vectorizer
@@ -162,8 +171,8 @@ def getBestModel(P_train, U_train, X_test, y_test):
     return results['best']
 
 
-def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_range=None, featureSelect=True,
-                     chargram_range=None, lemmatize=True, min_df_char=20, min_df_word=None, max_df=1.0):
+def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_range=None, feature_select=None,
+                     chargram_range=None, lemmatize=True, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
     """prepare training and test vectors and vectorizer for validating classifiers
     :param min_df_char:
     """
@@ -179,8 +188,8 @@ def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_rang
     print("No. of features:", transformedTrainData.shape[1])
 
     selector = None
-    if featureSelect:
-        selector = basic_pipeline.percentile_selector()
+    if feature_select is not None:
+        selector = feature_select()
         selector.fit(transformedTrainData, trainLabels)
         transformedTrainData = selector.transform(transformedTrainData)
         transformedTestData = selector.transform(transformedTestData)
@@ -190,7 +199,7 @@ def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_rang
     return transformedTrainData, transformedTestData, vectorizer, selector
 
 
-def model_eval_record(X, y, m):
+def model_eval_record(X, y, U, m):
     model = m['model']()
     name = m['name']
 
@@ -200,9 +209,11 @@ def model_eval_record(X, y, m):
     acc = accuracy_score(y, y_pred)
     clsr = classification_report(y, y_pred)
 
-    print("\n{}:\tacc: {}, classification report:\n{}".format(name, acc, clsr))
+    pos_ratio = np.sum(model.predict(U)) / num_rows(U)
 
-    return {'name': name, 'p': p, 'r': r, 'f1': f1, 'acc': acc, 'clsr': clsr, 'model': model}
+    # print("\n{}:\tacc: {}, classification report:\n{}".format(name, acc, clsr))
+
+    return {'name': name, 'p': p, 'r': r, 'f1': f1, 'acc': acc, 'clsr': clsr, 'model': model, 'U_ratio': pos_ratio}
 
 
 def print_results(results):
@@ -211,26 +222,19 @@ def print_results(results):
     print("Best:")
     print(best['name'], best['n-grams'],
           "\tstats: p={}\tr={}\tf1={}\tacc={}\t".format(best['p'], best['r'], best['f1'], best['acc']), "\n")
+    print("amount of U labelled as relevant:", best['U_ratio'])
 
     print("All stats:")
     for i in results['all']:
-        print_stats(i)
-    return
-
-
-def print_stats(i):
-    print(i[0]['n-grams'])
-    for m in i:
-        print("\t", m['name'], "\n\t\t",
-              "stats: p={}\tr={}\tf1={}\tacc={}\t".format(m['p'], m['r'], m['f1'], m['acc']))
-        print(m['clsr'])
+        print_reports(i)
     return
 
 
 def print_reports(i):
-    print(i[0]['n-grams'])
+    print(i[0]['n-grams'], i[0]['fs'])
     for m in i:
-        print("\n{}:\tacc: {}, classification report:\n{}".format(m['name'], m['acc'], m['clsr']))
+        print("\n{}:\tacc: {}, relevant ratio in U: {}, classification report:\n{}".format(
+                m['name'], m['acc'], m['U_ratio'], m['clsr']))
     return
 
 
