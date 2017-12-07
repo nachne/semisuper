@@ -90,7 +90,7 @@ def test_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=False
 
     start_time = time.time()
 
-    model = ss_techniques.self_training(P, N, U, confidence=confidence, clf=clf)
+    model = ss_techniques.self_training(P, N, U, clf=clf, confidence=confidence)
 
     print("\nIterating Self-Training with", (clf or "Logistic Regression"),
           "confidence =", confidence, "took %s\n" % (time.time() - start_time), "seconds")

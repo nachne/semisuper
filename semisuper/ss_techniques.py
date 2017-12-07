@@ -23,7 +23,7 @@ from semisuper.pu_two_step import almost_equal
 # ----------------------------------------------------------------
 
 
-def self_training(P, N, U, confidence=0.8, clf=None, verbose=True):
+def self_training(P, N, U, clf=None, confidence=0.8, verbose=False):
     """Generic Self-Training with optional classifier (must implement predict_proba) and confidence threshold.
     Default: Logistic Regression"""
 
@@ -65,7 +65,7 @@ def self_training(P, N, U, confidence=0.8, clf=None, verbose=True):
     return model
 
 
-def self_training_lin_svc(P, N, U, confidence=0.5, clf=None, verbose=True):
+def self_training_lin_svc(P, N, U, confidence=0.5, clf=None, verbose=False):
     print("Running standard Self-Training with confidence threshold", confidence,
           "and classifier", (clf or "LinearSVC"))
 
@@ -106,7 +106,7 @@ def self_training_lin_svc(P, N, U, confidence=0.5, clf=None, verbose=True):
     return model
 
 
-def neg_self_training(P, N, U, clf=None, verbose=True):
+def neg_self_training(P, N, U, clf=None, verbose=False):
     """Iteratively augment negative set. Optional classifier (must implement predict_proba) and confidence threshold.
     Default: Logistic Regression"""
 
@@ -148,14 +148,7 @@ def neg_self_training(P, N, U, clf=None, verbose=True):
     return model
 
 
-neg_self_training_logit = neg_self_training
-
-
-def neg_self_training_sgd(P, N, U, loss="modified_huber", n_jobs=min(16, multi.cpu_count()), verbose=True):
-    return neg_self_training(P, N, U, clf=SGDClassifier(loss=loss, n_jobs=n_jobs), verbose=verbose)
-
-
-def iterate_linearSVC(P, N, U, C=0.5, verbose=True):
+def iterate_linearSVC(P, N, U, C=1.0, verbose=False):
     """run SVM iteratively until labels for U converge
     :param C:
     """
@@ -167,7 +160,7 @@ def iterate_linearSVC(P, N, U, C=0.5, verbose=True):
                                    max_neg_ratio=0.1, clf_selection=False, verbose=verbose)
 
 
-def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=10.0, verbose=True):
+def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=10.0, verbose=False):
     """Iterate EM until estimates for U converge.
 
     Train NB with P and N to get probabilistic labels for U, or use assumed priors if passed as parameter"""
@@ -228,7 +221,7 @@ def iterate_knn(P, N, U, n_neighbors=7, thresh=0.6):
 
 
 # slow
-def iterate_SVC(P, N, U, kernel="rbf", verbose=True):
+def iterate_SVC(P, N, U, kernel="rbf", verbose=False):
     """run SVM iteratively until labels for U converge"""
 
     print("Running iterative SVM with", kernel, "kernel")
@@ -248,6 +241,22 @@ def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-
                                                    n_jobs=n_jobs)
     propagation.fit(X, y_init)
     return propagation
+
+
+# ----------------------------------------------------------------
+# versions with flipped parameters for partial application
+# ----------------------------------------------------------------
+
+def iterate_linearSVC_C(C, P, N, U):
+    return iterate_linearSVC(P, N, U, C=C)
+
+
+def neg_self_training_clf(clf, P, N, U):
+    return neg_self_training(P, N, U, clf)
+
+
+def self_training_clf_conf(clf, confidence, P, N, U):
+    return self_training(P, N, U, clf, confidence)
 
 
 # ----------------------------------------------------------------
@@ -309,8 +318,11 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
 # MLPClassifier
 # MultinomialNB
 
+
+# TODO move to supervised class
+
 # quite good and fast (grid search: not so fast)
-def logreg(P, N, U=None, verbose=True):
+def logreg(P, N, U=None, verbose=False):
     X = np.concatenate((P, N))
     y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = GridSearchCV(estimator=LogisticRegression(),
@@ -325,7 +337,7 @@ def logreg(P, N, U=None, verbose=True):
     return model.best_estimator_
 
 
-def sgd(P, N, U, loss="modified_huber", verbose=True):
+def sgd(P, N, U, loss="modified_huber", verbose=False):
     X = np.concatenate((P, N))
     y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = SGDClassifier(loss=loss).fit(X, y)
@@ -333,7 +345,7 @@ def sgd(P, N, U, loss="modified_huber", verbose=True):
 
 
 # bad (biased towards one class)
-def mnb(P, N, U, verbose=True):
+def mnb(P, N, U, verbose=False):
     X = np.concatenate((P, N))
     y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = MultinomialNB().fit(X, y)
@@ -341,7 +353,7 @@ def mnb(P, N, U, verbose=True):
 
 
 # very good but slow
-def mlp(P, N, U, verbose=True):
+def mlp(P, N, U, verbose=False):
     X = np.concatenate((P, N))
     y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = MLPClassifier().fit(X, y)
@@ -349,15 +361,14 @@ def mlp(P, N, U, verbose=True):
 
 
 # ok but slow
-def dectree(P, N, U, verbose=True):
+def dectree(P, N, U, verbose=False):
     X = np.concatenate((P, N))
     y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = DecisionTreeClassifier().fit(X, y)
     return model
 
 
-# TODO move to Supervised
-def grid_search_linearSVM(P, N, U, verbose=True):
+def grid_search_linearSVM(P, N, U, verbose=False):
     model = LinearSVC()
 
     grid_search = GridSearchCV(model,
@@ -382,7 +393,7 @@ def grid_search_linearSVM(P, N, U, verbose=True):
 
 
 # TODO move to Supervised
-def grid_search_SVC(P, N, U, verbose=True):
+def grid_search_SVC(P, N, U, verbose=False):
     model = SVC()
 
     grid_search = GridSearchCV(model,

@@ -129,16 +129,15 @@ class identitySelector():
         return X
 
 
-# TODO not feasible with >> 50,000 features / >> 16,000 examples
-def percentile_selector(score_func='chi2', percentile=20):
+def percentile_selector(score_func='chi2', percentile=25):
     """supervised feature selector"""
 
-    funcs = {'chi2': chi2,
-             'f_classif': f_classif,
-             'f': f_classif,
+    funcs = {'chi2'               : chi2,
+             'f_classif'          : f_classif,
+             'f'                  : f_classif,
              'mutual_info_classif': mutual_info_classif,
-             'mutual_info': mutual_info_classif,
-             'm': mutual_info_classif,
+             'mutual_info'        : mutual_info_classif,
+             'm'                  : mutual_info_classif,
              }
 
     func = funcs.get(score_func, chi2)
@@ -157,7 +156,7 @@ def factorization(method='TruncatedSVD', n_components=10):
                                                                n_jobs=-1,
                                                                learning_method='online'),
         'TruncatedSVD'             : FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
-                                    ("normalizer", StandardScaler())])
+                                                          ("normalizer", StandardScaler())])
     }
 
     model = sparse.get(method, None)

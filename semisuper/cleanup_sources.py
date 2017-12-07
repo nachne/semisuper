@@ -148,7 +148,7 @@ def vectorize_preselection(P, U, ratio=1.0):
 
     print("Features before selection:", np.shape(U_)[1])
 
-    sel = basic_pipeline.percentile_selector('chi2', 30)
+    sel = basic_pipeline.percentile_selector()
     # sel = basic_pipeline.factorization('TruncatedSVD', 1000)
     sel.fit(vstack((P_, U_)),
             np.concatenate((np.ones(num_rows(P_)), -np.ones(num_rows(U_)))))
@@ -276,23 +276,7 @@ def vectorized_clean_pu(ratio=1.0):
           "\tTEST SET (HOC POS + CIVIC + HOC NEG):", num_rows(X_test_raw)
           )
 
-    # wordgram_range = (1, 4) # TODO change back to True, (1,4)
-    # chargram_range = (2, 6) # TODO change back to True, (2,6)
-    # min_df_word, min_df_char = [20, 30]  # TODO change back to default(20,20)
-    # rules, lemmatize = [True, True]
-    #
-    # def print_params():
-    #     print("word n-gram range:", wordgram_range,
-    #           "\nchar n-gram range:", chargram_range,
-    #           "\nrule-based preprocessing:", rules, "\tlemmatization:", lemmatize)
-    #     return
-    #
-    # print_params()
-    #
-    # print("Fitting vectorizer")
-    # vec = basic_pipeline.vectorizer(wordgrams=wordgram_range,
-    #                                 chargrams=chargram_range, rules=rules, lemmatize=lemmatize,
-    #                                 min_df_word=min_df_word, min_df_char=min_df_char)
+
     vec = basic_pipeline.vectorizer()
     vec.fit(np.concatenate((P_raw, U_raw)))
 
