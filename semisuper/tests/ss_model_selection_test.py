@@ -2,7 +2,7 @@ from semisuper import ss_model_selection, cleanup_sources
 from semisuper.helpers import num_rows, flatten
 import pandas as pd
 import numpy as np
-from loaders import abstract_pmid_pos_sentences
+from semisuper.loaders import abstract_pmid_pos_sentences
 from sklearn.pipeline import Pipeline
 
 P, N, U = cleanup_sources.clean_corpus_pnu(ratio=1.0)

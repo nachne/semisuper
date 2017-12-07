@@ -149,9 +149,7 @@ def neg_self_training(P, N, U, clf=None, verbose=False):
 
 
 def iterate_linearSVC(P, N, U, C=1.0, verbose=False):
-    """run SVM iteratively until labels for U converge
-    :param C:
-    """
+    """run SVM iteratively until labels for U converge"""
 
     print("Running iterative linear SVM")
 
