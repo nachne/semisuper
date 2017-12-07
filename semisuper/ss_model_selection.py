@@ -1,5 +1,5 @@
 import datetime
-import multiprocessing as multi
+import pathos.multiprocessing as multi
 import os
 import pickle
 import time
@@ -24,6 +24,8 @@ import semisuper.basic_pipeline as basic_pipeline
 import semisuper.ss_techniques as ss
 from semisuper.helpers import num_rows, densify
 
+PARALLEL = False  # multiprocessing works on Linux when there aren't too many features, but not on macOS
+
 
 def best_model_cross_val(P, N, U, fold=10):
     """determine best model, cross validate and return pipeline trained on all data"""
@@ -37,9 +39,11 @@ def best_model_cross_val(P, N, U, fold=10):
     kf = KFold(n_splits=fold, shuffle=True)
     splits = zip(list(kf.split(P)), list(kf.split(N)))
 
-    # TODO multiprocessing: breaks on maxOS but not on Linux
-    with multi.Pool(fold) as p:
-        stats = list(p.map(partial(eval_fold, best, P, N, U), enumerate(splits)))
+    if PARALLEL:
+        with multi.Pool(fold) as p:
+            stats = list(p.map(partial(eval_fold, best, P, N, U), enumerate(splits), chunksize=1))
+    else:
+        stats = list(map(partial(eval_fold, best, P, N, U), enumerate(splits)))
 
     mean_stats = np.mean(stats, 0)
     print("Cross-validation average: p {}, r {}, f1 {}, acc {}".format(
@@ -107,12 +111,12 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
     preproc_params = {
-        'df_min'        : [0.001, 0.002],
+        'df_min'        : [0.002],
         'df_max'        : [1.0],
         'rules'         : [True],
         'lemmatize'     : [False],
-        'wordgram_range': [(1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
             partial(basic_pipeline.percentile_selector, 'chi2', 30),
             partial(basic_pipeline.percentile_selector, 'chi2', 25),
@@ -177,9 +181,15 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
 
                     # eval models
                     # TODO multiprocessing; breaks on macOS but not on Linux
-                    with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
-                        iter_stats = list(p.map(partial(model_eval_record,
-                                                        P_train_, N_train_, U_train_, X_dev_, y_dev), iteration))
+                    if PARALLEL:
+                        with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
+                            iter_stats = list(p.map(partial(model_eval_record,
+                                                            P_train_, N_train_, U_train_, X_dev_, y_dev),
+                                                    iteration, chunksize=1))
+                    else:
+                        iter_stats = list(map(partial(model_eval_record,
+                                                      P_train_, N_train_, U_train_, X_dev_, y_dev),
+                                              iteration))
 
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
@@ -281,17 +291,19 @@ def model_eval_record(P, N, U, X, y, m):
 def print_results(results):
     """helper function to print stat objects, starting with best model"""
 
-    best = results['best']
-
-    print("Best:")
-    print(best['name'], best['n-grams'], best['fs'],
-          "\nrules, lemma", best['rules, lemma'], "df_min, df_max", best['df_min, df_max'],
-          "amount of U labelled as relevant:", best['U_ratio'],
-          "\tstats: p={}\tr={}\tf1={}\tacc={}\t".format(best['p'], best['r'], best['f1'], best['acc']))
-
-    print("All stats:")
+    print("\n----------------------------------------------------------------\n")
+    print("\nAll stats:\n")
     for i in results['all']:
         print_reports(i)
+
+    print("\nBest:\n")
+    best = results['best']
+    print(best['name'], best['n-grams'], best['fs'],
+          "\nrules, lemma", best['rules, lemma'], "df_min, df_max", best['df_min, df_max'],
+          "\namount of U labelled as relevant:", best['U_ratio'],
+          "\nstats: p={}\tr={}\tf1={}\tacc={}\t".format(best['p'], best['r'], best['f1'], best['acc']))
+
+    print("\n----------------------------------------------------------------\n")
     return
 
 

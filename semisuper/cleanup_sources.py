@@ -100,9 +100,7 @@ def best_pu(P, U):
         # {"name": "BIASED-SVM", "model": pu_biased_svm.biased_SVM_weight_selection},
     ]
 
-    # TODO: multiprocessing (not on macOS)
-    with multi.Pool(min(multi.cpu_count(), len(models))) as p:
-        stats = list(map(partial(model_pu_score_record, P_train, U_train, P_test, U_test), models))
+    stats = list(map(partial(model_pu_score_record, P_train, U_train, P_test, U_test), models))
 
     for s in stats:
         print(s["name"], "\tPU-score:", s["pu_score"])
