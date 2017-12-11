@@ -4,7 +4,7 @@ from semisuper import loaders, transformers
 from semisuper.helpers import identity, densify
 from basic_pipeline import identitySelector
 from semisuper.basic_pipeline import factorization, vectorizer, percentile_selector
-from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
+from semisuper.transformers import *
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline, FeatureUnion
@@ -22,7 +22,6 @@ civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
 piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
-
 
 civic_, _ = train_test_split(civic, test_size=0.5)
 abstracts_, _ = train_test_split(abstracts, test_size=0.5)
@@ -52,8 +51,8 @@ pppl = Pipeline([
 # ----------------------------------------------------------------
 
 
-
-pp = TokenizePreprocessor()
+pp = Pipeline([("normalizer", TextNormalizer(only_digits=False)),
+               ("preprocessor", TokenizePreprocessor(lemmatize=False, rules=True))])
 
 # ----------------------------------------------------------------
 # Regex tests
@@ -72,6 +71,7 @@ regex_concept_matches = ["p<=1 P>6",
                          "1988 2001 20021",
                          "Zeroth first 2nd 22nd 23-th 9th",
                          "-1.0 .99 ~2",
+                         "wild-type wild type wildtype",
                          "V.S. vS Versus I.E. ie. E.g. iv. Po p.o."]
 
 [print(x, "\t", pp.transform([x])) for x in regex_concept_matches]
@@ -91,19 +91,11 @@ print("\n----------------------------------------------------------------",
       "\nSome tests.",
       "\n----------------------------------------------------------------\n")
 
-print(transformers.sentence_tokenize(
-        "He is going to be there, i.e. Dougie is going to be there.I can not "
-        "wait to see how he's RS.123 doing. Conf. fig. 13 for additional "
-        "information. E.g."
-        "if you want to know the time, you should take b. "
-        "Beispieltext ist schön. first. 10. we are going to cowabunga. let there be rainbows."))
-
 [print(x, pp.transform([x])) for x in ['Janus kinase 2 JAK2 tyrosine kinase',
                                        'CLINICALTRIALSGOV: NCT00818441.',
                                        'clinicaltrials.gov',
                                        'genetic/mrna',
                                        'C-->A G-->T',
-                                       'don\'t go wasting your emotions',
                                        'Eight inpatient rehabilitation facilities.',
                                        'There were 67 burst fractures, 48 compression fractures and 21 fracture dislocations, 8 flexion distraction fractures and 6 flexion rotation injuries.',
                                        'MET amplification was seen in 4 of 75 (5%; 95% CI, 1%-13%).',
@@ -147,6 +139,8 @@ print("\n----------------------------------------------------------------",
 
 [print(x, "\n", pp.transform([x]), "\n") for x in abstracts_[1:10]]
 
+sys.exit(0)
+
 # ----------------------------------------------------------------
 # vectorization and selection performance
 # ----------------------------------------------------------------
@@ -185,7 +179,7 @@ sparse = []  # ['TruncatedSVD']
 # SparsePCA:
 # IncrementalPCA:
 # Factor Analysis:              slow
-dense = ['PCA']
+dense = []  # ['PCA']
 
 # NOT:
 # MiniBatchSparsePCA:           >15h/CPU, 16GB

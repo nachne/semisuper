@@ -104,10 +104,6 @@ def train_report(model, P, N):
     return
 
 
-def file_path(file_relative):
-    """return the correct file path given the file's path relative to helpers"""
-    return os.path.join(os.path.dirname(__file__), file_relative)
-
 
 def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1, verbose=False):
     """given the scores of positive docs, a set of unlabelled docs, and their scores, extract potential negative set"""
@@ -129,3 +125,8 @@ def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1, verbose=False):
     U_minus_PN = U[pos_idx]
 
     return U_minus_PN, PN
+
+
+def file_path(file_relative):
+    """return the correct file path given the file's path relative to helpers"""
+    return os.path.join(os.path.dirname(__file__), file_relative)

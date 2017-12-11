@@ -15,6 +15,7 @@ from sklearn.feature_selection import chi2, SelectPercentile
 from sklearn.pipeline import Pipeline
 from unidecode import unidecode
 
+MIN_LEN = 8
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
     def __init__(self, punct=None, lower=True, strip=True, lemmatize=False, rules=True):
@@ -51,21 +52,18 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         """break sentence into pos-tagged tokens; normalize and split on hyphens"""
 
         # extremely short sentences shall be ignored by next steps
-        if len(sentence) < 6:
+        if len(sentence) < MIN_LEN:
             return []
 
         for token, tag in pos_tag(self.tokenizer.tokenize(sentence)):
             # Apply preprocessing to the token
             token_nrm = self.normalize_token(token, tag)
-
             subtokens = [self.normalize_token(t, tag) for t in self.splitters.split(token_nrm)]
 
             for subtoken in subtokens:
-
                 # If punctuation, ignore token and continue
                 if all(char in self.punct for char in token):
                     continue
-
                 yield subtoken, tag
 
     def normalize_token(self, token, tag):
@@ -103,10 +101,11 @@ def cleanup(sentence):
 class TextNormalizer(BaseEstimator, TransformerMixin):
     """replaces all non-ASCII characters by approximations, all numbers by 1"""
 
-    def __init__(self):
-        self.num = re.compile("(\d+(,\d\d\d)*)|(\d*\.\d+)+")
-        self.heading = re.compile(
-            "^(AIMS?|BACKGROUNDS?|METHODS?|RESULTS?|CONCLUSIONS?|PATIENTS?|FINDINGS?|FUNDINGS?)[:.]? ")
+    def __init__(self, only_digits=False):
+        if only_digits:
+            self.num = re.compile("\d")
+        else:
+            self.num = re.compile("(\d+(,\d\d\d)*)|(\d*\.\d+)+")
         return
 
     def fit(self, X=None, y=None):
@@ -116,16 +115,10 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
         # TODO check if these help
         return array(
                 # replace all numbers by "1"
-                [
-                    self.num.sub("1",
-                                 # remove headings
-                                 # self.heading.sub("",
-                                 unidecode(x)
-                                 )
-                    # )
-                    for x in X])
+                [self.num.sub("1", unidecode(x)) for x in X])
 
-        return array([unidecode(x) for x in X])
+        # version without number replacement
+        # return array([unidecode(x) for x in X])
 
 
 class Densifier(BaseEstimator, TransformerMixin):
@@ -216,35 +209,39 @@ def prenormalize(text):
     return text
 
 
+lowercase_lookahead = "(?=[a-z0-9])"
+
 prenormalize_dict = [
     # replace ":" or whitespace after section headlines with dots so they will become separate sentences
     # TODO check if this is better or worse (isolate headlines)
     # (re.compile("(AIMS?|BACKGROUNDS?|METHODS?|RESULTS?|CONCLUSIONS?|PATIENTS?|FINDINGS?|FUNDINGS?)" "(:)"), r"\1. "),
 
-    # usual abbreviations
-    # TODO consider lookahead: (?=[a-z0-9]) (not useful so far)
-    (re.compile("\W[Ee]\.[Gg]\.\s"), " eg "),
-    (re.compile("\W[Ii]\.?[Ee]\.\s"), " ie "),
-    (re.compile("\W[Aa]pprox\.\s"), " approx "),
-    (re.compile("\W[Nn]o\.\s"), " no "),
-    (re.compile("\W[Cc]onf\.\s"), " conf "),
+    # common abbreviations
+    (re.compile("\W[Ee]\.[Gg]\.\s+" + lowercase_lookahead), " eg "),
+    (re.compile("\W[Ii]\.?[Ee]\.\s+" + lowercase_lookahead), " ie "),
+    (re.compile("\W[Aa]pprox\.\s+" + lowercase_lookahead), " approx "),
+    (re.compile("\W[Nn]o\.\s+" + lowercase_lookahead), " no "),
+    (re.compile("\W[Nn]o\.\s+" + "(?=\w\d)"), " no "), # no. followed by abbreviation (patient no. V123)
+    (re.compile("\W[Cc]onf\.\s+" + lowercase_lookahead), " conf "),
     # scientific writing
-    (re.compile("\Wet al\.\s"), " et al "),
-    (re.compile("\W[Rr]ef\.\s"), " ref "),
-    (re.compile("\W[Ff]ig\.\s"), " fig "),
+    (re.compile("\Wet al\.\s+" + lowercase_lookahead), " et al "),
+    (re.compile("\W[Rr]ef\.\s+" + lowercase_lookahead), " ref "),
+    (re.compile("\W[Ff]ig\.\s+" + lowercase_lookahead), " fig "),
     # medical
-    (re.compile("\Wy\.?o\.\s"), " year-old "),
-    (re.compile("\W[Pp]\.o\.\s"), " po "),
-    (re.compile("\W[Ii]\.v\.\s"), " iv "),
-    (re.compile("\W[Qq]\.i\.\d\.\s"), " qd "),
-    (re.compile("\W[Bb]\.i\.\d\.\s"), " bid "),
-    (re.compile("\W[Tt]\.i\.\d\.\s"), " tid "),
-    (re.compile("\W[Qq]\.i\.\d\.\s"), " qid "),
+    (re.compile("\Wy\.?o\.\s+" + lowercase_lookahead), " year-old "),
+    (re.compile("\W[Pp]\.o\.\s+" + lowercase_lookahead), " po "),
+    (re.compile("\W[Ii]\.v\.\s+" + lowercase_lookahead), " iv "),
+    (re.compile("\W[Qq]\.i\.\d\.\s+" + lowercase_lookahead), " qd "),
+    (re.compile("\W[Bb]\.i\.\d\.\s+" + lowercase_lookahead), " bid "),
+    (re.compile("\W[Tt]\.i\.\d\.\s+" + lowercase_lookahead), " tid "),
+    (re.compile("\W[Qq]\.i\.\d\.\s+" + lowercase_lookahead), " qid "),
+    (re.compile("\WJ\.\s+" + "(?=(Cell|Bio))"), " J "), # journal
     # bracket complications
     (re.compile("\.\s*\)."), ")."),
-    # double dots
-    (re.compile("(\.\s*\.)+"), "."),
-    (re.compile("wild-type"), "wild type")
+    # multiple dots
+    (re.compile("(\.+\s*\.+)+"), "."),
+    # Typos: missing space after dot; only add space if there are at least three letters before and behind
+    (re.compile("(?<=[a-z]{3})" + "\." + "(?=[A-Z][a-z]{2})"), ". "),
 ]
 
 
@@ -260,7 +257,8 @@ class TextStats(BaseEstimator, TransformerMixin):
     """
 
     key_dict = {'inverse_token_count': 'inverse_token_count',
-                'inverse_length'     : 'inverse_length'}
+                'inverse_length'     : 'inverse_length'
+                }
 
     def fit(self, X=None, y=None):
         return self
@@ -268,7 +266,8 @@ class TextStats(BaseEstimator, TransformerMixin):
     def transform(self, sentences):
         for sentence in sentences:
             yield {'inverse_length'     : (1.0 / len(sentence) if sentence else 1.0),
-                   'inverse_token_count': (1.0 / len(re.split("\s+", sentence)))}
+                   'inverse_token_count': (1.0 / len(re.split("\s+", sentence)))
+                   }
 
     def get_feature_names(self):
         return list(self.key_dict.keys())

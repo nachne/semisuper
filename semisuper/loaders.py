@@ -13,6 +13,7 @@ from semisuper.helpers import flatten
 # needed for querying PubMed API
 
 Entrez.email = 'wackerbm@informatik.hu-berlin.de'
+MIN_LEN = 8
 
 
 # ----------------------------------------------------------------
@@ -31,12 +32,8 @@ def sentences_civic_abstracts(verbose=False):
     # TODO: check CPU count
     with multi.Pool(processes=min(multi.cpu_count(), 24)) as p:
         summary_sentences = flatten(p.map(transformers.sentence_tokenize, civic["evidence_statement"]))
-        summary_authors2we = [authors2we(s) for s in set(summary_sentences)]
-
-        with multi.Pool(processes=min(multi.cpu_count(), 24)) as p:
-            summary_sentences = flatten(p.map(transformers.sentence_tokenize, civic["evidence_statement"]))
-            summary_authors2we = [authors2we(s) for s in set(summary_sentences)]
-            abstract_sentences = [s for s in flatten(p.map(transformers.sentence_tokenize, abstracts["abstract"]))]
+        summary_authors2we = [authors2we(s) for s in set(summary_sentences) if len(s) >= MIN_LEN]
+        abstract_sentences = [s for s in flatten(p.map(transformers.sentence_tokenize, abstracts["abstract"]))]
 
     return summary_authors2we, abstract_sentences
 
@@ -137,7 +134,7 @@ def pmid_pos_sentences(pmid_abstract):
     pmid_pos_s = []
 
     for i in range(count):
-        pmid_pos_s.append((pmid, i / count, sentences[i]))
+        pmid_pos_s.append((str(pmid), str(i / count), sentences[i]))
 
     return pmid_pos_s
 
@@ -179,10 +176,10 @@ def sentences_HoC():
                 sentence = label_re.sub("", line)
                 # print("sentence:", sentence)
 
-                if label == '\t[]':
-                    negative.append(sentence)
-                else:
+                if label != '\t[]' and len(sentence) >= MIN_LEN:
                     positive.append(sentence)
+                elif label == '\t[]':
+                    negative.append(sentence)
 
     return positive, negative
 
@@ -202,8 +199,8 @@ def sentences_piboso(include, exclude=None):
 
     for i in range(0, len(predictions) - 6, 6):
         if (any(predictions[i + idx] for idx in include_ids)
-            and not
-            any(predictions[i + idx] for idx in exclude_ids)):
+                and not
+                any(predictions[i + idx] for idx in exclude_ids)):
             yield (transformers.prenormalize(texts[i]))
 
 

@@ -3,7 +3,14 @@ import time
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from cleanup_sources import vectorized_clean_pnu
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC, LinearSVC
+from sklearn.tree import DecisionTreeClassifier
+
+from semisuper.cleanup_sources import vectorized_clean_pnu
 from semisuper import loaders, ss_techniques
 from semisuper.helpers import num_rows, densify, eval_model
 
@@ -128,7 +135,7 @@ def test_neg_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=F
           "---------\n")
 
     start_time = time.time()
-    model = ss_techniques.neg_self_training_sgd(P, N, U)
+    model = ss_techniques.neg_self_training(P, N, U, SGDClassifier(loss='modified_huber'))
     print("\nIteratively expanding negative set with SGDClassifier",
           "took %s\n" % (time.time() - start_time), "seconds")
     eval_model(model, X_test, y_test)

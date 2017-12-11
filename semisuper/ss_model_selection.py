@@ -1,5 +1,5 @@
 import datetime
-import pathos.multiprocessing as multi
+import multiprocessing as multi
 import os
 import pickle
 import time
@@ -24,7 +24,7 @@ import semisuper.basic_pipeline as basic_pipeline
 import semisuper.ss_techniques as ss
 from semisuper.helpers import num_rows, densify
 
-PARALLEL = False  # multiprocessing works on Linux when there aren't too many features, but not on macOS
+PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
 
 
 def best_model_cross_val(P, N, U, fold=10):
@@ -111,21 +111,28 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
     preproc_params = {
-        'df_min'        : [0.002],
+        'df_min'        : [0.001],
         'df_max'        : [1.0],
-        'rules'         : [True],
+        'rules'         : [True],  # [True, False],
         'lemmatize'     : [False],
-        'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
-            partial(basic_pipeline.percentile_selector, 'chi2', 30),
+            # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
+            # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 34%
+
+            # partial(basic_pipeline.percentile_selector, 'chi2', 30),
             partial(basic_pipeline.percentile_selector, 'chi2', 25),
-            partial(basic_pipeline.percentile_selector, 'chi2', 20),
-            partial(basic_pipeline.percentile_selector, 'f', 25),
-            partial(basic_pipeline.percentile_selector, 'mutual_info', 25),
-            partial(basic_pipeline.factorization, 'TruncatedSVD', 1000),
-            partial(basic_pipeline.factorization, 'TruncatedSVD', 2000),
-            partial(basic_pipeline.factorization, 'TruncatedSVD', 3000),
+            # partial(basic_pipeline.percentile_selector, 'chi2', 20),
+            # partial(basic_pipeline.percentile_selector, 'f', 30),
+            # partial(basic_pipeline.percentile_selector, 'f', 25),
+            # partial(basic_pipeline.percentile_selector, 'f', 20),
+            # partial(basic_pipeline.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
+            # partial(basic_pipeline.percentile_selector, 'mutual_info', 25),
+            # partial(basic_pipeline.percentile_selector, 'mutual_info', 20),
+            # partial(basic_pipeline.factorization, 'TruncatedSVD', 1000),
+            # partial(basic_pipeline.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
+            # partial(basic_pipeline.factorization, 'TruncatedSVD', 3000),
         ]
     }
 
@@ -162,25 +169,23 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
 
                     # fit models
                     iteration = [
-                        {'name': 'neglinSVC_C1.0', 'model': partial(ss.iterate_linearSVC_C, 1.0)},
+                        # {'name': 'neglinSVC_C1.0', 'model': partial(ss.iterate_linearSVC_C, 1.0)},
                         {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
-                        {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
-                        {'name' : 'negSGDmh',
-                         'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='modified_huber'))},
-                        {'name' : 'negSGDsh',
-                         'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
-                        {'name' : 'negSGDpc',
-                         'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='perceptron'))},
-                        {'name': 'negNB0.1', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=0.1))},
-                        {'name': 'negNB1.0', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=1.0))},
+                        # {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
+                        # {'name' : 'negSGDmh',
+                        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='modified_huber'))},
+                        # {'name' : 'negSGDsh',
+                        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
+                        # {'name' : 'negSGDpc',
+                        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='perceptron'))},
+                        # {'name': 'negNB0.1', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=0.1))},
+                        # {'name': 'negNB1.0', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=1.0))},
                         # {'name' : 'self-logit', 'model': ss.self_training},
                         # {'name' : 'EM', 'model': ss.EM},
                         # {'name' : 'kNN', 'model': ss.iterate_knn},
                         # {'name' : 'label_propagation', 'model': ss.propagate_labels},
                     ]
 
-                    # eval models
-                    # TODO multiprocessing; breaks on macOS but not on Linux
                     if PARALLEL:
                         with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
                             iter_stats = list(p.map(partial(model_eval_record,
@@ -212,10 +217,10 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
 
     print_results(results)
 
-    return test_best(results, selector, vectorizer, X_eval, y_eval)
+    return test_best(results, X_eval, y_eval)
 
 
-def test_best(results, selector, vectorizer, X_eval, y_eval):
+def test_best(results, X_eval, y_eval):
     """helper function to evaluate best model on held-out set. returns full results of model selection"""
 
     best_model = results['best']['model']

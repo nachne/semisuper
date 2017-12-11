@@ -5,12 +5,19 @@
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/semisuper" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/semisuper/tests" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/semisuper/output" />
+      <excludeFolder url="file://$MODULE_DIR$/semisuper/pickles" />
+      <excludeFolder url="file://$MODULE_DIR$/semisuper/resources" />
+      <excludeFolder url="file://$MODULE_DIR$/semisuper/sentences" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.6.1 (/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/bin/python3.6)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="$MODULE_DIR$/requirements" />
+  </component>
+  <component name="PyDocumentationSettings">
+    <option name="renderExternalDocumentation" value="true" />
   </component>
   <component name="TestRunnerService">
     <option name="PROJECT_TEST_RUNNER" value="Unittests" />

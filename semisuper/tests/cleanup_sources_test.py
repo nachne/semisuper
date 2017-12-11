@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline, ss_techniques
 from semisuper.helpers import num_rows, densify, eval_model, run_fun, pu_score, select_PN_below_score
 from semisuper.cleanup_sources import *
-from basic_pipeline import identitySelector, show_most_informative_features
+from basic_pipeline import identitySelector
 from functools import partial
 import multiprocessing as multi
 import sys

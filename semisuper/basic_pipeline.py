@@ -2,8 +2,7 @@ import pickle
 from operator import itemgetter
 
 from semisuper.helpers import identity
-from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline, Densifier, cleanup, \
-    TextNormalizer
+from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline, Densifier, TextNormalizer
 from sklearn import naive_bayes
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -14,8 +13,6 @@ from sklearn.decomposition import *
 from sklearn.base import BaseEstimator, TransformerMixin
 from functools import partial
 import re
-from gensim import corpora
-from gensim.models.ldamulticore import LdaMulticore
 
 
 def train_clf(X_vec, y, classifier, binary=False, verbose=False):
@@ -39,11 +36,8 @@ def train_clf(X_vec, y, classifier, binary=False, verbose=False):
     return model
 
 
-def build_pipeline(X, y, classifier=None, outpath=None, verbose=False,
-                   words=True, wordgram_range=(1, 3),
-                   chars=True, chargram_range=(3, 6),
-                   binary=False,
-                   selection=True):
+def build_pipeline(X, y, classifier=None, outpath=None, verbose=False, wordgram_range=(1, 3), chargram_range=(3, 6),
+                   binary=False, selection=True):
     """build complete pipeline"""
 
     if verbose:
@@ -129,7 +123,7 @@ class identitySelector():
         return X
 
 
-def percentile_selector(score_func='chi2', percentile=25):
+def percentile_selector(score_func='chi2', percentile=20):
     """supervised feature selector"""
 
     funcs = {'chi2'               : chi2,
@@ -180,59 +174,3 @@ def factorization(method='TruncatedSVD', n_components=10):
 
         return FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
                                     ("normalizer", StandardScaler())])
-
-
-def show_most_informative_features(model: object, text: object = None, n: object = 40) -> object:
-    """
-    Accepts a Pipeline with a classifer and a TfidfVectorizer and computes
-    the n most informative features of the model. If text is given, then will
-    compute the most informative features for classifying that text.
-    Note that this function will only work on linear models with coefs_
-    """
-    # Extract the vectorizer and the classifier from the pipeline
-    features = model.named_steps['features']
-    classifier = model.named_steps['classifier']
-
-    # Check to make sure that we can perform this computation
-    if not hasattr(classifier, 'coef_'):
-        raise TypeError(
-                "Cannot compute most informative features on {} model.".format(
-                        classifier.__class__.__name__
-                )
-        )
-
-    if text is not None:
-        # Compute the coefficients for the text
-        tvec = model.transform([text]).toarray()
-    else:
-        # Otherwise simply use the coefficients
-        tvec = classifier.coef_
-
-    # Zip the feature names with the coefs and sort
-    coefs = sorted(
-            zip(tvec[0], features.get_feature_names()),
-            key=itemgetter(0), reverse=True
-    )
-
-    topn = zip(coefs[:n], coefs[:-(n + 1):-1])
-
-    # Create the output string to return
-    output = []
-
-    # If text, add the predicted value to the output.
-    if text is not None:
-        output.append("\"{}\"".format(text))
-        output.append("Classified as: {}".format(model.predict([text])))
-        output.append("")
-
-    # Create two columns with most negative and most positive features.
-    for (cp, fnp), (cn, fnn) in topn:
-        output.append(
-                "{:0.4f}{: >15}    {:0.4f}{: >15}".format(cp, fnp, cn, fnn)
-        )
-
-    return "\n".join(output)
-
-    # ----------------------------------------------------------------
-    # ----------------------------------------------------------------
-    # ----------------------------------------------------------------

@@ -62,7 +62,7 @@ class HypernymMapper(DictReplacer):
         illegal_substrs = re.compile("\s|\\\\|\.gov|\.org|\.com|http|www|^n=")
 
         for line in source["Mentions"]:
-            for word in str(line).split("|"):
+            for word in re.sub("\d", "1", str(line)).split("|"):
                 # only include single words not appearing in normal language
                 if not (illegal_substrs.findall(word)
                         or word in common_words

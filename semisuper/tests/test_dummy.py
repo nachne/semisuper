@@ -33,9 +33,6 @@ print("\n\n"
 # comment out for quick testing of existing model
 model = basic_pipeline.train_clf(X, y, classifier=SGDClassifier)
 
-print("Most informative features per class:")
-print(basic_pipeline.show_most_informative_features(model))
-
 # ----------------------------------------------------------------
 sys.exit(0)
 
