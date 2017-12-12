@@ -11,7 +11,7 @@ from nltk import WordNetLemmatizer
 from nltk import pos_tag
 from nltk import sent_tokenize
 from nltk.corpus import wordnet as wn, stopwords, wordnet
-from numpy import array
+import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD, PCA, FactorAnalysis
 from sklearn.feature_extraction import DictVectorizer
@@ -23,12 +23,12 @@ from unidecode import unidecode
 
 from semisuper.helpers import densify, identity
 
-MIN_LEN = 8
-
-
 # ----------------------------------------------------------------
 # Tokenization
 # ----------------------------------------------------------------
+
+MIN_LEN = 8
+
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
     def __init__(self, punct=None, lower=True, strip=True, lemmatize=False, rules=True):
@@ -106,6 +106,18 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         return self.lemmatizer.lemmatize(token, tag)
 
 
+def sentence_tokenize(text):
+    """tokenize text into sentences after simple normalization"""
+
+    # return PubMedSentenceTokenizer().tokenize(prenormalize(text))
+
+    return sent_tokenize(prenormalize(text))
+
+
+# ----------------------------------------------------------------
+# Normalization, RegEx based replacement
+
+
 class TextNormalizer(BaseEstimator, TransformerMixin):
     """replaces all non-ASCII characters by approximations, all numbers by 1"""
 
@@ -121,10 +133,10 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         # TODO check if these help
-        # return array([self.num.sub("1", unidecode(x)) for x in X]) # replace all numbers by "1"
+        # return np.array([self.num.sub("1", unidecode(x)) for x in X]) # replace all numbers by "1"
 
         # version without number replacement
-        return array([unidecode(x) for x in X])
+        return np.array([unidecode(x) for x in X])
 
 
 def map_regex_concepts(token):
@@ -186,14 +198,6 @@ regex_concept_dict = [
 ]
 
 
-def sentence_tokenize(text):
-    """tokenize text into sentences after simple normalization"""
-
-    # return PubMedSentenceTokenizer().tokenize(prenormalize(text))
-
-    return sent_tokenize(prenormalize(text))
-
-
 def prenormalize(text):
     """normalize common abbreviations and symbols known to mess with sentence boundary disambiguation"""
     for regex, repl in prenormalize_dict:
@@ -238,34 +242,17 @@ prenormalize_dict = [
 ]
 
 
-class Densifier(BaseEstimator, TransformerMixin):
-    """Makes sparse matrices dense for following pipeline steps"""
-
-    def __init__(self):
-        return
-
-    def fit(self, X=None, y=None):
-        return self
-
-    def transform(self, X):
-        return densify(X)
-
-
-class FeatureNamePipeline(Pipeline):
-    def get_feature_names(self):
-        return self._final_estimator.get_feature_names()
-
-
-
 # ----------------------------------------------------------------
 # Features
 # ----------------------------------------------------------------
 
 
 def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, lemmatize=False, rules=True,
-               max_df=1.0, binary=False):
+               max_df=1.0, binary=False, normalize=True, stats="length"):
+    """Return pipeline that concatenates features from word and character n-grams and text stats"""
+
     return FeatureNamePipeline([
-        ("text_normalizer", TextNormalizer()),
+        ("text_normalizer", None if not normalize else TextNormalizer()),
         ("features", FeatureUnion(n_jobs=2,
                                   transformer_list=[
                                       ("wordgrams", None if wordgrams is None else
@@ -294,27 +281,27 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=
                                                   binary=binary, norm='l2' if not binary else None,
                                                   use_idf=not binary))
                                       ])),
-                                      ("stats", None if True else
+                                      ("stats", None if stats is None else
                                       FeatureNamePipeline([
-                                          ("stats", TextStats()),
+                                          ("stats", TextLength()),
                                           ("vect", DictVectorizer())
                                       ]))
                                   ]))
     ])
 
 
-class identitySelector():
-    """feature selector that does nothing"""
+def vectorizer_dx(*args):
+    """concatenates vectorizer and additional text stats (e.g. sentence position in abstract)
 
-    def __init__(self):
-        print("Feature selection: None")
-        return
+    all args are forwarded to vectorizer as positional arguments"""
 
-    def fit(self, X, y=None):
-        return self
-
-    def transform(self, X):
-        return X
+    return FeatureUnion(transformer_list=[
+        ("text_features", Pipeline([("text_selector", ItemGetter(0)),
+                                    ("text_features", vectorizer(*args))])),
+        ("stats", Pipeline([("stat_selector", ItemGetter(1)),
+                            ("stat_features", StatFeatures()),
+                            ("vect", DictVectorizer())]))
+    ])
 
 
 def percentile_selector(score_func='chi2', percentile=20):
@@ -369,21 +356,23 @@ def factorization(method='TruncatedSVD', n_components=10):
         return FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
                                     ("normalizer", StandardScaler())])
 
-class TextStats(BaseEstimator, TransformerMixin):
+
+class TextLength(BaseEstimator, TransformerMixin):
     """Extract features from tokenized document for DictVectorizer
 
     inverse_length: 1/(number of tokens)
     """
 
-    key_dict = {  # 'inverse_token_count': 'inverse_token_count',
+    key_dict = {
         'inverse_length': 'inverse_length'
+        # 'inverse_token_count': 'inverse_token_count'
     }
 
     def fit(self, X=None, y=None):
         return self
 
-    def transform(self, sentences):
-        for sentence in sentences:
+    def transform(self, X):
+        for sentence in X:
             yield {'inverse_length': (1.0 / len(sentence) if sentence else 1.0),
                    # 'inverse_token_count': (1.0 / len(re.split("\s+", sentence)))
                    }
@@ -391,6 +380,27 @@ class TextStats(BaseEstimator, TransformerMixin):
     def get_feature_names(self):
         return list(self.key_dict.keys())
 
+
+class StatFeatures(BaseEstimator, TransformerMixin):
+    """Extract features from tokenized document for DictVectorizer
+
+    inverse_length: 1/(number of tokens)
+    """
+
+    key_dict = {
+        'pos': 'pos'
+    }
+
+    def fit(self, X=None, y=None):
+        return self
+
+    def transform(self, X):
+        for x in X:
+            yield {'pos': x[0],
+                   }
+
+    def get_feature_names(self):
+        return list(self.key_dict.keys())
 
 
 # ----------------------------------------------------------------
@@ -462,9 +472,58 @@ class HypernymMapper(DictReplacer):
 
         return entries
 
+
 # ----------------------------------------------------------------
 # helpers
 # ----------------------------------------------------------------
+
+
+class identitySelector(BaseEstimator, TransformerMixin):
+    """feature selector that does nothing"""
+
+    def __init__(self):
+        print("Feature selection: None")
+        return
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        return X
+
+
+class ItemGetter(BaseEstimator, TransformerMixin):
+    """Pseudo-transformer to get subsets (param idx: int or list)) of samples for subsequent transformers"""
+
+    def __init__(self, idx):
+        self.idx = idx
+        return
+
+    def fit(self, X=None, y=None):
+        return self
+
+    def transform(self, X):
+        return np.array(X)[:, self.idx]
+
+
+class Densifier(BaseEstimator, TransformerMixin):
+    """Makes sparse matrices dense for subsequent pipeline steps"""
+
+    def __init__(self):
+        return
+
+    def fit(self, X=None, y=None):
+        return self
+
+    def transform(self, X):
+        return densify(X)
+
+
+class FeatureNamePipeline(Pipeline):
+    """Wrapper for Pipeline able to return last step's feature names"""
+
+    def get_feature_names(self):
+        return self._final_estimator.get_feature_names()
 
 
 def file_path(file_relative):

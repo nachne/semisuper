@@ -1,4 +1,4 @@
-from semisuper import pu_model_selection, cleanup_sources
+from semisuper import pu_model_selection, cleanup_corpora
 from semisuper.helpers import num_rows
 from sklearn.pipeline import Pipeline
 from semisuper.loaders import abstract_pmid_pos_sentences
@@ -34,7 +34,7 @@ import numpy as np
 # X_test = hocpos_test+hocneg_test
 # y_test = [1] * num_rows(hocpos_test) + [0] * num_rows(hocneg_test)
 
-P, U, X_test, y_test = cleanup_sources.clean_corpus_pu(ratio=0.1)
+P, U, X_test, y_test = cleanup_corpora.clean_corpus_pu(ratio=1.0)
 
 print("Training sets: \tP (HoC labelled + CIViC)", num_rows(P),
       "\tU (HoC unlabelled + CIViC source abstracts)", num_rows(U),

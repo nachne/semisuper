@@ -1,4 +1,4 @@
-from semisuper import ss_model_selection, cleanup_sources
+from semisuper import ss_model_selection, cleanup_corpora
 from semisuper.helpers import num_rows
 import pandas as pd
 import pickle
@@ -18,16 +18,16 @@ def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, rati
         except:
             pass
 
-    P, N, U = cleanup_sources.clean_corpus_pnu(ratio=ratio, mode=mode)
+    P, N, U = cleanup_corpora.clean_corpus_pnu(ratio=ratio, mode=mode)
 
     print("P (HoC labelled + CIViC)", num_rows(P),
           "\tN (HoC unlabelled)", num_rows(N),
           "\tU (CIViC source abstracts)", num_rows(U))
 
-    best_pipeline = ss_model_selection.best_model_cross_val(P, N, U, fold=5)
+    best_pipeline = ss_model_selection.best_model_cross_val(P, N, U, fold=10)
 
     if write or outpath:
-        outpath = outpath or file_path("./semisuper/pickles/civic_pipeline.pickle")
+        outpath = outpath or file_path("./semisuper/pickles/semi_pipeline.pickle")
         print("Pickling pipeline to", outpath)
         with open(outpath, "wb") as f:
             pickle.dump(best_pipeline, f)
@@ -52,7 +52,7 @@ def save_silver_standard(pipeline, write=True, outpath=None):
     abs_classified = pd.DataFrame(data={"label"            : y,
                                         "decision_function": [float_format % df for df in dec_fn],
                                         "pmid"             : abstracts[:, 0],
-                                        "sentence_pos"     : abstracts[:, 1],
+                                        "sentence_pos"     : [float_format % pos for pos in abstracts[:, 1]],
                                         "text"             : abstracts[:, 2],
                                         },
                                   columns=["label", "decision_function", "pmid", "sentence_pos", "text"])
@@ -70,24 +70,22 @@ def file_path(file_relative):
     return os.path.join(os.path.dirname(__file__), file_relative)
 
 
-def main(args):
+def train_build(from_scratch=True, mode=None, ratio=1.0):
 
     now = datetime.now().strftime('%Y-%m-%d_%H-%M')
 
-    pipeline = train_pipeline(from_scratch=True,
-                              mode=None,
-                              ratio=0.1,
-                              outpath=file_path("./semisuper/pickles/civic_pipeline" + now + '.pickle')
+    pipeline = train_pipeline(from_scratch=from_scratch,
+                              mode=mode,
+                              ratio=ratio,
+                              outpath=file_path("./semisuper/pickles/semi_pipeline" + now + '.pickle')
                               )
 
     silver_standard = save_silver_standard(pipeline,
                                            outpath=file_path("./semisuper/output/silver_standard" + now + '.tsv')
                                            )
 
-    print(silver_standard)
-
-    return
+    return silver_standard
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    train_build()

@@ -10,7 +10,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
-from semisuper.cleanup_sources import vectorized_clean_pnu
+from semisuper.cleanup_corpora import vectorized_clean_pnu
 from semisuper import loaders, ss_techniques
 from semisuper.helpers import num_rows, densify, eval_model
 

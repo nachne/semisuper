@@ -1,5 +1,5 @@
 from semisuper.helpers import num_rows, label2num, densify, identity
-from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
+from semisuper.transformers import TokenizePreprocessor, TextLength, FeatureNamePipeline
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import Binarizer

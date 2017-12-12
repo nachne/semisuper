@@ -9,6 +9,7 @@ from Bio import Medline, Entrez
 
 from semisuper import transformers
 from semisuper.helpers import flatten
+from datetime import datetime
 
 # needed for querying PubMed API
 
@@ -38,13 +39,45 @@ def sentences_civic_abstracts(verbose=False):
     return summary_authors2we, abstract_sentences
 
 
-def abstract_pmid_pos_sentences():
-    _, abstracts = load_civic_abstracts()
+def abstract_pmid_pos_sentences(abstracts=None):
+    if abstracts is None:
+        _, abstracts = load_civic_abstracts()
 
     with multi.Pool(processes=min(multi.cpu_count(), 24)) as p:
         result = flatten(p.map(pmid_pos_sentences, zip(abstracts["pmid"], abstracts["abstract"])))
 
     return result
+
+
+def abstract_pmid_pos_sentences_query(max_ids=10000, term="cancer OR oncology OR mutation", anew=False, path=None):
+    if path is None:
+        path = file_path("./pickles/pubmed_dump_" + term + ".pickle")
+
+    if not anew:
+        try:
+            with open(path, "rb") as f:
+                dump = pickle.load(f)
+                return dump[min(len(dump), max_ids)]
+        except(Exception):
+            pass
+
+    print("Retrieving PubMed abstracts for query \"", term, "\" ( max.", max_ids, ")")
+
+    idlist = get_pmids_from_query(max_ids=max_ids, term=term)
+    abstracts = get_abstracts(idlist)
+
+    pmid_pos_sents = abstract_pmid_pos_sentences(abstracts)
+
+    with open(path, "wb") as f:
+        pickle.dump(pmid_pos_sents, f)
+
+    return pmid_pos_sents
+
+
+def abstract_pmid_pos_sentences_idlist(idlist=123):
+    abstracts = get_abstracts(idlist)
+
+    return abstract_pmid_pos_sentences(abstracts)
 
 
 def sentences_piboso_other():
@@ -84,9 +117,9 @@ def load_civic_abstracts(verbose=False):
         print("Downloading summaries...")
         civic = read_civic()
 
-        pm_ids = get_pm_ids(civic)
-        print("Downloading abstracts... (", len(pm_ids), "unique PMIDs )")
-        abstracts = get_abstracts(pm_ids)
+        pmids = get_pmids_from_df(civic)
+        print("Downloading abstracts... (", len(pmids), "unique PMIDs )")
+        abstracts = get_abstracts(pmids)
 
         with open(file_path("./pickles/civic_abstracts.pickle"), "wb") as f:
             pickle.dump((civic, abstracts), f)
@@ -103,16 +136,39 @@ def read_civic(path=""):
     return pd.read_csv(path, sep='\t')
 
 
-def get_pm_ids(df):
+def get_pmids_from_df(df):
     """get PubMed IDs in CIViC dataframe"""
     return list({str(idx) for idx in df["pubmed_id"]})
+
+
+def get_pmids_from_query(max_ids=10000, mindate="1900/01/01", term="cancer"):
+    retstart = 0
+    idlist = []
+
+    last_len = 1
+    handle = None
+
+    retmax = min(100000, max_ids)
+
+    while last_len > 0 and len(idlist) < max_ids:
+        handle = Entrez.esearch(db="pubmed", term=term, retstart=retstart, retmax=retmax, mindate=mindate)
+        new_ids = list(Entrez.read(handle)["IdList"])
+
+        idlist += new_ids
+        last_len = len(new_ids)
+        retstart += last_len
+
+    if handle:
+        handle.close()
+
+    return idlist
 
 
 def get_abstracts(idlist):
     """download abstracts from PubMed for a list of PubMed IDs"""
     handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
     records = Medline.parse(handle)
-    df = pd.DataFrame(columns=["pmid", "title", "authors", "date", "abstract"])
+    df = pd.DataFrame(columns=["pmid", "abstract"])  # "title", "authors", "date",
     for rec in records:
         try:
             pmid = rec["PMID"]
@@ -122,6 +178,8 @@ def get_abstracts(idlist):
                            ignore_index=True)
         except Exception:
             pass
+
+    handle.close()
     return df
 
 
@@ -134,7 +192,7 @@ def pmid_pos_sentences(pmid_abstract):
     pmid_pos_s = []
 
     for i in range(count):
-        pmid_pos_s.append((pmid, "%.4g" % (i / count), sentences[i]))
+        pmid_pos_s.append((pmid, (i / count), sentences[i]))
 
     return pmid_pos_s
 
