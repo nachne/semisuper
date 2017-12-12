@@ -1,8 +1,6 @@
-from numpy import concatenate, ones, zeros, vstack
+from numpy import concatenate, ones, zeros
 from scipy import vstack
-from semisuper.basic_pipeline import train_clf
-from semisuper.helpers import partition_pos_neg, num_rows, label2num
-from semisuper.helpers import densify
+from semisuper.helpers import partition_pos_neg, num_rows, label2num, densify
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
@@ -14,7 +12,7 @@ from sklearn.preprocessing import normalize
 
 
 # TODO: compute somewhat more meaningful threshold
-def ranking_cos_sim(X, threshold=0.1, compute_thresh=False, binary=False):
+def ranking_cos_sim(X, threshold=0.1, compute_thresh=False):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
     predict_proba returns similarity scores.
@@ -23,7 +21,7 @@ def ranking_cos_sim(X, threshold=0.1, compute_thresh=False, binary=False):
 
     clf = SimRanker(threshold, compute_thresh)
 
-    model = train_clf(X, ones(num_rows(X)), classifier=clf, binary=binary)
+    model = clf.fit(X, ones(num_rows(X)))
     return model
 
 
@@ -39,7 +37,7 @@ def rocchio(P, N, alpha=16, beta=4, binary=False):
     X = concatenate((P, N))
     y = concatenate((ones(num_rows(P)), zeros(num_rows(N))))
 
-    model = train_clf(X, y, classifier=clf, binary=binary)
+    model = clf.fit(X, y)
 
     return model
 
@@ -61,7 +59,7 @@ class SimRanker(BaseEstimator, ClassifierMixin):
         return
 
     def fit(self, X, y=None):
-        self.mean_X = normalize([X.mean(axis=0)])
+        self.mean_X = X.mean(axis=0).reshape(1, X.shape[1])
 
         if self.compute_thresh:
             self.threshold = self.dummy_threshold(self.mean_X, X)
@@ -110,6 +108,8 @@ class BinaryRocchio(BaseEstimator, ClassifierMixin):
 
         self.proto_p = normalize(self.alpha * normalized_p - self.beta * normalized_n)
         self.proto_n = normalize(self.alpha * normalized_n - self.beta * normalized_p)
+
+        return self
 
     def predict_proba(self, X):
         """returns values in [0, 1]; >0.5 means x is rather positive. Not a proper probability!"""

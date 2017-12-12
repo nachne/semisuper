@@ -134,7 +134,7 @@ def pmid_pos_sentences(pmid_abstract):
     pmid_pos_s = []
 
     for i in range(count):
-        pmid_pos_s.append((str(pmid), str(i / count), sentences[i]))
+        pmid_pos_s.append((pmid, "%.4g" % (i / count), sentences[i]))
 
     return pmid_pos_s
 

@@ -250,5 +250,5 @@ def print_sentences(model, modelname=""):
 # execute
 # ------------------
 
-P, U, X_test, y_test, vectorizer, selector = cleanup_sources.vectorized_clean_pu(1.0)
+P, U, X_test, y_test, vectorizer, selector = cleanup_sources.vectorized_clean_pu(0.1)
 test_all(P, U, X_test, y_test, sample_sentences=True)

@@ -1,17 +1,7 @@
-import random
-
-from semisuper import loaders, transformers
-from semisuper.helpers import identity, densify
-from basic_pipeline import identitySelector
-from semisuper.basic_pipeline import factorization, vectorizer, percentile_selector
+from semisuper import loaders
 from semisuper.transformers import *
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
-from sklearn.decomposition import LatentDirichletAllocation
-import numpy as np
-import time
 import sys
 
 # ----------------------------------------------------------------
@@ -27,6 +17,13 @@ civic_, _ = train_test_split(civic, test_size=0.5)
 abstracts_, _ = train_test_split(abstracts, test_size=0.5)
 hocpos_, _ = train_test_split(hocpos, test_size=0.5)
 hocneg_, _ = train_test_split(hocneg, test_size=0.5)
+
+print("CIViC sentences:", len(civic))
+print("Abstract sentences:", len(abstracts))
+print("HoC positive sentences:", len(hocpos))
+print("HoC negative sentences:", len(hocneg))
+print("PIBOSO outcome sentences:", len(piboso_outcome))
+print("PIBOSO other sentences:", len(piboso_other))
 
 # ----------------------------------------------------------------
 # Pipeline

@@ -1,8 +1,8 @@
 from semisuper.helpers import num_rows, label2num, densify, identity
 from semisuper.transformers import TokenizePreprocessor, TextStats, FeatureNamePipeline
-from semisuper.basic_pipeline import train_clf
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.preprocessing import Binarizer
 from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer, CountVectorizer, VectorizerMixin
 from sklearn.feature_extraction import DictVectorizer
 import numpy as np
@@ -19,7 +19,12 @@ def build_proba_MNB(X, y, binary=True, verbose=False):
     """build multinomial Naive Bayes classifier that accepts probabilistic labels
 
     feature encoding should be binarized"""
-    model = train_clf(X, y, classifier=ProbaLabelMNB(alpha=0.1), binary=binary, verbose=False)
+
+    clf = ProbaLabelMNB(alpha=0.1)
+    if binary:
+        clf =Pipeline([('binarizer', Binarizer()), ('clf', clf)])
+
+    model = clf.fit(X, y)
 
     return model  # equations from "partially supervised classification of text documents"
 

@@ -1,21 +1,34 @@
+import multiprocessing as multi
+import os.path
+import pickle
 import re
 import string
+from functools import partial
 
+import pandas as pd
 from nltk import TreebankWordTokenizer
 from nltk import WordNetLemmatizer
 from nltk import pos_tag
 from nltk import sent_tokenize
-from nltk.corpus import wordnet as wn
-from semisuper.helpers import densify
-from semisuper.dict_matchers import HypernymMapper
-from sklearn.base import BaseEstimator, TransformerMixin
+from nltk.corpus import wordnet as wn, stopwords, wordnet
 from numpy import array
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD, PCA, FactorAnalysis
+from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_selection import chi2, SelectPercentile
-from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import chi2, SelectPercentile, f_classif, mutual_info_classif
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.preprocessing import StandardScaler
 from unidecode import unidecode
 
+from semisuper.helpers import densify, identity
+
 MIN_LEN = 8
+
+
+# ----------------------------------------------------------------
+# Tokenization
+# ----------------------------------------------------------------
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
     def __init__(self, punct=None, lower=True, strip=True, lemmatize=False, rules=True):
@@ -93,11 +106,6 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         return self.lemmatizer.lemmatize(token, tag)
 
 
-def cleanup(sentence):
-    """callable for character n-gram tfidf-vectorizer, replaces any sequence of non-word characters by a space"""
-    return re.sub("[^\w-=%]+", " ", sentence).lower()
-
-
 class TextNormalizer(BaseEstimator, TransformerMixin):
     """replaces all non-ASCII characters by approximations, all numbers by 1"""
 
@@ -113,25 +121,10 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         # TODO check if these help
-        return array(
-                # replace all numbers by "1"
-                [self.num.sub("1", unidecode(x)) for x in X])
+        # return array([self.num.sub("1", unidecode(x)) for x in X]) # replace all numbers by "1"
 
         # version without number replacement
-        # return array([unidecode(x) for x in X])
-
-
-class Densifier(BaseEstimator, TransformerMixin):
-    """Makes sparse matrices dense for following pipeline steps"""
-
-    def __init__(self):
-        return
-
-    def fit(self, X=None, y=None):
-        return self
-
-    def transform(self, X):
-        return densify(X)
+        return array([unidecode(x) for x in X])
 
 
 def map_regex_concepts(token):
@@ -221,7 +214,7 @@ prenormalize_dict = [
     (re.compile("\W[Ii]\.?[Ee]\.\s+" + lowercase_lookahead), " ie "),
     (re.compile("\W[Aa]pprox\.\s+" + lowercase_lookahead), " approx "),
     (re.compile("\W[Nn]o\.\s+" + lowercase_lookahead), " no "),
-    (re.compile("\W[Nn]o\.\s+" + "(?=\w\d)"), " no "), # no. followed by abbreviation (patient no. V123)
+    (re.compile("\W[Nn]o\.\s+" + "(?=\w\d)"), " no "),  # no. followed by abbreviation (patient no. V123)
     (re.compile("\W[Cc]onf\.\s+" + lowercase_lookahead), " conf "),
     # scientific writing
     (re.compile("\Wet al\.\s+" + lowercase_lookahead), " et al "),
@@ -235,7 +228,7 @@ prenormalize_dict = [
     (re.compile("\W[Bb]\.i\.\d\.\s+" + lowercase_lookahead), " bid "),
     (re.compile("\W[Tt]\.i\.\d\.\s+" + lowercase_lookahead), " tid "),
     (re.compile("\W[Qq]\.i\.\d\.\s+" + lowercase_lookahead), " qid "),
-    (re.compile("\WJ\.\s+" + "(?=(Cell|Bio))"), " J "), # journal
+    (re.compile("\WJ\.\s+" + "(?=(Cell|Bio))"), " J "),  # journal
     # bracket complications
     (re.compile("\.\s*\)."), ")."),
     # multiple dots
@@ -245,10 +238,136 @@ prenormalize_dict = [
 ]
 
 
+class Densifier(BaseEstimator, TransformerMixin):
+    """Makes sparse matrices dense for following pipeline steps"""
+
+    def __init__(self):
+        return
+
+    def fit(self, X=None, y=None):
+        return self
+
+    def transform(self, X):
+        return densify(X)
+
+
 class FeatureNamePipeline(Pipeline):
     def get_feature_names(self):
         return self._final_estimator.get_feature_names()
 
+
+
+# ----------------------------------------------------------------
+# Features
+# ----------------------------------------------------------------
+
+
+def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, lemmatize=False, rules=True,
+               max_df=1.0, binary=False):
+    return FeatureNamePipeline([
+        ("text_normalizer", TextNormalizer()),
+        ("features", FeatureUnion(n_jobs=2,
+                                  transformer_list=[
+                                      ("wordgrams", None if wordgrams is None else
+                                      FeatureNamePipeline([
+                                          ("preprocessor", TokenizePreprocessor(rules=rules, lemmatize=lemmatize)),
+                                          ("word_tfidf", TfidfVectorizer(
+                                                  analyzer='word',
+                                                  min_df=min_df_word,  # TODO find reasonable value (5 <= n << 50)
+                                                  max_df=max_df,
+                                                  tokenizer=identity,
+                                                  preprocessor=None,
+                                                  lowercase=False,
+                                                  ngram_range=wordgrams,
+                                                  binary=binary, norm='l2' if not binary else None,
+                                                  use_idf=not binary))
+                                      ])),
+                                      ("chargrams", None if chargrams is None else
+                                      FeatureNamePipeline([
+                                          ("char_tfidf", TfidfVectorizer(
+                                                  analyzer='char',
+                                                  min_df=min_df_char,
+                                                  max_df=max_df,
+                                                  preprocessor=partial(re.compile("[^\w\-=%]+").sub, " "),
+                                                  lowercase=True,
+                                                  ngram_range=chargrams,
+                                                  binary=binary, norm='l2' if not binary else None,
+                                                  use_idf=not binary))
+                                      ])),
+                                      ("stats", None if True else
+                                      FeatureNamePipeline([
+                                          ("stats", TextStats()),
+                                          ("vect", DictVectorizer())
+                                      ]))
+                                  ]))
+    ])
+
+
+class identitySelector():
+    """feature selector that does nothing"""
+
+    def __init__(self):
+        print("Feature selection: None")
+        return
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        return X
+
+
+def percentile_selector(score_func='chi2', percentile=20):
+    """supervised feature selector"""
+
+    funcs = {'chi2'               : chi2,
+             'f_classif'          : f_classif,
+             'f'                  : f_classif,
+             'mutual_info_classif': mutual_info_classif,
+             'mutual_info'        : mutual_info_classif,
+             'm'                  : mutual_info_classif,
+             }
+
+    func = funcs.get(score_func, chi2)
+
+    print("Supervised feature selection:,", percentile, "-th percentile in terms of", func)
+    return SelectPercentile(score_func=func, percentile=percentile)
+
+
+def factorization(method='TruncatedSVD', n_components=10):
+    # PCA, IncrementalPCA, FactorAnalysis, FastICA, LatentDirichletAllocation, TruncatedSVD, fastica
+
+    print("Unsupervised feature selection: matrix factorization with", method, "(", n_components, "components )")
+
+    sparse = {
+        'LatentDirichletAllocation': LatentDirichletAllocation(n_topics=n_components,
+                                                               n_jobs=-1,
+                                                               learning_method='online'),
+        'TruncatedSVD'             : FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
+                                                          ("normalizer", StandardScaler())])
+    }
+
+    model = sparse.get(method, None)
+
+    if model is not None:
+        return model
+
+    dense = {
+        'PCA'           : PCA(n_components),
+        'FactorAnalysis': FactorAnalysis(n_components)
+    }
+
+    model = dense.get(method, None)
+
+    if model is not None:
+        return FeatureNamePipeline([("densifier", Densifier()),
+                                    ("selector", model),
+                                    ("normalizer", StandardScaler())])  # TODO Standard or MinMax?
+
+    else:
+
+        return FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
+                                    ("normalizer", StandardScaler())])
 
 class TextStats(BaseEstimator, TransformerMixin):
     """Extract features from tokenized document for DictVectorizer
@@ -256,18 +375,98 @@ class TextStats(BaseEstimator, TransformerMixin):
     inverse_length: 1/(number of tokens)
     """
 
-    key_dict = {'inverse_token_count': 'inverse_token_count',
-                'inverse_length'     : 'inverse_length'
-                }
+    key_dict = {  # 'inverse_token_count': 'inverse_token_count',
+        'inverse_length': 'inverse_length'
+    }
 
     def fit(self, X=None, y=None):
         return self
 
     def transform(self, sentences):
         for sentence in sentences:
-            yield {'inverse_length'     : (1.0 / len(sentence) if sentence else 1.0),
-                   'inverse_token_count': (1.0 / len(re.split("\s+", sentence)))
+            yield {'inverse_length': (1.0 / len(sentence) if sentence else 1.0),
+                   # 'inverse_token_count': (1.0 / len(re.split("\s+", sentence)))
                    }
 
     def get_feature_names(self):
         return list(self.key_dict.keys())
+
+
+
+# ----------------------------------------------------------------
+# Mapping tokens to dictionary equivalents
+# ----------------------------------------------------------------
+
+class DictReplacer(object):
+    def __init__(self, word_map):
+        self.word_map = word_map
+
+    def replace(self, word):
+        return self.word_map.get(word, word)
+
+    def replace_all(self, words):
+        return [self.replace(w) for w in words]
+
+
+class HypernymMapper(DictReplacer):
+    def __init__(self):
+        dictionary = self.load_hypernyms()
+        super(HypernymMapper, self).__init__(dictionary)
+
+    def load_hypernyms(self):
+        """read hypernym dict from disk or build from tsv files"""
+        try:
+            with open(file_path("./pickles/hypernyms.pickle"), "rb") as f:
+                hypernyms = pickle.load(f)
+                # print("Loaded hypernyms from disk.")
+        except IOError:
+            print("Building hypernym resources...")
+            hypernyms = self.build_hypernym_dict()
+            with open(file_path("./pickles/hypernyms.pickle"), "wb") as f:
+                pickle.dump(hypernyms, f)
+                print("Built hypernym dict and wrote to disk.")
+        return hypernyms
+
+    def build_hypernym_dict(self):
+        concepts = ["chemical", "disease", "gene", "mutation"]
+
+        with multi.Pool(min(multi.cpu_count(), len(concepts))) as p:
+            dicts = list(p.map(self.make_hypernym_entries, concepts))
+
+        dictionary = dicts[0].copy()
+        for d in dicts[1:]:
+            dictionary.update(d)
+
+        return dictionary
+
+    def make_hypernym_entries(self, hypernym):
+        entries = {}
+        source = pd.read_csv(file_path("./resources/" + hypernym + "2pubtator.csv"),
+                             sep='\t', dtype=str)
+
+        with open(file_path("./resources/common_words.txt"), "r") as cw:
+            common_words = set(cw.read().split("\n") + stopwords.words('english'))
+
+        # only single words and no URLs etc
+        illegal_substrs = re.compile("\s|\\\\|\.gov|\.org|\.com|http|www|^n=")
+        num = re.compile("\d")
+
+        for line in source["Mentions"]:
+            for word in num.sub("1", str(line)).split("|"):
+                # only include single words not appearing in normal language
+                if not (illegal_substrs.findall(word)
+                        or word in common_words
+                        or word in entries
+                        or wordnet.synsets(word)):
+                    entries[word] = "_" + hypernym + "_"
+
+        return entries
+
+# ----------------------------------------------------------------
+# helpers
+# ----------------------------------------------------------------
+
+
+def file_path(file_relative):
+    """return the correct file path given the file's path relative to calling script"""
+    return os.path.join(os.path.dirname(__file__), file_relative)

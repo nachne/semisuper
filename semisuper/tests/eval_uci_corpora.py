@@ -1,10 +1,17 @@
 import semisuper.tests.load_test_corpora as test_corpus
 from numpy import concatenate, shape
-from semisuper import pu_two_step, pu_biased_svm, pu_one_class_svm, basic_pipeline, ss_techniques
+
+from semisuper import pu_two_step, pu_biased_svm, pu_one_class_svm, ss_techniques, transformers
 from semisuper.helpers import densify, num_rows
 from sklearn.metrics import classification_report as clsr, accuracy_score
+
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC, LinearSVC
+from sklearn.tree import DecisionTreeClassifier
+
 import sys
 
 
@@ -27,7 +34,7 @@ def prepare_corpus_pu(data_tuple):
     X_test = concatenate((P_test, N_test))
     y_test = concatenate((y_P_test, y_N_test))
 
-    vectorizer = basic_pipeline.vectorizer(chargrams=(2, 6), wordgrams=(1, 3), lemmatize=False, rules=False)
+    vectorizer = transformers.vectorizer(chargrams=(2, 6), wordgrams=(1, 3), lemmatize=False, rules=False)
 
     print("Fitting vectorizer")
     vectorizer.fit(P)
@@ -59,8 +66,8 @@ def prepare_corpus_ss(data_tuple):
     X_test = concatenate((P_test, N_test))
     y_test = concatenate((y_P_test, y_N_test))
 
-    vectorizer = basic_pipeline.vectorizer(chargrams=(2, 6), min_df_char=0.01, wordgrams=(1, 3), min_df_word=0.01,
-                                           lemmatize=False, rules=False)
+    vectorizer = transformers.vectorizer(chargrams=(2, 6), min_df_char=0.01, wordgrams=(1, 3), min_df_word=0.01,
+                                         lemmatize=False, rules=False)
 
     print("Fitting vectorizer")
     vectorizer.fit(P)
@@ -85,8 +92,8 @@ def prepare_corpus_ss(data_tuple):
 def train_test_all_clfs_pu(data_tuple):
     P, U, X, y, X_test, y_test, P_test, y_P_test, N_test, y_N_test = data_tuple
 
-    sup_mnb = basic_pipeline.train_clf(X, y, MultinomialNB())
-    sup_linsvc = basic_pipeline.train_clf(X, y, LinearSVC(C=0.1))
+    sup_mnb = MultinomialNB().fit(X, y)
+    sup_linsvc = LinearSVC(C=0.1).fit(X, y)
 
     roc_svm = pu_two_step.roc_SVM(P, U)
     cr_svm = pu_two_step.cr_SVM(P, U, noise_lvl=0.4)
@@ -154,11 +161,11 @@ def train_test_all_clfs_pu(data_tuple):
 def train_test_all_clfs_ss(data_tuple):
     P, N, U, X, y, X_test, y_test, P_test, y_P_test, N_test, y_N_test = data_tuple
 
-    sup_mnb = basic_pipeline.train_clf(concatenate((P, N)), [1] * num_rows(P) + [0] * num_rows(N), MultinomialNB())
-    sup_linsvc = basic_pipeline.train_clf(concatenate((P, N)), [1] * num_rows(P) + [0] * num_rows(N), LinearSVC(C=0.1))
+    sup_mnb = MultinomialNB().fit(concatenate((P, N)), [1] * num_rows(P) + [0] * num_rows(N))
+    sup_linsvc = LinearSVC(C=0.1).fit(concatenate((P, N)), [1] * num_rows(P) + [0] * num_rows(N))
 
     neg_st_logreg = ss_techniques.neg_self_training(P, N, U)
-    neg_st_sgd = ss_techniques.neg_self_training_sgd(P, N, U)
+    neg_st_sgd = ss_techniques.neg_self_training(P, N, U, clf=SGDClassifier(loss='modified_huber'))
     it_lin_svc = ss_techniques.iterate_linearSVC(P, N, U, 1.0)
     em = ss_techniques.EM(P, N, U)
     knn = ss_techniques.iterate_knn(P, N, U)
@@ -210,7 +217,7 @@ def train_test_all_clfs_ss(data_tuple):
 # -------------------
 
 
-newsgroups_ratio = 0.5
+newsgroups_ratio = 0.1
 neg_noise = 0.01
 pos_in_u = 0.4
 neg_in_u = 0.9
@@ -250,7 +257,7 @@ for tup in test_corpus.list_P_U_p_n_20_newsgroups(neg_noise=neg_noise,
     train_test_all_clfs_pu(prepare_corpus_pu(tup))
 
 
-print("---------------------------")
+print("------------------------------------------------------------------------------------------------------------")
 sys.exit(0)
 
 print("---------------------------")

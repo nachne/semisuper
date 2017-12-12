@@ -2,7 +2,6 @@ from functools import partial
 from multiprocessing import Pool, cpu_count
 
 from numpy import concatenate, zeros, ones
-from semisuper.basic_pipeline import train_clf
 from semisuper.helpers import num_rows, pu_score, partition_pos_neg, train_report
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
@@ -131,7 +130,7 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
     # clf = BaggingClassifier(BiasedSVM(C=C, class_weight=class_weight))
     # clf.get_class_weights = clf.base_estimator.get_class_weights
 
-    model = train_clf(X, y, classifier=clf)
+    model = clf.fit(X, y)
 
     model.get_class_weights = clf.get_class_weights
 

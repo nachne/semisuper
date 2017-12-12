@@ -4,10 +4,10 @@ import time
 import numpy as np
 
 from sklearn.model_selection import train_test_split
-from semisuper import loaders, pu_two_step, pu_biased_svm, basic_pipeline, ss_techniques
+from semisuper import loaders, pu_two_step, pu_biased_svm, ss_techniques
 from semisuper.helpers import num_rows, densify, eval_model, run_fun, pu_score, select_PN_below_score
 from semisuper.cleanup_sources import *
-from basic_pipeline import identitySelector
+from semisuper.transformers import identitySelector
 from functools import partial
 import multiprocessing as multi
 import sys
@@ -84,47 +84,58 @@ def print_sentences(model, modelname=""):
 # execute
 # ------------------
 
-print("\nHOCNEG MINUS CIVIC\n")
-_ = remove_least_similar_percent(civic, hocneg, ratio=1.0, percentile=20)
+print("\nHOCNEG \ CIVIC\n")
+_ = remove_most_similar_percent(civic, hocneg, ratio=1.0, percentile=20)
 
-print("\nCIVIC MINUS HOCPOS\n")
-civic_ = remove_least_similar_percent(hocpos, civic, ratio=1.0, inverse=True)
+print("\nCIVIC * HOCPOS\n")
+civic_ = remove_most_similar_percent(hocpos, civic, ratio=1.0, inverse=True)
 
-print("\nHOCPOS MINUS CIVIC\n")
-hocpos_ = remove_least_similar_percent(civic, hocpos, ratio=1.0, inverse=True)
+print("\nHOCPOS * CIVIC\n")
+hocpos_ = remove_most_similar_percent(civic, hocpos, ratio=1.0, inverse=True)
 
-print("\nCIVIC MINUS HOCPOS'\n")
-_ = remove_least_similar_percent(hocpos_, civic, ratio=1.0, inverse=True)
+print("\nCIVIC * HOCPOS'\n")
+_ = remove_most_similar_percent(hocpos_, civic, ratio=1.0, inverse=True)
 
-print("\nHOCPOS MINUS CIVIC'\n")
-_ = remove_least_similar_percent(civic_, hocpos, ratio=1.0, inverse=True)
+print("\nHOCPOS * CIVIC'\n")
+_ = remove_most_similar_percent(civic_, hocpos, ratio=1.0, inverse=True)
 
-sys.exit()
+print("\nHOCNEG \ HOCPOS'\n")
+_ = remove_most_similar_percent(hocpos_, hocneg, ratio=1.0, percentile=20)
+
+# sys.exit()
 
 # PU hocneg vs civic: ok, 6%
 
-hocneg_ = remove_most_similar(noisy_set=hocneg, guide_set=civic, ratio=0.2)
+print("\nHOCNEG \ CIVIC\n")
+hocneg_ = remove_P_from_U(U=hocneg, P=civic, ratio=0.2)
 # print_sentences(model, "best PU method (remove civic from hocneg)")
 
-_ = remove_most_similar(noisy_set=hocneg, guide_set=hocpos, ratio=0.2)
+print("\nHOCNEG \ HOCPOS\n")
+_ = remove_P_from_U(U=hocneg, P=hocpos, ratio=0.2)
 # print_sentences(model, "best PU method (remove hocpos from hocneg)")
 
-_ = remove_most_similar(noisy_set=hocneg_, guide_set=hocpos, ratio=0.2)
+print("\nHOCNEG \ CIVIC \ HOCPOS\n")
+_ = remove_P_from_U(U=hocneg_, P=hocpos, ratio=0.2)
 # print_sentences(model, "best PU method (remove hocpos from hocneg_)")
 
-hocpos_ = remove_most_similar(noisy_set=hocpos, guide_set=hocneg_, ratio=0.2)
+print("\nHOCPOS \ (HOCNEG \ CIVIC)\n")
+hocpos_ = remove_P_from_U(U=hocpos, P=hocneg_, ratio=0.2)
 # print_sentences(model, "best PU method (remove hocneg_ from hocpos)")
 
-_ = remove_most_similar(noisy_set=hocpos, guide_set=hocneg, ratio=0.2)
+print("\nHOCPOS \ HOCNEG\n")
+_ = remove_P_from_U(U=hocpos, P=hocneg, ratio=0.2)
 # print_sentences(model, "best PU method (remove hocneg from hocpos)")
 
-_ = remove_most_similar(noisy_set=hocpos, guide_set=civic, ratio=0.2, inverse=True)
+print("\nHOCPOS * CIVIC\n")
+_ = remove_P_from_U(U=hocpos, P=civic, ratio=0.2, inverse=True)
 # print_sentences(model, "best PU method (keep civic in hocpos)")
 
-_ = remove_most_similar(noisy_set=civic, guide_set=hocpos, ratio=0.2, inverse=True)
+print("\nCIVIC * HOCPOS\n")
+_ = remove_P_from_U(U=civic, P=hocpos, ratio=0.2, inverse=True)
 # print_sentences(model, "best PU method (keep hocpos in civic)")
 
-_ = remove_most_similar(noisy_set=civic, guide_set=hocpos_, ratio=0.2, inverse=True)
+print("\nCIVIC * (HOCPOS \ (HOCNEG \ CIVIC))\n")
+_ = remove_P_from_U(U=civic, P=hocpos_, ratio=0.2, inverse=True)
 # print_sentences(model, "best PU method (keep hocpos_ in civic)")
 
 sys.exit()

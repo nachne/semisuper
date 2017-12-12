@@ -6,7 +6,6 @@ import numpy as np
 from sklearn import svm
 from sklearn.ensemble import BaggingClassifier
 
-from semisuper.basic_pipeline import train_clf
 from semisuper.helpers import num_rows, arrays, partition_pos_neg, pu_score, train_report, select_PN_below_score
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_cos_roc import ranking_cos_sim, rocchio
@@ -378,7 +377,7 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
         if verbose: print("Building initial linearSVM classifier with Positive and Reliable Negative docs")
         clf = svm.LinearSVC(class_weight='balanced', C=C)
 
-    initial_model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
+    initial_model = clf.fit(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)))
 
     if num_rows(U) == 0:
         print("Warning: SVM: All of U was classified as negative.")
@@ -414,12 +413,12 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
         else:
             clf = svm.LinearSVC(class_weight='balanced', C=C)
 
-        model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
+        model = clf.fit(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)))
         y_U = model.predict(Q)
         Q, W = partition_pos_neg(Q, y_U)
 
     RN = np.concatenate((RN, W))
-    model = train_clf(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)), classifier=clf)
+    model = clf.fit(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)))
 
     if verbose: print("Iterative SVM converged. Reliable negative examples:", num_rows(RN))
 

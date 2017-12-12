@@ -20,8 +20,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
-import semisuper.basic_pipeline as basic_pipeline
 import semisuper.ss_techniques as ss
+from semisuper import transformers
 from semisuper.helpers import num_rows, densify
 
 PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
@@ -103,7 +103,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
         X_test = np.concatenate((X_test_pos, X_test_neg))
         y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
 
-    X_eval, X_dev, y_eval, y_dev = train_test_split(X_test, y_test, test_size=0.5)
+    X_eval, X_dev, y_eval, y_dev = train_test_split(X_test, y_test, test_size=0.75)
 
     X_train = np.concatenate((P_train, N_train, U_train))
     y_train_pp = np.concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U_train))))
@@ -122,7 +122,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
             # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 34%
 
             # partial(basic_pipeline.percentile_selector, 'chi2', 30),
-            partial(basic_pipeline.percentile_selector, 'chi2', 25),
+            partial(transformers.percentile_selector, 'chi2', 25),
             # partial(basic_pipeline.percentile_selector, 'chi2', 20),
             # partial(basic_pipeline.percentile_selector, 'f', 30),
             # partial(basic_pipeline.percentile_selector, 'f', 25),
@@ -169,8 +169,8 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
 
                     # fit models
                     iteration = [
-                        # {'name': 'neglinSVC_C1.0', 'model': partial(ss.iterate_linearSVC_C, 1.0)},
-                        {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
+                        {'name': 'neglinSVC_C1.0', 'model': partial(ss.iterate_linearSVC_C, 1.0)},
+                        # {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
                         # {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
                         # {'name' : 'negSGDmh',
                         #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='modified_huber'))},
@@ -252,8 +252,8 @@ def prepare_train_test(trainData, testData, trainLabels, rules=True, wordgram_ra
 
     print("Fitting vectorizer, preparing training and test data")
 
-    vectorizer = basic_pipeline.vectorizer(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
-                                           min_df_word=min_df_word, max_df=max_df, lemmatize=lemmatize, rules=rules)
+    vectorizer = transformers.vectorizer(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
+                                         min_df_word=min_df_word, max_df=max_df, lemmatize=lemmatize, rules=rules)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)

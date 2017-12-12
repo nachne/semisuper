@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 
 from sklearn.svm import LinearSVC
 
-from semisuper import loaders, pu_two_step, basic_pipeline, pu_cos_roc, pu_biased_svm
+from semisuper import loaders, pu_two_step, pu_cos_roc, pu_biased_svm, transformers
 from semisuper.helpers import num_rows, densify, pu_score, select_PN_below_score
 
 civic, abstracts = loaders.sentences_civic_abstracts()
@@ -52,7 +52,7 @@ def remove_P_from_U(P, U, ratio=1.0, inverse=False, verbose=True):
     return keeping
 
 
-def remove_least_similar_percent(P, U, ratio=1.0, percentile=10, inverse=False, verbose=True):
+def remove_most_similar_percent(P, U, ratio=1.0, percentile=10, inverse=False, verbose=True):
     """Remove percentile of sentences from noisy_set that are similar to guide_set according to strictest PU estimator.
 
     if inverse is set to True, remove least rather than most similar."""
@@ -75,8 +75,8 @@ def remove_least_similar_percent(P, U, ratio=1.0, percentile=10, inverse=False, 
     U_minus_PN, PN = select_PN_below_score(y_pred, U, y_pred, noise_lvl=percentile / 100)
 
     if verbose:
-        print("Keeping", random.sample(U_minus_PN, 10))
-        print("Discarding", random.sample(PN, 10))
+        print("Keeping", train_test_split(U_minus_PN, train_size=10)[0])
+        print("Discarding", train_test_split(PN, train_size=10)[0])
 
     return U_minus_PN
 
@@ -139,7 +139,7 @@ def vectorize_preselection(P, U, ratio=1.0):
         P, _ = train_test_split(P, train_size=ratio)
         U, _ = train_test_split(U, train_size=ratio)
 
-    vec = basic_pipeline.vectorizer()
+    vec = transformers.vectorizer()
     vec.fit(np.concatenate((P, U)))
 
     P_ = vec.transform(P)
@@ -147,7 +147,7 @@ def vectorize_preselection(P, U, ratio=1.0):
 
     print("Features before selection:", np.shape(U_)[1])
 
-    sel = basic_pipeline.percentile_selector()
+    sel = transformers.percentile_selector()
     # sel = basic_pipeline.factorization('TruncatedSVD', 1000)
     sel.fit(vstack((P_, U_)),
             np.concatenate((np.ones(num_rows(P_)), -np.ones(num_rows(U_)))))
@@ -158,22 +158,37 @@ def vectorize_preselection(P, U, ratio=1.0):
     return P_, U_, vec, sel
 
 
-def clean_corpus_pnu(ratio=1.0):
-    # remove worst percentage
-    # print("\nRemoving CIViC-like sentences from HoC[neg]\n")
-    # hocneg_ = cleanup_sources.remove_least_similar_percent(U=hocneg, P=civic, ratio=ratio, percentile=15)
-    # print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
-    # hocpos_ = cleanup_sources.remove_least_similar_percent(U=hocpos, P=hocneg_, ratio=ratio, percentile=10)
-    # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
-    # hocpos_ = cleanup_sources.remove_least_similar_percent(U=hocpos_, P=civic, ratio=ratio, percentile=10,
-    #                                                        inverse=True)
+def clean_corpus_pnu(mode=None, percentiles=[10, 25, 10], ratio=1.0):
+    """clean up HoC corpus using PU learning. Modes: "strict", "percentile", default
 
-    # remove what is ambiguous according to PU training
-    print("\nRemoving CIViC-like sentences from HoC[neg]\n")
-    hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
+    default: remove CIViC-like from HoC[neg], HoC[neg]-like from CIViC
+    strict: remove CIViC-like from HoC[neg], keep only CIViC-like in HoC[pos]
+    percentile: remove percentiles (CIViC-like from HoC[neg], HoC[neg]-like from HoC[pos], CIViC-unlike from HoC[pos)
+    """
 
-    print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
-    hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
+    if mode == "percentile":
+        print("\nRemoving CIViC-like sentences from HoC[neg] (", percentiles[0], "%)\n")
+        hocneg_ = remove_most_similar_percent(U=hocneg, P=civic, ratio=ratio, percentile=percentiles[0])
+
+        print("\nRemoving HoC[neg]-like sentences from HoC[pos] (", percentiles[1], "%)\n")
+        hocpos_ = remove_most_similar_percent(U=hocpos, P=hocneg_, ratio=ratio, percentile=percentiles[1])
+
+        print("\nRemoving CIViC-unlike sentences from HoC[pos] (", percentiles[2], "%)\n")
+        hocpos_ = remove_most_similar_percent(U=hocpos_, P=civic, ratio=ratio, percentile=percentiles[2],
+                                              inverse=True)
+    elif mode == "strict":
+        print("\nRemoving CIViC-like sentences from HoC[neg]\n")
+        hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
+
+        print("\nKeeping only CIViC-like sentences in HoC[pos]\n")
+        hocpos_ = remove_P_from_U(P=civic, U=hocpos, ratio=ratio, inverse=True)
+
+    else:
+        print("\nRemoving CIViC-like sentences from HoC[neg]\n")
+        hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
+
+        print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
+        hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
 
     # TODO obsolete (removes >90%) but show in paper
     # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
@@ -192,7 +207,6 @@ def clean_corpus_pnu(ratio=1.0):
 
 
 def vectorized_clean_pnu(ratio=1.0):
-
     P_raw, N_raw, U_raw = clean_corpus_pnu(ratio)
 
     print("\nSEMI-SUPERVISED TRAINING", "(on", 100 * ratio, "% of available data)",
@@ -201,7 +215,7 @@ def vectorized_clean_pnu(ratio=1.0):
           "\tU: ABSTRACTS (", num_rows(U_raw), ")"
           )
 
-    vec = basic_pipeline.vectorizer()
+    vec = transformers.vectorizer()
     vec.fit(np.concatenate((P_raw, N_raw, U_raw)))
 
     P = vec.transform(P_raw)
@@ -210,7 +224,7 @@ def vectorized_clean_pnu(ratio=1.0):
 
     print("Features before selection:", np.shape(P)[1])
 
-    sel = basic_pipeline.percentile_selector()
+    sel = transformers.percentile_selector()
     sel.fit(vstack((P, N, U)),
             (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
 
@@ -223,6 +237,7 @@ def vectorized_clean_pnu(ratio=1.0):
     return P, N, U, vec, sel
 
 
+# TODO move
 def clean_corpus_pu(ratio=1.0):
     # remove worst percentage
     # print("\nRemoving CIViC-like sentences from HoC[neg]\n")
@@ -266,7 +281,6 @@ def clean_corpus_pu(ratio=1.0):
 
 
 def vectorized_clean_pu(ratio=1.0):
-
     P_raw, U_raw, X_test_raw, y_test = clean_corpus_pu(ratio)
 
     print("\nPU TRAINING", "(on", 100 * ratio, "% of available data)",
@@ -275,8 +289,7 @@ def vectorized_clean_pu(ratio=1.0):
           "\tTEST SET (HOC POS + CIVIC + HOC NEG):", num_rows(X_test_raw)
           )
 
-
-    vec = basic_pipeline.vectorizer()
+    vec = transformers.vectorizer()
     vec.fit(np.concatenate((P_raw, U_raw)))
 
     P = vec.transform(P_raw)
@@ -285,7 +298,7 @@ def vectorized_clean_pu(ratio=1.0):
     print("Features before selection:", np.shape(P)[1])
 
     # sel = identitySelector()
-    sel = basic_pipeline.percentile_selector()
+    sel = transformers.percentile_selector()
     # sel = basic_pipeline.factorization('LatentDirichletAllocation')
 
     sel.fit(vstack((P, U)),

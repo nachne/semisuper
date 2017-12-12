@@ -1,4 +1,4 @@
-from semisuper import pu_model_selection_obsolete, cleanup_sources
+from semisuper import pu_model_selection, cleanup_sources
 from semisuper.helpers import num_rows
 from sklearn.pipeline import Pipeline
 from semisuper.loaders import abstract_pmid_pos_sentences
@@ -34,13 +34,13 @@ import numpy as np
 # X_test = hocpos_test+hocneg_test
 # y_test = [1] * num_rows(hocpos_test) + [0] * num_rows(hocneg_test)
 
-P, U, X_test, y_test = cleanup_sources.clean_corpus_pu(ratio=0.2)
+P, U, X_test, y_test = cleanup_sources.clean_corpus_pu(ratio=0.1)
 
 print("Training sets: \tP (HoC labelled + CIViC)", num_rows(P),
       "\tU (HoC unlabelled + CIViC source abstracts)", num_rows(U),
       "\tTest (HoC labelled + CIViC VS. HoC unlabelled):", num_rows(X_test))
 
-best = pu_model_selection_obsolete.getBestModel(P, U, X_test, y_test)
+best = pu_model_selection.getBestModel(P, U, X_test, y_test)
 
 best_pipeline = Pipeline([('vectorizer', best['vectorizer']),
                           ('selector', best['selector']),
@@ -52,6 +52,7 @@ conf = best_pipeline.decision_function(abstracts[:,2])
 
 abs_clfd = list(zip(y, conf, abstracts[:,1], abstracts[:,2]))
 
-for i in range(400,800):
+for i in range(0,20):
       print(abs_clfd[i])
+
 

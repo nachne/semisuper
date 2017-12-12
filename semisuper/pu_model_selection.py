@@ -11,9 +11,9 @@ import numpy as np
 from sklearn.metrics import classification_report, precision_recall_fscore_support, accuracy_score
 from sklearn.model_selection import train_test_split
 
-import semisuper.basic_pipeline as basic_pipeline
 import semisuper.pu_biased_svm as biased_svm
 import semisuper.pu_two_step as two_step
+import semisuper.transformers as transformers
 from semisuper.helpers import num_rows, densify
 
 
@@ -37,10 +37,11 @@ def getBestModel(P_train, U_train, X_test, y_test):
         'lemmatize'     : [False],
         'wordgram_range': [(1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
-        'feature_select': [partial(basic_pipeline.percentile_selector, 'chi2'),
-                           partial(basic_pipeline.factorization, 'PCA', 10),
-                           partial(basic_pipeline.factorization, 'PCA', 100),
-                           partial(basic_pipeline.factorization, 'PCA', 1000), ]
+        'feature_select': [partial(transformers.percentile_selector, 'chi2'),
+                           # partial(transformers.factorization, 'PCA', 10),
+                           # partial(transformers.factorization, 'PCA', 100),
+                           # partial(transformers.factorization, 'PCA', 1000),
+                           ]
     }
 
     for wordgram, chargram in product(preproc_params['wordgram_range'], preproc_params['chargram_range']):
@@ -81,7 +82,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
                     # fit models
                     iteration = [
-                        # {'name': 'i-em', 'model': partial(two_step.i_EM, P_train_, U_train_)},
+                        {'name': 'i-em', 'model': partial(two_step.i_EM, P_train_, U_train_)},
                         # {'name' : 's-em spy=0.1',
                         #  'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
                         # {'name' : 's-em spy=0.2',
@@ -179,8 +180,8 @@ def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_rang
 
     print("Fitting vectorizer, preparing training and test data")
 
-    vectorizer = basic_pipeline.vectorizer(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
-                                           min_df_word=min_df_word, lemmatize=lemmatize, rules=rules)
+    vectorizer = transformers.vectorizer(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
+                                         min_df_word=min_df_word, lemmatize=lemmatize, rules=rules)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)

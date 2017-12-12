@@ -1,4 +1,4 @@
-from semisuper.util import *
+from _util import *
 
 # ===============================================================================
 # TRAIN AND EVALUATE MODELS

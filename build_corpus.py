@@ -9,16 +9,16 @@ import numpy as np
 from semisuper.loaders import abstract_pmid_pos_sentences
 
 
-def train_pipeline(from_scratch=False, write=True, outpath=None, ratio=1.0):
+def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, ratio=1.0):
     if not from_scratch:
         try:
-            with open(file_path("../pickles/civic_pipeline.pickle"), "rb") as f:
+            with open(file_path("./semisuper/pickles/civic_pipeline.pickle"), "rb") as f:
                 best_pipeline = pickle.load(f)
             return best_pipeline
         except:
             pass
 
-    P, N, U = cleanup_sources.clean_corpus_pnu(ratio=ratio)
+    P, N, U = cleanup_sources.clean_corpus_pnu(ratio=ratio, mode=mode)
 
     print("P (HoC labelled + CIViC)", num_rows(P),
           "\tN (HoC unlabelled)", num_rows(N),
@@ -27,7 +27,7 @@ def train_pipeline(from_scratch=False, write=True, outpath=None, ratio=1.0):
     best_pipeline = ss_model_selection.best_model_cross_val(P, N, U, fold=5)
 
     if write or outpath:
-        outpath = outpath or file_path("../pickles/civic_pipeline.pickle")
+        outpath = outpath or file_path("./semisuper/pickles/civic_pipeline.pickle")
         print("Pickling pipeline to", outpath)
         with open(outpath, "wb") as f:
             pickle.dump(best_pipeline, f)
@@ -36,6 +36,9 @@ def train_pipeline(from_scratch=False, write=True, outpath=None, ratio=1.0):
 
 
 def save_silver_standard(pipeline, write=True, outpath=None):
+
+    float_format = '%.4g'
+
     abstracts = np.array(abstract_pmid_pos_sentences())
     y = pipeline.predict(abstracts[:, 2]).astype(int)
 
@@ -47,7 +50,7 @@ def save_silver_standard(pipeline, write=True, outpath=None):
         dec_fn = [-999] * num_rows(abstracts)
 
     abs_classified = pd.DataFrame(data={"label"            : y,
-                                        "decision_function": dec_fn,
+                                        "decision_function": [float_format % df for df in dec_fn],
                                         "pmid"             : abstracts[:, 0],
                                         "sentence_pos"     : abstracts[:, 1],
                                         "text"             : abstracts[:, 2],
@@ -55,9 +58,9 @@ def save_silver_standard(pipeline, write=True, outpath=None):
                                   columns=["label", "decision_function", "pmid", "sentence_pos", "text"])
 
     if write or outpath:
-        outpath = outpath or file_path("../output/silver_standard.tsv")
+        outpath = outpath or file_path("./semisuper/output/silver_standard.tsv")
         print("Writing silver standard corpus to", outpath)
-        abs_classified.to_csv(outpath, sep="\t")
+        abs_classified.to_csv(outpath, sep="\t", float_format=float_format)
 
     return abs_classified
 
@@ -68,12 +71,18 @@ def file_path(file_relative):
 
 
 def main(args):
-    pipeline = train_pipeline(from_scratch=True, outpath=file_path("../pickles/civic_pipeline" +
-                                                                   datetime.now().strftime('%Y-%m-%d_%H:%M.pickle')),
-                              ratio=1.0)
 
-    silver_standard = save_silver_standard(pipeline, outpath=file_path("../output/silver_standard" +
-                                                                       datetime.now().strftime('%Y-%m-%d_%H:%M.tsv')))
+    now = datetime.now().strftime('%Y-%m-%d_%H-%M')
+
+    pipeline = train_pipeline(from_scratch=True,
+                              mode=None,
+                              ratio=0.1,
+                              outpath=file_path("./semisuper/pickles/civic_pipeline" + now + '.pickle')
+                              )
+
+    silver_standard = save_silver_standard(pipeline,
+                                           outpath=file_path("./semisuper/output/silver_standard" + now + '.tsv')
+                                           )
 
     print(silver_standard)
 
