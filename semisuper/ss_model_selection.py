@@ -103,7 +103,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
         X_test = np.concatenate((X_test_pos, X_test_neg))
         y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
 
-    X_eval, X_dev, y_eval, y_dev = train_test_split(X_test, y_test, test_size=0.75)
+    X_eval, X_dev, y_eval, y_dev = train_test_split(X_test, y_test, test_size=0.5)
 
     X_train = np.concatenate((P_train, N_train, U_train))
     y_train_pp = np.concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U_train))))
@@ -232,10 +232,10 @@ def test_best(results, X_eval, y_eval):
     else:
         transformedTestData = densify(vectorizer.transform(X_eval))
 
-    y_pred_test = best_model.predict(transformedTestData)
+    y_pred = best_model.predict(transformedTestData)
 
-    p, r, f, s = precision_recall_fscore_support(y_eval, y_pred_test, average='macro')
-    acc = accuracy_score(y_eval, y_pred_test)
+    p, r, f, s = precision_recall_fscore_support(y_eval, y_pred, average='macro')
+    acc = accuracy_score(y_eval, y_pred)
 
     print("Testing best model on held-out test set:\n", results['best']['name'],
           results['best']['n-grams'], results['best']['fs'], "\n",

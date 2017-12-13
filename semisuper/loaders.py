@@ -161,6 +161,7 @@ def get_pmids_from_query(max_ids=10000, mindate="1900/01/01", term="cancer"):
     if handle:
         handle.close()
 
+    print("No. of fetched PMIDs:", len(idlist))
     return idlist
 
 
@@ -168,6 +169,7 @@ def get_abstracts(idlist):
     """download abstracts from PubMed for a list of PubMed IDs"""
     handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
     records = Medline.parse(handle)
+
     df = pd.DataFrame(columns=["pmid", "abstract"])  # "title", "authors", "date",
     for rec in records:
         try:
@@ -179,8 +181,14 @@ def get_abstracts(idlist):
         except Exception:
             pass
 
-    handle.close()
     return df
+
+
+def efetch(idlist):
+    handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
+    records = list(Medline.parse(handle))
+    handle.close()
+    return records
 
 
 def pmid_pos_sentences(pmid_abstract):
@@ -192,7 +200,7 @@ def pmid_pos_sentences(pmid_abstract):
     pmid_pos_s = []
 
     for i in range(count):
-        pmid_pos_s.append((pmid, (i / count), sentences[i]))
+        pmid_pos_s.append([pmid, (i / count), sentences[i]])
 
     return pmid_pos_s
 

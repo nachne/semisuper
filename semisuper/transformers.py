@@ -290,18 +290,22 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=
     ])
 
 
-def vectorizer_dx(*args):
+def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, lemmatize=False, rules=True,
+                  max_df=1.0, binary=False, normalize=True, stats="length"):
     """concatenates vectorizer and additional text stats (e.g. sentence position in abstract)
 
     all args are forwarded to vectorizer as positional arguments"""
 
     return FeatureUnion(transformer_list=[
         ("text_features", Pipeline([("text_selector", ItemGetter(0)),
-                                    ("text_features", vectorizer(*args))])),
-        ("stats", Pipeline([("stat_selector", ItemGetter(1)),
-                            ("stat_features", StatFeatures()),
+                                    ("text_features",
+                                     vectorizer(chargrams=chargrams, min_df_char=min_df_char, wordgrams=wordgrams,
+                                                min_df_word=min_df_word, lemmatize=lemmatize, rules=rules,
+                                                max_df=max_df, binary=binary, normalize=normalize, stats=stats))])),
+        ("stats", Pipeline([("stat_features", StatFeatures()),
                             ("vect", DictVectorizer())]))
     ])
+
 
 
 def percentile_selector(score_func='chi2', percentile=20):
@@ -396,8 +400,7 @@ class StatFeatures(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         for x in X:
-            yield {'pos': x[0],
-                   }
+            yield {'pos': float(x[1])}
 
     def get_feature_names(self):
         return list(self.key_dict.keys())
