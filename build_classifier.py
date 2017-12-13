@@ -45,13 +45,15 @@ def X_y_weights_from_csv(csv):
 
 
 def run():
+
+    new_abstracts = np.array(loaders.abstract_pmid_pos_sentences_query(anew=True, max_ids=2000000))
+
     corpus_csv = load_silver_standard()
     X_train, y_train, weights = X_y_weights_from_csv(corpus_csv)
 
     # _ = super_model_selection.get_best_model(X_train, y_train, weights)
     model = super_model_selection.get_best_model(X_train, y_train)
 
-    new_abstracts = np.array(loaders.abstract_pmid_pos_sentences_query(anew=True, max_ids=20000))
     X = np.vstack((new_abstracts[:, 2], new_abstracts[:, 1].astype(float))).T
     y = model.predict(X)
 

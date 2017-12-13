@@ -7,8 +7,9 @@ import re
 import pandas as pd
 from Bio import Medline, Entrez
 
+from itertools import chain
+
 from semisuper import transformers, helpers
-from semisuper.helpers import flatten
 from datetime import datetime
 
 # needed for querying PubMed API
@@ -32,9 +33,9 @@ def sentences_civic_abstracts(verbose=False):
 
     # TODO: check CPU count
     with multi.Pool(processes=min(multi.cpu_count(), 24)) as p:
-        summary_sentences = flatten(p.map(transformers.sentence_tokenize, civic["evidence_statement"]))
+        summary_sentences = helpers.flatten(p.map(transformers.sentence_tokenize, civic["evidence_statement"]))
         summary_authors2we = [authors2we(s) for s in set(summary_sentences) if len(s) >= MIN_LEN]
-        abstract_sentences = [s for s in flatten(p.map(transformers.sentence_tokenize, abstracts["abstract"]))]
+        abstract_sentences = [s for s in helpers.flatten(p.map(transformers.sentence_tokenize, abstracts["abstract"]))]
 
     return summary_authors2we, abstract_sentences
 
@@ -44,7 +45,7 @@ def abstract_pmid_pos_sentences(abstracts=None):
         _, abstracts = load_civic_abstracts()
 
     with multi.Pool(processes=multi.cpu_count()) as p:
-        result = flatten(p.map(pmid_pos_sentences, zip(abstracts["pmid"], abstracts["abstract"])))
+        result = helpers.flatten(p.map(pmid_pos_sentences, zip(abstracts["pmid"], abstracts["abstract"])))
 
     return result
 
@@ -171,10 +172,8 @@ def get_pmids_from_query(max_ids=10000, mindate="1900/01/01", term="cancer"):
 def get_abstracts(idlist):
     """download abstracts from PubMed for a list of PubMed IDs"""
 
-    records = []
-
-    with multi.Pool(multi.cpu_count() * 4) as p:
-        records = p.map(efetch, helpers.partition(idlist, 4000))
+    with multi.Pool(100) as p:
+        records = helpers.flatten(p.map(efetch, helpers.partition(idlist, 4000)))
 
     df = pd.DataFrame(columns=["pmid", "title", "abstract"])  # , "authors", "date",
     for rec in records:
