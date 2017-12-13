@@ -35,6 +35,16 @@ def arrays(args):
     """make numpy arrays from args list"""
     return [np.array(a) for a in args]
 
+def partition(l, chunksize):
+    l = list(l)
+    start = 0
+    result=[]
+    for i in range(int(len(l)/chunksize)+1):
+        chunksize = min(chunksize, len(l[start:]))
+        result.append(l[start:start+chunksize])
+        start += chunksize
+    return result
+
 
 def partition_pos_neg(X, y):
     """partitions X into elements where corresponding y element is nonzero VS zero"""

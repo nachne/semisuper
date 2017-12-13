@@ -27,7 +27,7 @@ def X_y_weights_from_csv(csv):
     text = csv["text"].values
     pos = csv["sentence_pos"].values.astype(float)
 
-    weights = np.abs(csv["decision_function"].values).astype(float)
+    weights = np.abs(csv["decision_function"].values.astype(float))
     weights *= 1.0 / np.max(weights)
 
     labels = csv["label"].values.astype(float)
@@ -51,7 +51,7 @@ def run():
     # _ = super_model_selection.get_best_model(X_train, y_train, weights)
     model = super_model_selection.get_best_model(X_train, y_train)
 
-    new_abstracts = np.array(loaders.abstract_pmid_pos_sentences_query(anew=True, max_ids=10000000))
+    new_abstracts = np.array(loaders.abstract_pmid_pos_sentences_query(anew=True, max_ids=20000))
     X = np.vstack((new_abstracts[:, 2], new_abstracts[:, 1].astype(float))).T
     y = model.predict(X)
 

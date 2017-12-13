@@ -12,7 +12,7 @@ from semisuper.loaders import abstract_pmid_pos_sentences
 def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, ratio=1.0):
     if not from_scratch:
         try:
-            with open(file_path("./semisuper/pickles/civic_pipeline.pickle"), "rb") as f:
+            with open(file_path("./semisuper/pickles/semi_pipeline.pickle"), "rb") as f:
                 best_pipeline = pickle.load(f)
             return best_pipeline
         except:
@@ -52,7 +52,7 @@ def save_silver_standard(pipeline, write=True, outpath=None):
     abs_classified = pd.DataFrame(data={"label"            : y,
                                         "decision_function": [float_format % df for df in dec_fn],
                                         "pmid"             : abstracts[:, 0],
-                                        "sentence_pos"     : [float_format % pos for pos in abstracts[:, 1]],
+                                        "sentence_pos"     : [float_format % float(pos) for pos in abstracts[:, 1]],
                                         "text"             : abstracts[:, 2],
                                         },
                                   columns=["label", "decision_function", "pmid", "sentence_pos", "text"])

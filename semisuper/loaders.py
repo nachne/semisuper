@@ -7,7 +7,7 @@ import re
 import pandas as pd
 from Bio import Medline, Entrez
 
-from semisuper import transformers
+from semisuper import transformers, helpers
 from semisuper.helpers import flatten
 from datetime import datetime
 
@@ -43,7 +43,7 @@ def abstract_pmid_pos_sentences(abstracts=None):
     if abstracts is None:
         _, abstracts = load_civic_abstracts()
 
-    with multi.Pool(processes=min(multi.cpu_count(), 24)) as p:
+    with multi.Pool(processes=multi.cpu_count()) as p:
         result = flatten(p.map(pmid_pos_sentences, zip(abstracts["pmid"], abstracts["abstract"])))
 
     return result
@@ -61,10 +61,12 @@ def abstract_pmid_pos_sentences_query(max_ids=10000, term="cancer OR oncology OR
         except(Exception):
             pass
 
-    print("Retrieving PubMed abstracts for query \"", term, "\" ( max.", max_ids, ")")
+    print("Retrieving PubMed abstracts for query \"{}\" (max. {})".format(term, max_ids))
 
     idlist = get_pmids_from_query(max_ids=max_ids, term=term)
     abstracts = get_abstracts(idlist)
+
+    print("No. of fetched abstracts:", len(abstracts))
 
     pmid_pos_sents = abstract_pmid_pos_sentences(abstracts)
 
@@ -151,7 +153,8 @@ def get_pmids_from_query(max_ids=10000, mindate="1900/01/01", term="cancer"):
     retmax = min(100000, max_ids)
 
     while last_len > 0 and len(idlist) < max_ids:
-        handle = Entrez.esearch(db="pubmed", term=term, retstart=retstart, retmax=retmax, mindate=mindate)
+        handle = Entrez.esearch(db="pubmed", term="(" + term + ") AND (hasabstract[text])",
+                                retstart=retstart, retmax=retmax, mindate=mindate)
         new_ids = list(Entrez.read(handle)["IdList"])
 
         idlist += new_ids
@@ -167,16 +170,20 @@ def get_pmids_from_query(max_ids=10000, mindate="1900/01/01", term="cancer"):
 
 def get_abstracts(idlist):
     """download abstracts from PubMed for a list of PubMed IDs"""
-    handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
-    records = Medline.parse(handle)
 
-    df = pd.DataFrame(columns=["pmid", "abstract"])  # "title", "authors", "date",
+    records = []
+
+    with multi.Pool(multi.cpu_count() * 4) as p:
+        records = p.map(efetch, helpers.partition(idlist, 4000))
+
+    df = pd.DataFrame(columns=["pmid", "title", "abstract"])  # , "authors", "date",
     for rec in records:
         try:
             pmid = rec["PMID"]
             ab = rec["AB"]
-            df = df.append(pd.DataFrame([[pmid, ab]],
-                                        columns=["pmid", "abstract"]),
+            title = rec["TI"]
+            df = df.append(pd.DataFrame([[pmid, title, ab]],
+                                        columns=["pmid", "title", "abstract"]),
                            ignore_index=True)
         except Exception:
             pass
