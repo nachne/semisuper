@@ -84,6 +84,10 @@ def densify(X):
     else:
         return np.array(X)
 
+def ngrams(input_list, n):
+  return set(map("".join, zip(*[input_list[i:] for i in range(n)])))
+
+
 
 def pu_score(y_P, y_U):
     """performance measure for PU problems (r^2)/Pr[f(X)=1], approximates (p*r)/Pr[Y=1]

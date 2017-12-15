@@ -21,7 +21,7 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler
 from unidecode import unidecode
 
-from semisuper.helpers import densify, identity
+from semisuper import helpers
 
 # ----------------------------------------------------------------
 # Tokenization
@@ -262,7 +262,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=
                                                   analyzer='word',
                                                   min_df=min_df_word,  # TODO find reasonable value (5 <= n << 50)
                                                   max_df=max_df,
-                                                  tokenizer=identity,
+                                                  tokenizer=helpers.identity,
                                                   preprocessor=None,
                                                   lowercase=False,
                                                   ngram_range=wordgrams,
@@ -305,7 +305,6 @@ def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_wo
         ("stats", Pipeline([("stat_features", StatFeatures()),
                             ("vect", DictVectorizer())]))
     ])
-
 
 
 def percentile_selector(score_func='chi2', percentile=20):
@@ -386,24 +385,40 @@ class TextLength(BaseEstimator, TransformerMixin):
 
 
 class StatFeatures(BaseEstimator, TransformerMixin):
-    """Extract features from tokenized document for DictVectorizer
-
-    inverse_length: 1/(number of tokens)
+    """Extract features from document record, using metadata, for DictVectorizer
     """
 
-    key_dict = {
-        'pos': 'pos'
-    }
+    def __init__(self):
+        self.key_dict = {
+            'pos'        : 'pos',
+            'title_words': 'title_words',
+            'zero'       : 'zero' # TODO delete fake feature
+        }
+
+        super(StatFeatures, self).__init__()
 
     def fit(self, X=None, y=None):
         return self
 
     def transform(self, X):
+        # text, pos, title = [0, 1, 2]
         for x in X:
-            yield {'pos': float(x[1])}
+            yield {
+                'pos'        : float(x[1]),
+                'title_words': self.inverse_matching_ngrams(x[2], x[0], ngram=6),
+                'zero'       : 0  # TODO delete fake feature
+            }
 
     def get_feature_names(self):
         return list(self.key_dict.keys())
+
+    def inverse_matching_ngrams(self, src, txt, ngram=6):
+        count = 0
+        if type(src) == str:
+            for ngram in helpers.ngrams(src, ngram):
+                if ngram in txt:
+                    count += 1
+        return 1.0 if count == 0 else 1.0 / count
 
 
 # ----------------------------------------------------------------
@@ -519,7 +534,7 @@ class Densifier(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        return densify(X)
+        return helpers.densify(X)
 
 
 class FeatureNamePipeline(Pipeline):

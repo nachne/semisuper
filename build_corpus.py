@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 import sys
 import numpy as np
-from semisuper.loaders import abstract_pmid_pos_sentences
+from semisuper.loaders import abstracts2pmid_pos_sentence_title
 
 
 def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, ratio=1.0):
@@ -17,6 +17,8 @@ def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, rati
             return best_pipeline
         except:
             pass
+
+    print("Building new classifier")
 
     P, N, U = cleanup_corpora.clean_corpus_pnu(ratio=ratio, mode=mode)
 
@@ -37,25 +39,33 @@ def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, rati
 
 def save_silver_standard(pipeline, write=True, outpath=None):
 
+    print("Building new silver standard")
+
     float_format = '%.4g'
 
-    abstracts = np.array(abstract_pmid_pos_sentences())
-    y = pipeline.predict(abstracts[:, 2]).astype(int)
+    pmid, pos, text, title = [0, 1, 2, 3]
+
+    abstracts = np.array(abstracts2pmid_pos_sentence_title())
 
     if hasattr(pipeline, 'decision_function'):
-        dec_fn = pipeline.decision_function(abstracts[:, 2])
+        dec_fn = pipeline.decision_function(abstracts[:, text])
     elif hasattr(pipeline, 'predict_proba'):
-        dec_fn = np.abs(pipeline.predict_proba(abstracts[:, 2])[:, 1])
+        dec_fn = np.abs(pipeline.predict_proba(abstracts[:, text])[:, 1])
     else:
         dec_fn = [-999] * num_rows(abstracts)
 
+    print(abstracts[0])
+
+    y = pipeline.predict(abstracts[:, text]).astype(int)
+
     abs_classified = pd.DataFrame(data={"label"            : y,
                                         "decision_function": [float_format % df for df in dec_fn],
-                                        "pmid"             : abstracts[:, 0],
-                                        "sentence_pos"     : [float_format % float(pos) for pos in abstracts[:, 1]],
-                                        "text"             : abstracts[:, 2],
+                                        "pmid"             : abstracts[:, pmid],
+                                        "sentence_pos"     : [float_format % float(pos) for pos in abstracts[:, pos]],
+                                        "text"             : abstracts[:, text],
+                                        "title"            : abstracts[:, title]
                                         },
-                                  columns=["label", "decision_function", "pmid", "sentence_pos", "text"])
+                                  columns=["label", "decision_function", "pmid", "sentence_pos", "text", "title"])
 
     if write or outpath:
         outpath = outpath or file_path("./semisuper/output/silver_standard.tsv")
@@ -71,7 +81,6 @@ def file_path(file_relative):
 
 
 def train_build(from_scratch=True, mode=None, ratio=1.0):
-
     now = datetime.now().strftime('%Y-%m-%d_%H-%M')
 
     pipeline = train_pipeline(from_scratch=from_scratch,
@@ -84,7 +93,7 @@ def train_build(from_scratch=True, mode=None, ratio=1.0):
                                            outpath=file_path("./semisuper/output/silver_standard" + now + '.tsv')
                                            )
 
-    return silver_standard
+    return (pipeline, silver_standard)
 
 
 if __name__ == "__main__":

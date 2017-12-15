@@ -1,7 +1,7 @@
 from semisuper import pu_model_selection, cleanup_corpora
 from semisuper.helpers import num_rows
 from sklearn.pipeline import Pipeline
-from semisuper.loaders import abstract_pmid_pos_sentences
+from semisuper.loaders import abstracts2pmid_pos_sentence_title
 import numpy as np
 
 # civic, abstracts = loaders.sentences_civic_abstracts()
@@ -46,7 +46,7 @@ best_pipeline = Pipeline([('vectorizer', best['vectorizer']),
                           ('selector', best['selector']),
                           ('clf', best['model'])])
 
-abstracts = np.array(abstract_pmid_pos_sentences())
+abstracts = np.array(abstracts2pmid_pos_sentence_title())
 y = best_pipeline.predict(abstracts[:,2])
 conf = best_pipeline.decision_function(abstracts[:,2])
 

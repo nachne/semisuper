@@ -7,8 +7,6 @@ import re
 import pandas as pd
 from Bio import Medline, Entrez
 
-from itertools import chain
-
 from semisuper import transformers, helpers
 from datetime import datetime
 
@@ -40,12 +38,14 @@ def sentences_civic_abstracts(verbose=False):
     return summary_authors2we, abstract_sentences
 
 
-def abstract_pmid_pos_sentences(abstracts=None):
+def abstracts2pmid_pos_sentence_title(abstracts=None):
     if abstracts is None:
         _, abstracts = load_civic_abstracts()
 
     with multi.Pool(processes=multi.cpu_count()) as p:
-        result = helpers.flatten(p.map(pmid_pos_sentences, zip(abstracts["pmid"], abstracts["abstract"])))
+        result = helpers.flatten(p.map(pmid_pos_sentence_title, zip(abstracts["pmid"].values,
+                                                                    abstracts["abstract"].values,
+                                                                    abstracts["title"].values)))
 
     return result
 
@@ -58,7 +58,7 @@ def abstract_pmid_pos_sentences_query(max_ids=10000, term="cancer OR oncology OR
         try:
             with open(path, "rb") as f:
                 dump = pickle.load(f)
-                return dump[min(len(dump), max_ids)]
+                return dump[:min(len(dump), max_ids)]
         except(Exception):
             pass
 
@@ -69,7 +69,7 @@ def abstract_pmid_pos_sentences_query(max_ids=10000, term="cancer OR oncology OR
 
     print("No. of fetched abstracts:", len(abstracts))
 
-    pmid_pos_sents = abstract_pmid_pos_sentences(abstracts)
+    pmid_pos_sents = abstracts2pmid_pos_sentence_title(abstracts)
 
     with open(path, "wb") as f:
         pickle.dump(pmid_pos_sents, f)
@@ -77,10 +77,10 @@ def abstract_pmid_pos_sentences_query(max_ids=10000, term="cancer OR oncology OR
     return pmid_pos_sents
 
 
-def abstract_pmid_pos_sentences_idlist(idlist=123):
+def abstract_pmid_pos_sentences_idlist(idlist="123"):
     abstracts = get_abstracts(idlist)
 
-    return abstract_pmid_pos_sentences(abstracts)
+    return abstracts2pmid_pos_sentence_title(abstracts)
 
 
 def sentences_piboso_other():
@@ -172,8 +172,11 @@ def get_pmids_from_query(max_ids=10000, mindate="1900/01/01", term="cancer"):
 def get_abstracts(idlist):
     """download abstracts from PubMed for a list of PubMed IDs"""
 
-    with multi.Pool(100) as p:
-        records = helpers.flatten(p.map(efetch, helpers.partition(idlist, 4000)))
+    # chunksize=4000
+    # with multi.Pool(min(120, len(idlist) // chunksize)) as p:
+    #     records = helpers.flatten(p.map(efetch, helpers.partition(idlist, 4000)))
+
+    records = fetch(idlist)
 
     df = pd.DataFrame(columns=["pmid", "title", "abstract"])  # , "authors", "date",
     for rec in records:
@@ -181,6 +184,7 @@ def get_abstracts(idlist):
             pmid = rec["PMID"]
             ab = rec["AB"]
             title = rec["TI"]
+
             df = df.append(pd.DataFrame([[pmid, title, ab]],
                                         columns=["pmid", "title", "abstract"]),
                            ignore_index=True)
@@ -190,23 +194,25 @@ def get_abstracts(idlist):
     return df
 
 
-def efetch(idlist):
+def fetch(idlist):
     handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
     records = list(Medline.parse(handle))
     handle.close()
     return records
 
 
-def pmid_pos_sentences(pmid_abstract):
+def pmid_pos_sentence_title(pmid_abstract_title):
     """return list of tuples (pmid, sentence position, sentence)"""
-    pmid = pmid_abstract[0]
-    sentences = transformers.sentence_tokenize(pmid_abstract[1])
+
+    pmid = pmid_abstract_title[0]
+    title = pmid_abstract_title[2]
+    sentences = transformers.sentence_tokenize(pmid_abstract_title[1])
     count = len(sentences)
 
     pmid_pos_s = []
 
     for i in range(count):
-        pmid_pos_s.append([pmid, (i / count), sentences[i]])
+        pmid_pos_s.append([pmid, (i / count), sentences[i], title])
 
     return pmid_pos_s
 

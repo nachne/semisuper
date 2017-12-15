@@ -7,38 +7,177 @@ from copy import deepcopy
 from functools import partial
 from itertools import product
 
+from scipy.stats import randint as sp_randint, uniform
+
 import numpy as np
 from scipy.sparse import vstack
-from sklearn.metrics import classification_report, precision_recall_fscore_support, accuracy_score
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.metrics import classification_report, precision_recall_fscore_support, \
+    accuracy_score, f1_score, precision_score, recall_score, average_precision_score
+from sklearn.model_selection import train_test_split, KFold, cross_val_score, RandomizedSearchCV, GridSearchCV
 from sklearn.pipeline import Pipeline
 
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso
+from sklearn.linear_model import LogisticRegression, SGDClassifier, Lasso, ElasticNet
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
 
 from semisuper import transformers
 from semisuper.helpers import num_rows, densify
 
 PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
+RAND_INT_MAX = 1000
 
 
+def best_model_cross_val(X, y, fold=10):
+    """determine best model, cross validate and return pipeline trained on all data"""
+
+    print("\nFinding best model\n")
+
+    best = get_best_model(X, y)
+
+    print("\nCross-validation\n")
+
+    kf = KFold(n_splits=fold, shuffle=True)
+    splits = kf.split(X, y)
+
+    if PARALLEL:
+        with multi.Pool(fold) as p:
+            stats = list(p.map(partial(eval_fold, best, X, y), enumerate(splits), chunksize=1))
+    else:
+        stats = list(map(partial(eval_fold, best, X, y), enumerate(splits)))
+
+    mean_stats = np.mean(stats, 0)
+    print("Cross-validation average: p {}, r {}, f1 {}, acc {}".format(
+            mean_stats[0], mean_stats[1], mean_stats[2], mean_stats[3]))
+
+    print("Retraining model on full data")
+
+    best.fit(X, y)
+
+    print("Returning final model")
+
+    return best
 
 
-def get_best_model(X_train, y_train, weights=None, X_test=None, y_test=None):
+# helper
+def eval_fold(model, X, y, i_splits):
+    """helper function for running cross validation in parallel"""
+
+    i, split = i_splits
+    X_train, X_test = X[split[0]], X[split[1]]
+    y_train, y_test = y[split[0]], y[split[1]]
+
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    pr, r, f1, _ = precision_recall_fscore_support(y_test, y_pred)
+    acc = accuracy_score(y_test, y_pred)
+
+    print("Fold no.", i, "acc", acc, "classification report:\n", classification_report(y_test, y_pred))
+    return [pr, r, f1, acc]
+
+
+def names_estimators_params():
+    l = [
+        {"name"  : "LinearSVC",
+         "model" : LinearSVC(),
+         "params": {'C'   : uniform(0, 1),
+                    'loss': ['hinge', 'squared_hinge']
+                    }
+         },
+        {"name"  : "MultinomialNB",
+         "model" : MultinomialNB(),
+         "params": {'alpha'    : uniform(0, 1),
+                    'fit_prior': [True],
+                    }
+         },
+        {"name"  : "LogisticRegression",
+         "model" : LogisticRegression(),
+         "params": {'C'           : sp_randint(1, RAND_INT_MAX),
+                    'solver'      : ['newton-cg', 'lbfgs', 'liblinear'],  # 'sag', 'saga'
+                    'class_weight': ['balanced']
+                    }
+         },
+        {"name"  : "SGDClassifier",
+         "model" : SGDClassifier(),
+         "params": {
+             'loss'         : ['hinge', 'log', 'modified_huber', 'squared_hinge'],
+             'class_weight' : ['balanced'],
+             'penalty'      : ['l2', 'l1', 'elasticnet'],
+             'learning_rate': ['optimal', 'invscaling'],
+             'eta0'         : uniform(0.01, 0.00001)
+         }
+         },
+        {"name"  : "SVM_SVC",
+         "model" : SVC(),
+         "params": {'C'           : sp_randint(1, RAND_INT_MAX),
+                    'kernel'      : ['linear', 'poly', 'rbf', 'sigmoid'],
+                    'class_weight': ['balanced'],
+                    'probability' : [True]
+                    }
+         },
+        {"name"  : "Lasso",
+         "model" : Lasso(),
+         "params": {'alpha'        : uniform(0, 1),
+                    'fit_intercept': [True],
+                    'normalize'    : [True, False],
+                    'max_iter'     : sp_randint(1, RAND_INT_MAX)
+                    }
+         },
+        {"name"  : "ElasticNet",
+         "model" : ElasticNet(),
+         "params": {'alpha'   : uniform(0, 1),
+                    'l1_ratio': uniform(0, 1)
+                    }
+         },
+        {"name"  : "MLPClassifier",
+         "model" : MLPClassifier(),
+         "params": {'activation'   : ['identity', 'logistic', 'tanh', 'relu'],
+                    'solver'       : ['lbfgs', 'sgd', 'adam'],
+                    'learning_rate': ['constant', 'invscaling', 'adaptive'],
+                    'max_iter'     : [100000]
+                    }
+         },
+        {"name"  : "DecisionTreeClassifier",
+         "model" : DecisionTreeClassifier(),
+         "params": {"criterion"   : ["gini", "entropy"],
+                    "splitter"    : ["best", "random"],
+                    'max_depth'   : sp_randint(1, 1000),
+                    'class_weight': ['balanced']
+                    }
+         },
+        {"name"  : "RandomForestClassifier",
+         "model" : RandomForestClassifier(),
+         "params": {'n_estimators': sp_randint(1, RAND_INT_MAX),
+                    "criterion"   : ["gini", "entropy"],
+                    'max_depth'   : sp_randint(1, RAND_INT_MAX),
+                    'class_weight': ['balanced']
+                    }
+         },
+        {"name"  : "KNeighbors",
+         "model" : KNeighborsClassifier(),
+         "params": {'n_neighbors' : sp_randint(1, 40),
+                    'weights'     : ['uniform', 'distance'],
+                    'algorithm'   : ['auto'],
+                    'leaf_size'   : sp_randint(1, RAND_INT_MAX),
+                    'class_weight': ['balanced']
+                    }
+         },
+    ]
+
+    return l
+
+
+def get_best_model(X_train, y_train, X_test=None, y_test=None):
     """Evaluate parameter combinations, save results and return object with stats of all models"""
 
     print("\nEvaluating parameter ranges for preprocessor and classifiers")
 
-    if weights is None:
-        weights = np.ones(num_rows(X_train))
-
     if X_test is None or y_test is None:
-        X_train, X_test, y_train, y_test, weights_train, _ = train_test_split(X_train, y_train, weights,
-                                                                              test_size=0.2)
+        X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
 
     X_eval, X_dev, y_eval, y_dev = train_test_split(X_test, y_test, test_size=0.5)
 
@@ -49,11 +188,9 @@ def get_best_model(X_train, y_train, weights=None, X_test=None, y_test=None):
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
         'lemmatize'     : [False],
-        'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
-            # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
-            # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 34%
 
             # partial(basic_pipeline.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
@@ -64,11 +201,13 @@ def get_best_model(X_train, y_train, weights=None, X_test=None, y_test=None):
             # partial(basic_pipeline.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
             # partial(basic_pipeline.percentile_selector, 'mutual_info', 25),
             # partial(basic_pipeline.percentile_selector, 'mutual_info', 20),
-            # partial(basic_pipeline.factorization, 'TruncatedSVD', 1000),
+            partial(basic_pipeline.factorization, 'TruncatedSVD', 1000),
             # partial(basic_pipeline.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
             # partial(basic_pipeline.factorization, 'TruncatedSVD', 3000),
         ]
     }
+
+    estimators = names_estimators_params()
 
     for wordgram, chargram in product(preproc_params['wordgram_range'], preproc_params['chargram_range']):
         for r, l in product(preproc_params['rules'], preproc_params['lemmatize']):
@@ -96,21 +235,16 @@ def get_best_model(X_train, y_train, weights=None, X_test=None, y_test=None):
                                                                                 rules=r)
 
                     # fit models
-                    iteration = [
-                        {"name": "MNB", "model": MultinomialNB()},
-                        {"name": "SGD", "model": SGDClassifier(loss='modified_huber')},
-                        {"name": "SVC", "model": LinearSVC()},
-                    ]
 
                     if PARALLEL:
-                        with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
+                        with multi.Pool(min(multi.cpu_count(), len(estimators))) as p:
                             iter_stats = list(p.map(partial(model_eval_record,
-                                                            X_train_, y_train, weights_train, X_dev_, y_dev),
-                                                    iteration, chunksize=1))
+                                                            X_train_, y_train, X_dev_, y_dev),
+                                                    estimators, chunksize=1))
                     else:
                         iter_stats = list(map(partial(model_eval_record,
-                                                      X_train_, y_train, weights_train, X_dev_, y_dev),
-                                              iteration))
+                                                      X_train_, y_train, X_dev_, y_dev),
+                                              estimators))
 
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
@@ -136,22 +270,31 @@ def get_best_model(X_train, y_train, weights=None, X_test=None, y_test=None):
     return test_best(results, X_eval, y_eval)
 
 
-def model_eval_record(X_train, y_train, weights_train, X_test, y_test, m):
+def model_eval_record(X_train, y_train, X_test, y_test, model_params):
     """helper function for finding best model in parallel: evaluate model and return stat object. """
 
-    model = m['model'].fit(X_train, y_train, sample_weight=weights_train)
-    name = m['name']
+    random_search = RandomizedSearchCV(model_params['model'],
+                                       param_distributions=model_params['params'],
+                                       n_iter=20,
+                                       n_jobs=-1,
+                                       pre_dispatch='n_jobs',
+                                       cv=10,
+                                       scoring='f1_macro',
+                                       verbose=0)
 
+    random_search.fit(X_train, y_train)
+    model = random_search.best_estimator_
+    params = random_search.best_params_
     y_pred = model.predict(X_test)
 
+    name = model_params['name']
     p, r, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='macro')
     acc = accuracy_score(y_test, y_pred)
     clsr = classification_report(y_test, y_pred)
 
-    print("\n")
-    print("\n{}:\tacc: {}, classification report:\n{}".format(name, acc, clsr))
+    print("\n{} with params{}:\nacc: {}, classification report:\n{}".format(name, params, acc, clsr))
     return {'name' : name, 'p': p, 'r': r, 'f1': f1, 'acc': acc, 'clsr': clsr,
-            'model': model}
+            'model': model, 'params': params}
 
 
 def test_best(results, X_eval, y_eval):
@@ -185,8 +328,6 @@ def prepare_train_test(trainData, testData, trainLabels, rules=True, wordgram_ra
     """prepare training and test vectors, vectorizer and selector for validating classifiers"""
 
     print("Fitting vectorizer, preparing training and test data")
-
-    transformers.vectorizer()
 
     vectorizer = transformers.vectorizer_dx(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
                                             min_df_word=min_df_word, max_df=max_df, lemmatize=lemmatize, rules=rules)
