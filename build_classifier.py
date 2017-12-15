@@ -31,8 +31,7 @@ def X_y_from_csv(csv):
     pos = csv["sentence_pos"].values
     title = csv["title"].values
 
-    weights = np.abs(csv["decision_function"].values)
-    weights *= 1.0 / np.max(weights)
+    dec_fn = csv["decision_function"].values
 
     labels = csv["label"].values
 
@@ -40,7 +39,7 @@ def X_y_from_csv(csv):
     # prevlabels = np.insert(labels[:-1], 0, missing_label)
     # prevlabels[np.where(pos == 0.0)] = missing_label
 
-    X = np.vstack((text, pos, title, weights)).T
+    X = np.vstack((text, pos, title, dec_fn)).T
     y = labels
 
     return X, y

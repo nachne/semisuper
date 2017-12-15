@@ -188,8 +188,8 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
         'lemmatize'     : [False],
-        'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
 
             # partial(basic_pipeline.percentile_selector, 'chi2', 30),
@@ -201,7 +201,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
             # partial(basic_pipeline.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
             # partial(basic_pipeline.percentile_selector, 'mutual_info', 25),
             # partial(basic_pipeline.percentile_selector, 'mutual_info', 20),
-            partial(basic_pipeline.factorization, 'TruncatedSVD', 1000),
+            # partial(basic_pipeline.factorization, 'TruncatedSVD', 1000),
             # partial(basic_pipeline.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
             # partial(basic_pipeline.factorization, 'TruncatedSVD', 3000),
         ]

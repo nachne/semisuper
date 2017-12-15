@@ -54,8 +54,6 @@ def save_silver_standard(pipeline, write=True, outpath=None):
     else:
         dec_fn = [-999] * num_rows(abstracts)
 
-    print(abstracts[0])
-
     y = pipeline.predict(abstracts[:, text]).astype(int)
 
     abs_classified = pd.DataFrame(data={"label"            : y,
@@ -93,7 +91,7 @@ def train_build(from_scratch=True, mode=None, ratio=1.0):
                                            outpath=file_path("./semisuper/output/silver_standard" + now + '.tsv')
                                            )
 
-    return (pipeline, silver_standard)
+    return silver_standard
 
 
 if __name__ == "__main__":
