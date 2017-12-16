@@ -48,7 +48,7 @@ def build_classifier():
     corpus_csv = load_silver_standard()
     X_train, y_train = X_y_from_csv(corpus_csv)
 
-    model = super_model_selection.best_model_cross_val(X_train, y_train, fold=3)
+    model = super_model_selection.best_model_cross_val(X_train, y_train, fold=10)
 
     new_abstracts = np.array(loaders.abstract_pmid_pos_sentences_query(anew=False, max_ids=1000))
     pmid, pos, text, title = [0, 1, 2, 3]

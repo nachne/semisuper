@@ -27,7 +27,7 @@ from sklearn.neural_network import MLPClassifier
 from semisuper import transformers
 from semisuper.helpers import num_rows, densify
 
-PARALLEL = True  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
+PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
 RAND_INT_MAX = 1000
 
 
@@ -97,7 +97,7 @@ def names_estimators_params():
         {"name"  : "LogisticRegression",
          "model" : LogisticRegression(),
          "params": {'C'           : sp_randint(1, RAND_INT_MAX),
-                    'solver'      : ['newton-cg', 'lbfgs', 'liblinear'],  # 'sag', 'saga'
+                    'solver'      : ['lbfgs'], # ['newton-cg', 'lbfgs', 'liblinear'],  # 'sag', 'saga'
                     'class_weight': ['balanced']
                     }
          },
@@ -108,8 +108,8 @@ def names_estimators_params():
              'class_weight' : ['balanced'],
              'penalty'      : ['l2', 'l1', 'elasticnet'],
              'learning_rate': ['optimal', 'invscaling'],
-             # 'max_iter'     : [1000], # for sklearn 0.19, not 0.18
-             # 'tol'          : [1e-3], # dito
+             'max_iter'     : [1000], # for sklearn >= 0.19, not 0.18
+             'tol'          : [1e-3], # for sklearn >= 0.19, not 0.18
              'eta0'         : uniform(0.01, 0.00001)
          }
          },
@@ -159,14 +159,14 @@ def names_estimators_params():
         #             'leaf_size'   : sp_randint(1, RAND_INT_MAX)
         #             }
         #  },
-        {"name"  : "MLPClassifier",
-         "model" : MLPClassifier(),
-         "params": {'activation'   : ['identity', 'logistic', 'tanh', 'relu'],
-                    'solver'       : ['lbfgs', 'sgd', 'adam'],
-                    'learning_rate': ['constant', 'invscaling', 'adaptive'],
-                    'max_iter'     : [100000]
-                    }
-         },
+        # {"name"  : "MLPClassifier",
+        #  "model" : MLPClassifier(),
+        #  "params": {'activation'   : ['identity', 'logistic', 'tanh', 'relu'],
+        #             'solver'       : ['lbfgs', 'sgd', 'adam'],
+        #             'learning_rate': ['constant', 'invscaling', 'adaptive'],
+        #             'max_iter'     : [1000],
+        #             }
+        #  },
     ]
 
     return l[:]
@@ -189,20 +189,20 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
         'lemmatize'     : [False],
-        'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
 
             # partial(transformers.percentile_selector, 'chi2', 30),
-            # partial(transformers.percentile_selector, 'chi2', 25),
-            partial(transformers.percentile_selector, 'chi2', 20),
+            partial(transformers.percentile_selector, 'chi2', 25),
+            # partial(transformers.percentile_selector, 'chi2', 20),
             # partial(transformers.percentile_selector, 'f', 30),
-            # partial(transformers.percentile_selector, 'f', 25),
+            partial(transformers.percentile_selector, 'f', 25),
             # partial(transformers.percentile_selector, 'f', 20),
             # partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
             # partial(transformers.percentile_selector, 'mutual_info', 25),
             # partial(transformers.percentile_selector, 'mutual_info', 20),
-            # partial(transformers.factorization, 'TruncatedSVD', 1000),
+            partial(transformers.factorization, 'TruncatedSVD', 1000),
             # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
             # partial(transformers.factorization, 'TruncatedSVD', 3000),
         ]
