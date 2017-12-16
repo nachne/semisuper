@@ -27,7 +27,7 @@ from sklearn.neural_network import MLPClassifier
 from semisuper import transformers
 from semisuper.helpers import num_rows, densify
 
-PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
+PARALLEL = True  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
 RAND_INT_MAX = 1000
 
 
@@ -108,31 +108,57 @@ def names_estimators_params():
              'class_weight' : ['balanced'],
              'penalty'      : ['l2', 'l1', 'elasticnet'],
              'learning_rate': ['optimal', 'invscaling'],
+             # 'max_iter'     : [1000], # for sklearn 0.19, not 0.18
+             # 'tol'          : [1e-3], # dito
              'eta0'         : uniform(0.01, 0.00001)
          }
          },
-        {"name"  : "SVM_SVC",
-         "model" : SVC(),
-         "params": {'C'           : sp_randint(1, RAND_INT_MAX),
-                    'kernel'      : ['linear', 'poly', 'rbf', 'sigmoid'],
-                    'class_weight': ['balanced'],
-                    'probability' : [True]
-                    }
-         },
-        {"name"  : "Lasso",
-         "model" : Lasso(),
-         "params": {'alpha'        : uniform(0, 1),
-                    'fit_intercept': [True],
-                    'normalize'    : [True, False],
-                    'max_iter'     : sp_randint(1, RAND_INT_MAX)
-                    }
-         },
-        {"name"  : "ElasticNet",
-         "model" : ElasticNet(),
-         "params": {'alpha'   : uniform(0, 1),
-                    'l1_ratio': uniform(0, 1)
-                    }
-         },
+        # {"name"  : "SVM_SVC",
+        #  "model" : SVC(),
+        #  "params": {'C'           : sp_randint(1, RAND_INT_MAX),
+        #             'kernel'      : ['poly', 'rbf', 'sigmoid'],
+        #             'class_weight': ['balanced'],
+        #             'probability' : [False]
+        #             }
+        #  },
+        # {"name"  : "Lasso",
+        #  "model" : Lasso(),
+        #  "params": {'alpha'        : uniform(0, 1),
+        #             'fit_intercept': [True],
+        #             'normalize'    : [True, False],
+        #             'max_iter'     : sp_randint(1, RAND_INT_MAX)
+        #             }
+        #  },
+        # {"name"  : "ElasticNet",
+        #  "model" : ElasticNet(),
+        #  "params": {'alpha'   : uniform(0, 1),
+        #             'l1_ratio': uniform(0, 1)
+        #             }
+        #  },
+        # {"name"  : "DecisionTreeClassifier",
+        #  "model" : DecisionTreeClassifier(),
+        #  "params": {"criterion"   : ["gini", "entropy"],
+        #             "splitter"    : ["best", "random"],
+        #             'max_depth'   : sp_randint(1, 1000),
+        #             'class_weight': ['balanced']
+        #             }
+        #  },
+        # {"name"  : "RandomForestClassifier",
+        #  "model" : RandomForestClassifier(),
+        #  "params": {'n_estimators': sp_randint(1, RAND_INT_MAX),
+        #             "criterion"   : ["gini", "entropy"],
+        #             'max_depth'   : sp_randint(1, RAND_INT_MAX),
+        #             'class_weight': ['balanced']
+        #             }
+        #  },
+        # {"name"  : "KNeighbors",
+        #  "model" : KNeighborsClassifier(),
+        #  "params": {'n_neighbors' : sp_randint(1, 40),
+        #             'weights'     : ['uniform', 'distance'],
+        #             'algorithm'   : ['auto'],
+        #             'leaf_size'   : sp_randint(1, RAND_INT_MAX)
+        #             }
+        #  },
         {"name"  : "MLPClassifier",
          "model" : MLPClassifier(),
          "params": {'activation'   : ['identity', 'logistic', 'tanh', 'relu'],
@@ -141,34 +167,9 @@ def names_estimators_params():
                     'max_iter'     : [100000]
                     }
          },
-        {"name"  : "DecisionTreeClassifier",
-         "model" : DecisionTreeClassifier(),
-         "params": {"criterion"   : ["gini", "entropy"],
-                    "splitter"    : ["best", "random"],
-                    'max_depth'   : sp_randint(1, 1000),
-                    'class_weight': ['balanced']
-                    }
-         },
-        {"name"  : "RandomForestClassifier",
-         "model" : RandomForestClassifier(),
-         "params": {'n_estimators': sp_randint(1, RAND_INT_MAX),
-                    "criterion"   : ["gini", "entropy"],
-                    'max_depth'   : sp_randint(1, RAND_INT_MAX),
-                    'class_weight': ['balanced']
-                    }
-         },
-        {"name"  : "KNeighbors",
-         "model" : KNeighborsClassifier(),
-         "params": {'n_neighbors' : sp_randint(1, 40),
-                    'weights'     : ['uniform', 'distance'],
-                    'algorithm'   : ['auto'],
-                    'leaf_size'   : sp_randint(1, RAND_INT_MAX),
-                    'class_weight': ['balanced']
-                    }
-         },
     ]
 
-    return l
+    return l[:]
 
 
 def get_best_model(X_train, y_train, X_test=None, y_test=None):
@@ -184,7 +185,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
     preproc_params = {
-        'df_min'        : [0.001],
+        'df_min'        : [0.002],
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
         'lemmatize'     : [False],
@@ -192,18 +193,18 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
 
-            # partial(basic_pipeline.percentile_selector, 'chi2', 30),
-            partial(transformers.percentile_selector, 'chi2', 25),
-            # partial(basic_pipeline.percentile_selector, 'chi2', 20),
-            # partial(basic_pipeline.percentile_selector, 'f', 30),
-            # partial(basic_pipeline.percentile_selector, 'f', 25),
-            # partial(basic_pipeline.percentile_selector, 'f', 20),
-            # partial(basic_pipeline.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
-            # partial(basic_pipeline.percentile_selector, 'mutual_info', 25),
-            # partial(basic_pipeline.percentile_selector, 'mutual_info', 20),
-            # partial(basic_pipeline.factorization, 'TruncatedSVD', 1000),
-            # partial(basic_pipeline.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
-            # partial(basic_pipeline.factorization, 'TruncatedSVD', 3000),
+            # partial(transformers.percentile_selector, 'chi2', 30),
+            # partial(transformers.percentile_selector, 'chi2', 25),
+            partial(transformers.percentile_selector, 'chi2', 20),
+            # partial(transformers.percentile_selector, 'f', 30),
+            # partial(transformers.percentile_selector, 'f', 25),
+            # partial(transformers.percentile_selector, 'f', 20),
+            # partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
+            # partial(transformers.percentile_selector, 'mutual_info', 25),
+            # partial(transformers.percentile_selector, 'mutual_info', 20),
+            # partial(transformers.factorization, 'TruncatedSVD', 1000),
+            # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
+            # partial(transformers.factorization, 'TruncatedSVD', 3000),
         ]
     }
 
@@ -235,16 +236,8 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
                                                                                 rules=r)
 
                     # fit models
-
-                    if PARALLEL:
-                        with multi.Pool(min(multi.cpu_count(), len(estimators))) as p:
-                            iter_stats = list(p.map(partial(model_eval_record,
-                                                            X_train_, y_train, X_dev_, y_dev),
-                                                    estimators, chunksize=1))
-                    else:
-                        iter_stats = list(map(partial(model_eval_record,
-                                                      X_train_, y_train, X_dev_, y_dev),
-                                              estimators))
+                    iter_stats = list(map(partial(model_eval_record, X_train_, y_train, X_dev_, y_dev),
+                                          estimators))
 
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
@@ -270,7 +263,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
     return test_best(results, X_eval, y_eval)
 
 
-def model_eval_record(X_train, y_train, X_test, y_test, model_params):
+def model_eval_record(X_train, y_train, X_test, y_test, model_params, cv=10):
     """helper function for finding best model in parallel: evaluate model and return stat object. """
 
     random_search = RandomizedSearchCV(model_params['model'],
@@ -278,7 +271,7 @@ def model_eval_record(X_train, y_train, X_test, y_test, model_params):
                                        n_iter=20,
                                        n_jobs=-1,
                                        pre_dispatch='n_jobs',
-                                       cv=10,
+                                       cv=cv,
                                        scoring='f1_macro',
                                        verbose=0)
 

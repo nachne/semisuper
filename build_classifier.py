@@ -11,7 +11,6 @@ import build_corpus
 from semisuper import loaders, super_model_selection
 from semisuper.helpers import num_rows
 
-
 def load_silver_standard(path=None):
     if path is None:
         path = file_path("./semisuper/output/silver_standard.tsv")

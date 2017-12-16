@@ -121,18 +121,18 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
             # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
             # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 34%
 
-            # partial(basic_pipeline.percentile_selector, 'chi2', 30),
+            # partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
-            # partial(basic_pipeline.percentile_selector, 'chi2', 20),
-            # partial(basic_pipeline.percentile_selector, 'f', 30),
-            # partial(basic_pipeline.percentile_selector, 'f', 25),
-            # partial(basic_pipeline.percentile_selector, 'f', 20),
-            # partial(basic_pipeline.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
-            # partial(basic_pipeline.percentile_selector, 'mutual_info', 25),
-            # partial(basic_pipeline.percentile_selector, 'mutual_info', 20),
-            # partial(basic_pipeline.factorization, 'TruncatedSVD', 1000),
-            # partial(basic_pipeline.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
-            # partial(basic_pipeline.factorization, 'TruncatedSVD', 3000),
+            # partial(transformers.percentile_selector, 'chi2', 20),
+            # partial(transformers.percentile_selector, 'f', 30),
+            # partial(transformers.percentile_selector, 'f', 25),
+            # partial(transformers.percentile_selector, 'f', 20),
+            # partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
+            # partial(transformers.percentile_selector, 'mutual_info', 25),
+            # partial(transformers.percentile_selector, 'mutual_info', 20),
+            # partial(transformers.factorization, 'TruncatedSVD', 1000),
+            # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
+            # partial(transformers.factorization, 'TruncatedSVD', 3000),
         ]
     }
 
