@@ -88,16 +88,10 @@ def names_estimators_params():
                     'loss': ['hinge', 'squared_hinge']
                     }
          },
-        {"name"  : "MultinomialNB",
-         "model" : MultinomialNB(),
-         "params": {'alpha'    : uniform(0, 1),
-                    'fit_prior': [True],
-                    }
-         },
         {"name"  : "LogisticRegression",
          "model" : LogisticRegression(),
          "params": {'C'           : sp_randint(1, RAND_INT_MAX),
-                    'solver'      : ['lbfgs'], # ['newton-cg', 'lbfgs', 'liblinear'],  # 'sag', 'saga'
+                    'solver'      : ['lbfgs'],  # ['newton-cg', 'lbfgs', 'liblinear'],  # 'sag', 'saga'
                     'class_weight': ['balanced']
                     }
          },
@@ -108,11 +102,13 @@ def names_estimators_params():
              'class_weight' : ['balanced'],
              'penalty'      : ['l2', 'l1', 'elasticnet'],
              'learning_rate': ['optimal', 'invscaling'],
-             'max_iter'     : [1000], # for sklearn >= 0.19, not 0.18
-             'tol'          : [1e-3], # for sklearn >= 0.19, not 0.18
+             'max_iter'     : [1000],  # for sklearn >= 0.19, not 0.18
+             'tol'          : [1e-3],  # for sklearn >= 0.19, not 0.18
              'eta0'         : uniform(0.01, 0.00001)
          }
          },
+
+        # SVC: slow!
         # {"name"  : "SVM_SVC",
         #  "model" : SVC(),
         #  "params": {'C'           : sp_randint(1, RAND_INT_MAX),
@@ -121,6 +117,8 @@ def names_estimators_params():
         #             'probability' : [False]
         #             }
         #  },
+
+        # Lasso, ElascticNet: mix of continuous and discrete labels
         # {"name"  : "Lasso",
         #  "model" : Lasso(),
         #  "params": {'alpha'        : uniform(0, 1),
@@ -135,6 +133,8 @@ def names_estimators_params():
         #             'l1_ratio': uniform(0, 1)
         #             }
         #  },
+
+        # DecisionTree: bad performance
         # {"name"  : "DecisionTreeClassifier",
         #  "model" : DecisionTreeClassifier(),
         #  "params": {"criterion"   : ["gini", "entropy"],
@@ -159,6 +159,16 @@ def names_estimators_params():
         #             'leaf_size'   : sp_randint(1, RAND_INT_MAX)
         #             }
         #  },
+
+        # MNB: bad performance (< 80% avg, < 70% recall)
+        # {"name"  : "MultinomialNB",
+        #  "model" : MultinomialNB(),
+        #  "params": {'alpha'    : uniform(0, 1),
+        #             'fit_prior': [True],
+        #             }
+        #  },
+
+        # MLP: crashes
         # {"name"  : "MLPClassifier",
         #  "model" : MLPClassifier(),
         #  "params": {'activation'   : ['identity', 'logistic', 'tanh', 'relu'],
@@ -185,24 +195,25 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
     preproc_params = {
-        'df_min'        : [0.002],
+        'df_min'        : [0.002, 0.001],
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
         'lemmatize'     : [False],
-        'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
 
-            # partial(transformers.percentile_selector, 'chi2', 30),
+            partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
-            # partial(transformers.percentile_selector, 'chi2', 20),
+            partial(transformers.percentile_selector, 'chi2', 20),
             # partial(transformers.percentile_selector, 'f', 30),
-            partial(transformers.percentile_selector, 'f', 25),
+            # partial(transformers.percentile_selector, 'f', 25),
             # partial(transformers.percentile_selector, 'f', 20),
             # partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
             # partial(transformers.percentile_selector, 'mutual_info', 25),
             # partial(transformers.percentile_selector, 'mutual_info', 20),
-            partial(transformers.factorization, 'TruncatedSVD', 1000),
+            # partial(transformers.factorization, 'TruncatedSVD', 100),
+            # partial(transformers.factorization, 'TruncatedSVD', 1000),
             # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
             # partial(transformers.factorization, 'TruncatedSVD', 3000),
         ]
@@ -272,7 +283,7 @@ def model_eval_record(X_train, y_train, X_test, y_test, model_params, cv=10):
                                        n_jobs=-1,
                                        pre_dispatch='n_jobs',
                                        cv=cv,
-                                       scoring='f1_macro',
+                                       scoring='f1',
                                        verbose=0)
 
     random_search.fit(X_train, y_train)
@@ -310,8 +321,11 @@ def test_best(results, X_eval, y_eval):
     acc = accuracy_score(y_eval, y_pred)
     clsr = classification_report(y_eval, y_pred)
 
-    print("\n")
-    print("\n{}:\tacc: {}, classification report:\n{}".format(name, acc, clsr))
+    print("Testing best model on held-out test set:\n", name,
+          results['best']['n-grams'], results['best']['fs'], "\n",
+          'p={}\tr={}\tf1={}\tacc={}'.format(p, r, f1, acc))
+
+    print("Classification report:\n{}".format(clsr))
 
     return Pipeline([('vectorizer', vectorizer), ('selector', selector), ('clf', best_model)])
 

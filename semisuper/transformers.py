@@ -18,7 +18,7 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2, SelectPercentile, f_classif, mutual_info_classif
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from unidecode import unidecode
 
 from semisuper import helpers
@@ -334,7 +334,7 @@ def factorization(method='TruncatedSVD', n_components=10):
                                                                n_jobs=-1,
                                                                learning_method='online'),
         'TruncatedSVD'             : FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
-                                                          ("normalizer", StandardScaler())])
+                                                          ("normalizer", MinMaxScaler())])
     }
 
     model = sparse.get(method, None)
@@ -352,12 +352,12 @@ def factorization(method='TruncatedSVD', n_components=10):
     if model is not None:
         return FeatureNamePipeline([("densifier", Densifier()),
                                     ("selector", model),
-                                    ("normalizer", StandardScaler())])  # TODO Standard or MinMax?
+                                    ("normalizer", MinMaxScaler())])  # TODO Standard or MinMax?
 
     else:
 
         return FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
-                                    ("normalizer", StandardScaler())])
+                                    ("normalizer", MinMaxScaler())])
 
 
 class TextLength(BaseEstimator, TransformerMixin):
