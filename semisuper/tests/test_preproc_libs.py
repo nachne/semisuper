@@ -1,7 +1,7 @@
 import multiprocessing as multi
 import os
 import subprocess
-
+import pickle
 from semisuper import loaders
 
 civic, abstracts = loaders.sentences_civic_abstracts()
@@ -35,8 +35,9 @@ def file_path(file_relative):
 # META MAP LITE
 
 def metamaplite(text):
-    mmlitepath = file_path("../resources/programs/public_mm_lite/metamaplite.sh")
-    pipe_flag = "--"
+    mmlitedir = file_path("../resources/public_mm_lite/")
+    mmlitestr = "metamaplite.sh"
+    pipe_flag = "--pipe"
     sem_types = ["aapp",  # |T116|Amino Acid, Peptide, or Protein
                  "acab",  # |T020|Acquired Abnormality
                  "amas",  # |T087|Amino Acid Sequence
@@ -124,26 +125,28 @@ def metamaplite(text):
     sem_type_flag = "--restrict_to_sts=" + ",".join(sem_types)
     bg_flag = "&"
 
-    p = subprocess.Popen([mmlitepath, pipe_flag, sem_type_flag],
+    p = subprocess.Popen([mmlitedir + mmlitestr, pipe_flag, sem_type_flag],
+                         cwd=mmlitedir,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          universal_newlines=True)
     out, err = p.communicate(text)
     p.wait()
+    # p.stdin.close()
 
     if err:
         return None
     else:
-        print("yay")
+        # print(out)
         return text, out
 
 
 def test_metamap():
     with multi.Pool(min(multi.cpu_count(), 24)) as p:
-        mmapped = p.imap_unordered(metamaplite, civic[:120])
+        mmapped = list(p.map(metamaplite, civic[:]))
 
-    for m in mmapped:
-        print(m[0], "\n", m[1], "\n")
+    # for m in mmapped:
+    #     print(m[0], "\n", m[1], "\n")
 
     print(mmapped)
 
@@ -166,3 +169,13 @@ def tagtog_req(text):
     for c in civic[1000:1010]:
         tagtog_req(c)
     return
+
+
+# ----------------------------------------------------------------
+# EXECUTE
+hypernyms = None
+
+if __name__ == "__main__":
+    # with open(file_path("../pickles/hypernyms.pickle"), "rb") as f:
+    #     hypernyms = pickle.load(f)
+    test_metamap()

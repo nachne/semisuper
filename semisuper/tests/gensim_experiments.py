@@ -61,7 +61,7 @@ corpus_test = (
     # + pn_test
 )
 
-prepro = transformers.TokenizePreprocessor(rules=False, lemmatize=False)
+prepro = transformers.TokenizePreprocessor(rules=False, ner=False)
 
 corpus_vec = prepro.fit_transform(corpus)
 corpus_vec_test = prepro.transform(corpus_test)

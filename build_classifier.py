@@ -120,11 +120,16 @@ def build_classifier():
 
     return model
 
+# ----------------------------------------------------------------
 
 def file_path(file_relative):
     """return the correct file path given the file's path relative to calling script"""
     return os.path.join(os.path.dirname(__file__), file_relative)
 
+
+# ----------------------------------------------------------------
+# Execution
+# ----------------------------------------------------------------
 
 if __name__ == "__main__":
     build_classifier()

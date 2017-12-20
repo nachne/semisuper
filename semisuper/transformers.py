@@ -7,13 +7,15 @@ from functools import partial
 
 import pandas as pd
 from nltk import TreebankWordTokenizer
-from nltk import WordNetLemmatizer
 from nltk import pos_tag
 from nltk import sent_tokenize
-from nltk.corpus import wordnet as wn, stopwords, wordnet
+from nltk.corpus import stopwords, wordnet
+
+import spacy
+
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD, PCA, FactorAnalysis
+from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD, PCA, SparsePCA, FactorAnalysis
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2, SelectPercentile, f_classif, mutual_info_classif
@@ -31,20 +33,20 @@ MIN_LEN = 8
 
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, punct=None, lower=True, strip=True, lemmatize=False, rules=True):
+    def __init__(self, punct=None, lower=True, strip=True, ner=False, rules=True):
         self.lower = lower
         self.strip = strip
         self.punct = punct or set(string.punctuation).difference(set('%='))
 
         self.rules = rules
-        self.lemma = lemmatize
+
+        self.ner = ner
+        # self.nlp = spacy.load("en")
 
         self.splitters = re.compile("-->|->|[-/.,|<>]")
 
         self.dict_mapper = HypernymMapper()
         self.tokenizer = TreebankWordTokenizer()
-
-        self.lemmatizer = WordNetLemmatizer()
 
     def fit(self, X, y=None):
         return self
@@ -56,6 +58,7 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         return [self.representation(sentence) for sentence in X]
 
     def representation(self, sentence):
+
         tokens_tags = list(self.tokenize(sentence))
         if not tokens_tags:
             return ["_empty_sentence_"]
@@ -87,23 +90,14 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
 
         token = token.lower() if self.lower else token
 
-        if self.rules:
+
+        if self.ner:
             token = self.dict_mapper.replace(token)
+        if self.rules:
             token = map_regex_concepts(token)
 
-        if self.lemma:
-            token = self.lemmatize(token.lower(), tag)
         return token
 
-    def lemmatize(self, token, tag):
-        tag = {
-            'N': wn.NOUN,
-            'V': wn.VERB,
-            'R': wn.ADV,
-            'J': wn.ADJ
-        }.get(tag[0], wn.NOUN)
-
-        return self.lemmatizer.lemmatize(token, tag)
 
 
 def sentence_tokenize(text):
@@ -121,8 +115,8 @@ def sentence_tokenize(text):
 class TextNormalizer(BaseEstimator, TransformerMixin):
     """replaces all non-ASCII characters by approximations, all numbers by 1"""
 
-    def __init__(self, only_digits=False):
-        if only_digits:
+    def __init__(self, individual_digits=True):
+        if individual_digits:
             self.num = re.compile("\d")
         else:
             self.num = re.compile("(\d+(,\d\d\d)*)|(\d*\.\d+)+")
@@ -133,7 +127,7 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         # TODO check if these help
-        # return np.array([self.num.sub("1", unidecode(x)) for x in X]) # replace all numbers by "1"
+        return np.array([self.num.sub("1", unidecode(x)) for x in X])  # replace all numbers by "1"
 
         # version without number replacement
         return np.array([unidecode(x) for x in X])
@@ -154,7 +148,7 @@ regex_concept_dict = [
     (re.compile("\w+inib$"), "_chemical_"),
     (re.compile("\w+[ui]mab$"), "_chemical_"),
     (re.compile("->|-->"), "_replacement_"),
-    (re.compile("^(PFS|pfs)$"), "progression-free survival"),
+    # (re.compile("^(PFS|pfs)$"), "progression-free survival"),
 
     # number-related concepts
     (re.compile("^[Pp]([=<>≤≥]|</?=|>/?=)\d"), "_p_val_"),
@@ -206,7 +200,8 @@ def prenormalize(text):
     return text
 
 
-lowercase_lookahead = "(?=[a-z0-9])"
+lower_ahead = "(?=[a-z0-9])"
+nonw_behind = "(?<=\W)"
 
 prenormalize_dict = [
     # replace ":" or whitespace after section headlines with dots so they will become separate sentences
@@ -214,31 +209,35 @@ prenormalize_dict = [
     # (re.compile("(AIMS?|BACKGROUNDS?|METHODS?|RESULTS?|CONCLUSIONS?|PATIENTS?|FINDINGS?|FUNDINGS?)" "(:)"), r"\1. "),
 
     # common abbreviations
-    (re.compile("\W[Ee]\.[Gg]\.\s+" + lowercase_lookahead), " eg "),
-    (re.compile("\W[Ii]\.?[Ee]\.\s+" + lowercase_lookahead), " ie "),
-    (re.compile("\W[Aa]pprox\.\s+" + lowercase_lookahead), " approx "),
-    (re.compile("\W[Nn]o\.\s+" + lowercase_lookahead), " no "),
-    (re.compile("\W[Nn]o\.\s+" + "(?=\w\d)"), " no "),  # no. followed by abbreviation (patient no. V123)
-    (re.compile("\W[Cc]onf\.\s+" + lowercase_lookahead), " conf "),
+    (re.compile(nonw_behind + "[Ee]\.[Gg]\.\s" + lower_ahead), "e g  "),
+    (re.compile(nonw_behind + "[Ee][Gg]\.\s" + lower_ahead), "e g "),
+    (re.compile(nonw_behind + "[Ii]\.[Ee]\.\s" + lower_ahead), "i e  "),
+    (re.compile(nonw_behind + "[Ii][Ee]\.\s" + lower_ahead), "i e "),
+    (re.compile(nonw_behind + "[Aa]pprox\.\s" + lower_ahead), "approx  "),
+    (re.compile(nonw_behind + "[Nn]o\.\s" + lower_ahead), "no  "),
+    (re.compile(nonw_behind + "[Nn]o\.\s" + "(?=\w\d)"), "no  "),  # no. followed by abbreviation (patient no. V123)
+    (re.compile(nonw_behind + "[Cc]onf\.\s" + lower_ahead), "conf  "),
     # scientific writing
-    (re.compile("\Wet al\.\s+" + lowercase_lookahead), " et al "),
-    (re.compile("\W[Rr]ef\.\s+" + lowercase_lookahead), " ref "),
-    (re.compile("\W[Ff]ig\.\s+" + lowercase_lookahead), " fig "),
+    (re.compile(nonw_behind + "et al\.\s" + lower_ahead), "et al  "),
+    (re.compile(nonw_behind + "[Rr]ef\.\s" + lower_ahead), "ref  "),
+    (re.compile(nonw_behind + "[Ff]ig\.\s" + lower_ahead), "fig  "),
     # medical
-    (re.compile("\Wy\.?o\.\s+" + lowercase_lookahead), " year-old "),
-    (re.compile("\W[Pp]\.o\.\s+" + lowercase_lookahead), " po "),
-    (re.compile("\W[Ii]\.v\.\s+" + lowercase_lookahead), " iv "),
-    (re.compile("\W[Qq]\.i\.\d\.\s+" + lowercase_lookahead), " qd "),
-    (re.compile("\W[Bb]\.i\.\d\.\s+" + lowercase_lookahead), " bid "),
-    (re.compile("\W[Tt]\.i\.\d\.\s+" + lowercase_lookahead), " tid "),
-    (re.compile("\W[Qq]\.i\.\d\.\s+" + lowercase_lookahead), " qid "),
-    (re.compile("\WJ\.\s+" + "(?=(Cell|Bio))"), " J "),  # journal
+    (re.compile(nonw_behind + "y\.o\.\s" + lower_ahead), "y o  "),
+    (re.compile(nonw_behind + "yo\.\s" + lower_ahead), "y o "),
+    (re.compile(nonw_behind + "[Pp]\.o\.\s" + lower_ahead), "p o  "),
+    (re.compile(nonw_behind + "[Ii]\.v\.\s" + lower_ahead), "i v  "),
+    (re.compile(nonw_behind + "[Qq]\.i\.\d\.\s" + lower_ahead), "q d  "),
+    (re.compile(nonw_behind + "[Bb]\.i\.\d\.\s" + lower_ahead), "b i d  "),
+    (re.compile(nonw_behind + "[Tt]\.i\.\d\.\s" + lower_ahead), "t i d  "),
+    (re.compile(nonw_behind + "[Qq]\.i\.\d\.\s" + lower_ahead), "q i d  "),
+    (re.compile(nonw_behind + "J\.\s" + "(?=(Cell|Bio|Med))"), "J  "),  # journal
     # bracket complications
-    (re.compile("\.\s*\)."), ")."),
+    (re.compile("\.\)."), " )."),
+    (re.compile("\.\s\)."), "  )."),
     # multiple dots
-    (re.compile("(\.+\s*\.+)+"), "."),
-    # Typos: missing space after dot; only add space if there are at least three letters before and behind
-    (re.compile("(?<=[a-z]{3})" + "\." + "(?=[A-Z][a-z]{2})"), ". "),
+    # (re.compile("(\.+\s*\.+)+"), "."),
+    # Typos: missing space after dot; only add space if there are at least two letters before and behind
+    (re.compile("(?<=[A-Za-z]{2})" + "\." + "(?=[A-Z][a-z])"), ". "),
 ]
 
 
@@ -247,7 +246,7 @@ prenormalize_dict = [
 # ----------------------------------------------------------------
 
 
-def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, lemmatize=False, rules=True,
+def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, ner=False, rules=True,
                max_df=1.0, binary=False, normalize=True, stats="length"):
     """Return pipeline that concatenates features from word and character n-grams and text stats"""
 
@@ -257,7 +256,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=
                                   transformer_list=[
                                       ("wordgrams", None if wordgrams is None else
                                       FeatureNamePipeline([
-                                          ("preprocessor", TokenizePreprocessor(rules=rules, lemmatize=lemmatize)),
+                                          ("preprocessor", TokenizePreprocessor(rules=rules, ner=ner)),
                                           ("word_tfidf", TfidfVectorizer(
                                                   analyzer='word',
                                                   min_df=min_df_word,  # TODO find reasonable value (5 <= n << 50)
@@ -290,7 +289,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=
     ])
 
 
-def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, lemmatize=False, rules=True,
+def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, ner=False, rules=True,
                   max_df=1.0, binary=False, normalize=True, stats="length"):
     """concatenates vectorizer and additional text stats (e.g. sentence position in abstract)
 
@@ -300,7 +299,7 @@ def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_wo
         ("text_features", Pipeline([("text_selector", ItemGetter(0)),
                                     ("text_features",
                                      vectorizer(chargrams=chargrams, min_df_char=min_df_char, wordgrams=wordgrams,
-                                                min_df_word=min_df_word, lemmatize=lemmatize, rules=rules,
+                                                min_df_word=min_df_word, ner=ner, rules=rules,
                                                 max_df=max_df, binary=binary, normalize=normalize, stats=stats))])),
         ("stats", Pipeline([("stat_features", StatFeatures()),
                             ("vect", DictVectorizer())]))
@@ -325,12 +324,10 @@ def percentile_selector(score_func='chi2', percentile=20):
 
 
 def factorization(method='TruncatedSVD', n_components=10):
-    # PCA, IncrementalPCA, FactorAnalysis, FastICA, LatentDirichletAllocation, TruncatedSVD, fastica
-
     print("Unsupervised feature selection: matrix factorization with", method, "(", n_components, "components )")
 
     sparse = {
-        'LatentDirichletAllocation': LatentDirichletAllocation(n_topics=n_components,
+        'LatentDirichletAllocation': LatentDirichletAllocation(n_components=n_components,
                                                                n_jobs=-1,
                                                                learning_method='online'),
         'TruncatedSVD'             : FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
@@ -344,6 +341,7 @@ def factorization(method='TruncatedSVD', n_components=10):
 
     dense = {
         'PCA'           : PCA(n_components),
+        'SparsePCA'     : SparsePCA(n_components),
         'FactorAnalysis': FactorAnalysis(n_components)
     }
 
@@ -366,34 +364,43 @@ class TextLength(BaseEstimator, TransformerMixin):
     inverse_length: 1/(number of tokens)
     """
 
-    key_dict = {
-        'inverse_length': 'inverse_length'
-        # 'inverse_token_count': 'inverse_token_count'
-    }
+    def __init__(self, inv_len=True, inv_tok_cnt=True):
+        key_dict = {
+            'inv_len'    : inv_len,
+            'inv_tok_cnt': inv_tok_cnt,
+        }
+
+        self.key_dict = {key: key for key in key_dict if key_dict[key]}
+
+        super(TextLength, self).__init__()
 
     def fit(self, X=None, y=None):
         return self
 
     def transform(self, X):
         for sentence in X:
-            yield {'inverse_length': (1.0 / len(sentence) if sentence else 1.0),
-                   # 'inverse_token_count': (1.0 / len(re.split("\s+", sentence)))
-                   }
+            yield {
+                'inv_len'    : 1.0 / len(sentence)
+                if sentence and self.key_dict.get("inv_len") else 1.0,
+                'inv_tok_cnt': (1.0 / len(re.split("\s+", sentence)))
+                if self.key_dict.get("inv_tok_cnt") else 1.0
+            }
 
     def get_feature_names(self):
         return list(self.key_dict.keys())
 
 
 class StatFeatures(BaseEstimator, TransformerMixin):
-    """Extract features from document record, using metadata, for DictVectorizer
-    """
+    """Extract metadata features from document record for a DictVectorizer"""
 
-    def __init__(self):
-        self.key_dict = {
-            'pos'        : 'pos',
-            'title_words': 'title_words',
-            'zero'       : 'zero' # TODO delete fake feature
+    def __init__(self, pos=True, title_words=True):
+        key_dict = {
+            'pos'        : pos,
+            'title_words': title_words,
+            'zero'       : 'zero'  # TODO delete fake feature
         }
+
+        self.key_dict = {key: key for key in key_dict if key_dict[key]}
 
         super(StatFeatures, self).__init__()
 
@@ -404,8 +411,10 @@ class StatFeatures(BaseEstimator, TransformerMixin):
         # text, pos, title = [0, 1, 2]
         for x in X:
             yield {
-                'pos'        : float(x[1]),
-                'title_words': self.inverse_matching_ngrams(x[2], x[0], ngram=6),
+                'pos'        : float(x[1])
+                if self.key_dict.get("pos") else 1.0,
+                'title_words': self.inverse_matching_ngrams(x[2], x[0], ngram=6)
+                if self.key_dict.get("title_words") else 1.0,
                 'zero'       : 0  # TODO delete fake feature
             }
 
@@ -456,7 +465,7 @@ class HypernymMapper(DictReplacer):
         return hypernyms
 
     def build_hypernym_dict(self):
-        concepts = ["chemical", "disease", "gene", "mutation"]
+        concepts = ["chemical", "gene", "mutation"]  # "disease"
 
         with multi.Pool(min(multi.cpu_count(), len(concepts))) as p:
             dicts = list(p.map(self.make_hypernym_entries, concepts))
@@ -485,6 +494,7 @@ class HypernymMapper(DictReplacer):
                 if not (illegal_substrs.findall(word)
                         or word in common_words
                         or word in entries
+                        or len(word) < 4
                         or wordnet.synsets(word)):
                     entries[word] = "_" + hypernym + "_"
 

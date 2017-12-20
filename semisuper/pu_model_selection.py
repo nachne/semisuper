@@ -181,7 +181,7 @@ def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_rang
     print("Fitting vectorizer, preparing training and test data")
 
     vectorizer = transformers.vectorizer(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
-                                         min_df_word=min_df_word, lemmatize=lemmatize, rules=rules)
+                                         min_df_word=min_df_word, ner=lemmatize, rules=rules)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)

@@ -34,7 +34,7 @@ min_df_char = 50
 n_components = 100
 print("min_df: \tword:", min_df_word, "\tchar:", min_df_char, "\tn_components:", n_components)
 
-v = vectorizer(chargrams=(2, 6), min_df_char=min_df_char, wordgrams=(1, 4), min_df_word=min_df_word, lemmatize=True,
+v = vectorizer(chargrams=(2, 6), min_df_char=min_df_char, wordgrams=(1, 4), min_df_word=min_df_word, ner=True,
                rules=True, max_df=0.95)
 s = factorization('TruncatedSVD')
 
@@ -48,8 +48,8 @@ pppl = Pipeline([
 # ----------------------------------------------------------------
 
 
-pp = Pipeline([("normalizer", TextNormalizer(only_digits=False)),
-               ("preprocessor", TokenizePreprocessor(lemmatize=False, rules=True))])
+pp = Pipeline([("normalizer", TextNormalizer(individual_digits=True)),
+               ("preprocessor", TokenizePreprocessor(ner=False, rules=True))])
 
 # ----------------------------------------------------------------
 # Regex tests
@@ -89,6 +89,8 @@ print("\n----------------------------------------------------------------",
       "\n----------------------------------------------------------------\n")
 
 [print(x, pp.transform([x])) for x in ['Janus kinase 2 JAK2 tyrosine kinase',
+                                       'Proc. cancer-related specific recurrence-free '
+                                       'person-years phase-3 open-label --&gt',
                                        'CLINICALTRIALSGOV: NCT00818441.',
                                        'clinicaltrials.gov',
                                        'genetic/mrna',
@@ -135,6 +137,11 @@ print("\n----------------------------------------------------------------",
  for x in civic_[1:10]]
 
 [print(x, "\n", pp.transform([x]), "\n") for x in abstracts_[1:10]]
+
+
+exmpl_abs = "Activating mutations in tyrosine kinases have been identified in hematopoietic and nonhematopoietic malignancies. Recently, we and others identified a single recurrent somatic activating mutation (JAK2V617F) in the Janus kinase 2 (JAK2) tyrosine kinase in the myeloproliferative disorders (MPDs) polycythemia vera, essential thrombocythemia, and myeloid metaplasia with myelofibrosis. We used direct sequence analysis to determine if the JAK2V617F mutation was present in acute myeloid leukemia (AML), chronic myelomonocytic leukemia (CMML)/atypical chronic myelogenous leukemia (aCML), myelodysplastic syndrome (MDS), B-lineage acute lymphoblastic leukemia (ALL), T-cell ALL, and chronic lymphocytic leukemia (CLL). Analysis of 222 patients with AML identified JAK2V617F mutations in 4 patients with AML, 3 of whom had a preceding MPD. JAK2V617F mutations were identified in 9 (7.8%) of 116 CMML/a CML samples, and in 2 (4.2%) of 48 MDS samples. We did not identify the JAK2V617F disease allele in B-lineage ALL (n = 83), T-cell ALL (n = 93), or CLL (n = 45). These data indicate that the JAK2V617F allele is present in acute and chronic myeloid malignancies but not in lymphoid malignancies."
+
+[print(x, pp.transform([x])) for x in sentence_tokenize(exmpl_abs)]
 
 sys.exit(0)
 

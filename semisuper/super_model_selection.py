@@ -84,7 +84,7 @@ def names_estimators_params():
     l = [
         {"name"  : "LinearSVC",
          "model" : LinearSVC(),
-         "params": {'C'   : uniform(0, 1),
+         "params": {'C'   : uniform(0.5, 0.5),
                     'loss': ['hinge', 'squared_hinge']
                     }
          },
@@ -97,15 +97,14 @@ def names_estimators_params():
          },
         {"name"  : "SGDClassifier",
          "model" : SGDClassifier(),
-         "params": {
-             'loss'         : ['hinge', 'log', 'modified_huber', 'squared_hinge'],
-             'class_weight' : ['balanced'],
-             'penalty'      : ['l2', 'l1', 'elasticnet'],
-             'learning_rate': ['optimal', 'invscaling'],
-             'max_iter'     : [1000],  # for sklearn >= 0.19, not 0.18
-             'tol'          : [1e-3],  # for sklearn >= 0.19, not 0.18
-             'eta0'         : uniform(0.01, 0.00001)
-         }
+         "params": {'loss'         : ['hinge', 'log', 'modified_huber', 'squared_hinge'],
+                    'class_weight' : ['balanced'],
+                    'penalty'      : ['l2', 'l1', 'elasticnet'],
+                    'learning_rate': ['optimal', 'invscaling'],
+                    'max_iter'     : [1000],  # for sklearn >= 0.19, not 0.18
+                    'tol'          : [1e-3],  # for sklearn >= 0.19, not 0.18
+                    'eta0'         : uniform(0.01, 0.00001)
+                    }
          },
 
         # SVC: slow!
@@ -179,7 +178,7 @@ def names_estimators_params():
         #  },
     ]
 
-    return l[:]
+    return l[:1]
 
 
 def get_best_model(X_train, y_train, X_test=None, y_test=None):
@@ -195,23 +194,24 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
     preproc_params = {
-        'df_min'        : [0.002, 0.001],
+        'df_min'        : [0.001],
         'df_max'        : [1.0],
-        'rules'         : [True],  # [True, False],
-        'lemmatize'     : [False],
-        'wordgram_range': [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
+        'rules'         : [True, False],  # [True, False],
+        'ner'           : [True, False],
+        'wordgram_range': [(1, 1), (1, 2), (1, 3)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [None],  # [(2, 5)],  # [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
-
-            partial(transformers.percentile_selector, 'chi2', 30),
-            partial(transformers.percentile_selector, 'chi2', 25),
-            partial(transformers.percentile_selector, 'chi2', 20),
+            transformers.identitySelector,
+            # partial(transformers.percentile_selector, 'chi2', 30),
+            # partial(transformers.percentile_selector, 'chi2', 25),
+            # partial(transformers.percentile_selector, 'chi2', 20),
             # partial(transformers.percentile_selector, 'f', 30),
             # partial(transformers.percentile_selector, 'f', 25),
             # partial(transformers.percentile_selector, 'f', 20),
             # partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
             # partial(transformers.percentile_selector, 'mutual_info', 25),
             # partial(transformers.percentile_selector, 'mutual_info', 20),
+            # partial(transformers.factorization, 'LatentDirichletAllocation', 100),
             # partial(transformers.factorization, 'TruncatedSVD', 100),
             # partial(transformers.factorization, 'TruncatedSVD', 1000),
             # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
@@ -222,7 +222,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
     estimators = names_estimators_params()
 
     for wordgram, chargram in product(preproc_params['wordgram_range'], preproc_params['chargram_range']):
-        for r, l in product(preproc_params['rules'], preproc_params['lemmatize']):
+        for r, ner in product(preproc_params['rules'], preproc_params['ner']):
             for df_min, df_max in product(preproc_params['df_min'], preproc_params['df_max']):
                 for fs in preproc_params['feature_select']:
 
@@ -230,7 +230,8 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
                         break
 
                     print("\n----------------------------------------------------------------",
-                          "\nwords:", wordgram, "chars:", chargram, "feature selection:", fs, "df_min:", df_min,
+                          "\nwords:", wordgram, "chars:", chargram, "feature selection:", fs,
+                          "df_min, df_max:", df_min, df_max, "rules, dict:", r, ner,
                           "\n----------------------------------------------------------------\n")
 
                     start_time = time.time()
@@ -243,7 +244,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
                                                                                 min_df_word=df_min,
                                                                                 max_df=df_max,
                                                                                 feature_select=fs,
-                                                                                lemmatize=l,
+                                                                                ner=ner,
                                                                                 rules=r)
 
                     # fit models
@@ -253,7 +254,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
                         m['n-grams'] = {'word': wordgram, 'char': chargram},
-                        m['rules, lemma'] = (r, l)
+                        m['rules, dict'] = (r, ner)
                         m['df_min, df_max'] = (df_min, df_max)
                         m['fs'] = fs()
                         if m['acc'] > results['best']['acc']:
@@ -331,13 +332,13 @@ def test_best(results, X_eval, y_eval):
 
 
 def prepare_train_test(trainData, testData, trainLabels, rules=True, wordgram_range=None, feature_select=None,
-                       chargram_range=None, lemmatize=True, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
+                       chargram_range=None, ner=True, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
     """prepare training and test vectors, vectorizer and selector for validating classifiers"""
 
     print("Fitting vectorizer, preparing training and test data")
 
     vectorizer = transformers.vectorizer_dx(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
-                                            min_df_word=min_df_word, max_df=max_df, lemmatize=lemmatize, rules=rules)
+                                            min_df_word=min_df_word, max_df=max_df, ner=ner, rules=rules)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)

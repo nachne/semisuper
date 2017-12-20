@@ -34,7 +34,7 @@ def prepare_corpus_pu(data_tuple):
     X_test = concatenate((P_test, N_test))
     y_test = concatenate((y_P_test, y_N_test))
 
-    vectorizer = transformers.vectorizer(chargrams=(2, 6), wordgrams=(1, 3), lemmatize=False, rules=False)
+    vectorizer = transformers.vectorizer(chargrams=(2, 6), wordgrams=(1, 3), ner=False, rules=False)
 
     print("Fitting vectorizer")
     vectorizer.fit(P)
@@ -67,7 +67,7 @@ def prepare_corpus_ss(data_tuple):
     y_test = concatenate((y_P_test, y_N_test))
 
     vectorizer = transformers.vectorizer(chargrams=(2, 6), min_df_char=0.01, wordgrams=(1, 3), min_df_word=0.01,
-                                         lemmatize=False, rules=False)
+                                         ner=False, rules=False)
 
     print("Fitting vectorizer")
     vectorizer.fit(P)

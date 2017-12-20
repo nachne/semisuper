@@ -73,10 +73,6 @@ def save_silver_standard(pipeline, write=True, outpath=None):
     return abs_classified
 
 
-def file_path(file_relative):
-    """return the correct file path given the file's path relative to helpers"""
-    return os.path.join(os.path.dirname(__file__), file_relative)
-
 
 def train_build(from_scratch=True, mode=None, ratio=1.0):
     now = datetime.now().strftime('%Y-%m-%d_%H-%M')
@@ -93,6 +89,15 @@ def train_build(from_scratch=True, mode=None, ratio=1.0):
 
     return silver_standard
 
+# ----------------------------------------------------------------
+
+def file_path(file_relative):
+    """return the correct file path given the file's path relative to helpers"""
+    return os.path.join(os.path.dirname(__file__), file_relative)
+
+# ----------------------------------------------------------------
+# Execution
+# ----------------------------------------------------------------
 
 if __name__ == "__main__":
     train_build()

@@ -26,6 +26,9 @@ from semisuper.helpers import num_rows, densify
 
 PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
 
+# ----------------------------------------------------------------
+# Cross-validation
+# ----------------------------------------------------------------
 
 def best_model_cross_val(P, N, U, fold=10):
     """determine best model, cross validate and return pipeline trained on all data"""
@@ -91,6 +94,10 @@ def eval_fold(model_record, P, N, U, i_splits):
     print("Fold no.", i, "acc", acc, "classification report:\n", classification_report(y_test, y_pred))
     return [pr, r, f1, acc]
 
+# ----------------------------------------------------------------
+# model selection
+# ----------------------------------------------------------------
+
 
 def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     """Evaluate parameter combinations, save results and return object with stats of all models"""
@@ -113,14 +120,15 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     preproc_params = {
         'df_min'        : [0.001],
         'df_max'        : [1.0],
-        'rules'         : [True],  # [True, False],
-        'lemmatize'     : [False],
+        'rules'         : [False],  # [True, False],
+        'ner'     : [False],
         'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
             # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
             # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 34%
 
+            # transformers.identitySelector,
             # partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
             # partial(transformers.percentile_selector, 'chi2', 20),
@@ -137,7 +145,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     }
 
     for wordgram, chargram in product(preproc_params['wordgram_range'], preproc_params['chargram_range']):
-        for r, l in product(preproc_params['rules'], preproc_params['lemmatize']):
+        for r, ner in product(preproc_params['rules'], preproc_params['ner']):
             for df_min, df_max in product(preproc_params['df_min'], preproc_params['df_max']):
                 for fs in preproc_params['feature_select']:
 
@@ -145,7 +153,8 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                         break
 
                     print("\n----------------------------------------------------------------",
-                          "\nwords:", wordgram, "chars:", chargram, "feature selection:", fs, "df_min:", df_min,
+                          "\nwords:", wordgram, "chars:", chargram, "feature selection:", fs,
+                          "df_min, df_max:", df_min, df_max, "rules, dict:", r, ner,
                           "\n----------------------------------------------------------------\n")
 
                     start_time = time.time()
@@ -158,7 +167,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                                                                                 min_df_word=df_min,
                                                                                 max_df=df_max,
                                                                                 feature_select=fs,
-                                                                                lemmatize=l,
+                                                                                ner=ner,
                                                                                 rules=r)
                     if selector:
                         P_train_, N_train_, U_train_ = [densify(selector.transform(vectorizer.transform(x)))
@@ -199,7 +208,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
                         m['n-grams'] = {'word': wordgram, 'char': chargram},
-                        m['rules, lemma'] = (r, l)
+                        m['rules, dict'] = (r, ner)
                         m['df_min, df_max'] = (df_min, df_max)
                         m['fs'] = fs()
                         if m['acc'] > results['best']['acc']:
@@ -247,13 +256,13 @@ def test_best(results, X_eval, y_eval):
 
 
 def prepare_train_test(trainData, testData, trainLabels, rules=True, wordgram_range=None, feature_select=None,
-                       chargram_range=None, lemmatize=True, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
+                       chargram_range=None, ner=False, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
     """prepare training and test vectors, vectorizer and selector for validating classifiers"""
 
     print("Fitting vectorizer, preparing training and test data")
 
     vectorizer = transformers.vectorizer(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
-                                         min_df_word=min_df_word, max_df=max_df, lemmatize=lemmatize, rules=rules)
+                                         min_df_word=min_df_word, max_df=max_df, ner=ner, rules=rules)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)
@@ -304,7 +313,7 @@ def print_results(results):
     print("\nBest:\n")
     best = results['best']
     print(best['name'], best['n-grams'], best['fs'],
-          "\nrules, lemma", best['rules, lemma'], "df_min, df_max", best['df_min, df_max'],
+          "\nrules, dict", best['rules, dict'], "df_min, df_max", best['df_min, df_max'],
           "\namount of U labelled as relevant:", best['U_ratio'],
           "\nstats: p={}\tr={}\tf1={}\tacc={}\t".format(best['p'], best['r'], best['f1'], best['acc']))
 
@@ -315,13 +324,15 @@ def print_results(results):
 def print_reports(i):
     """helper to print model stat object"""
     print(i[0]['n-grams'], i[0]['fs'],
-          "\nrules, lemma", i[0]['rules, lemma'], "df_min, df_max", i[0]['df_min, df_max'])
+          "\nrules, dict", i[0]['rules, dict'], "df_min, df_max", i[0]['df_min, df_max'])
 
     for m in i:
         print("\n{}:\tacc: {}, relevant ratio in U: {}, classification report:\n{}".format(
                 m['name'], m['acc'], m['U_ratio'], m['clsr']))
     return
 
+# ----------------------------------------------------------------
+# helpers
 
 def file_path(file_relative):
     """return the correct file path given the file's path relative to calling script"""
