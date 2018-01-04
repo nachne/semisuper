@@ -17,6 +17,8 @@ import semisuper.transformers as transformers
 from semisuper.helpers import num_rows, densify
 
 
+# TODO: whole file obsolete (only used in test script)
+
 def getBestModel(P_train, U_train, X_test, y_test):
     """Evaluate parameter combinations, save results and return pipeline with best model"""
 
@@ -158,7 +160,6 @@ def getBestModel(P_train, U_train, X_test, y_test):
     # ----------------------------------------------------------------
     # check how much of U (abstracts) is supposed to be positive
     # ----------------------------------------------------------------
-
 
     print("\nAmount of unlabelled training set classified as positive:")
     if selector:

@@ -41,20 +41,19 @@ print("TRAINING SET FROM",
       # ", HOC NEG"
       )
 corpus = (
-    []
-    + c
-    + a
+        []
+        + c
+        + a
     # + hp
     # + hn
     # + pp
     # + pn
 )
 
-
 corpus_test = (
-    []
-    + c_test
-    + a_test
+        []
+        + c_test
+        + a_test
     # + hp_test
     # + hn_test
     # + pp_test
@@ -110,7 +109,6 @@ print("\nHoC pos:")
 
 print("\nHoC neg:")
 [print(x, end="\t") for x in (label_dist(prepro.transform(hn_test), dictionary, lda))]
-
 
 print("\nPIBOSO outcome:")
 [print(x, end="\t") for x in (label_dist(prepro.transform(pp_test), dictionary, lda))]

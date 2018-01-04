@@ -11,6 +11,7 @@ import build_corpus
 from semisuper import loaders, super_model_selection
 from semisuper.helpers import num_rows
 
+
 def load_silver_standard(path=None):
     if path is None:
         path = file_path("./semisuper/output/silver_standard.tsv")
@@ -48,7 +49,7 @@ def build_classifier():
     corpus_csv = load_silver_standard()
     X_train, y_train = X_y_from_csv(corpus_csv)
 
-    model = super_model_selection.best_model_cross_val(X_train, y_train, fold=10)
+    model = super_model_selection.best_model_cross_val(X_train, y_train, fold=5)  # TODO restore 10
 
     new_abstracts = np.array(loaders.abstract_pmid_pos_sentences_query(anew=False, max_ids=1000))
     pmid, pos, text, title = [0, 1, 2, 3]
@@ -102,8 +103,8 @@ def build_classifier():
 
     start_time = time.time()
     y_sup = model.predict(np.vstack((test_abstracts[:, text],
-                                                  test_abstracts[:, pos].astype(float),
-                                                  test_abstracts[:, title])).T)
+                                     test_abstracts[:, pos].astype(float),
+                                     test_abstracts[:, title])).T)
     print("\nsupervised classification of", num_rows(test_abstracts),
           "sentences took %s seconds\n" % (time.time() - start_time))
 
@@ -113,12 +114,13 @@ def build_classifier():
           "sentences took %s seconds\n" % (time.time() - start_time))
 
     print("Supervised:", np.sum(y_sup), "inductive:", np.sum(y_semi),
-          "agreement:", np.size(np.where(y_sup==y_semi)) / num_rows(test_abstracts))
-    print(y_sup + 2*y_semi)
+          "agreement:", np.size(np.where(y_sup == y_semi)) / num_rows(test_abstracts))
+    print(y_sup + 2 * y_semi)
 
     # ----------------------------------------------------------------
 
     return model
+
 
 # ----------------------------------------------------------------
 

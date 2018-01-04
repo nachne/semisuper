@@ -43,6 +43,7 @@ def cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.2, alpha=16, beta=4, kernel=None
 
     return model
 
+
 # TODO: good default C param
 def roc_SVM(P, U, max_neg_ratio=0.1, alpha=16, beta=4, kernel=None, C=0.1, verbose=False):
     """Two-Step technique based on Rocchio and SVM
@@ -194,7 +195,6 @@ def roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, clf_selection=True,
 # FIRST STEP TECHNIQUES
 # ----------------------------------------------------------------
 
-# TODO shortcut I-EM (should be only a handful of iterations)
 def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise_lvl=0.05, verbose=False):
     """First step technique: Compute reliable negative docs from P using Spy Documents and I-EM"""
 
@@ -242,10 +242,6 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.20, alpha=16, beta=4, verbose=False)
     sims_P = mean_p_ranker.predict_proba(P)
     sims_U = mean_p_ranker.predict_proba(U)
 
-    # TODO write useful method for this; with PU-score, it's terrible
-    # noise_lvl = choose_noise_lvl(sims_P, sims_U)
-    # print("Choosing noise level that maximises score:", noise_lvl)
-
     if verbose: print("Choosing Potential Negative examples with ranking threshold")
     _, PN = select_PN_below_score(sims_P, U, sims_U, noise_lvl=noise_lvl, verbose=verbose)
 
@@ -276,7 +272,7 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_
         if verbose: print("\nBuilding classifier from Positive and Reliable Negative set")
     initial_model = build_proba_MNB(np.concatenate((P_init, RN)),
                                     np.concatenate((np.ones(num_rows(P_init)),
-                                                   np.zeros(num_rows(RN)))),
+                                                    np.zeros(num_rows(RN)))),
                                     verbose=verbose)
 
     if num_rows(U) == 0:
@@ -351,7 +347,6 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, clf_
     return new_model
 
 
-# TODO if linear kernel is sufficient, LinearSVC instead of SVC
 def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=0.1, n_estimators=9, verbose=False):
     """runs an SVM classifier trained on P and RN iteratively, augmenting RN
 
@@ -509,26 +504,3 @@ def em_getting_worse(old_model, new_model, P, U, verbose=False):
     if verbose: print("Delta_i:", Delta_i)
 
     return Delta_i > 0
-
-
-# TODO doesn't produce good results for CR-SVM (returns noise level 0, but >=20% work best)
-def choose_noise_lvl(sims_P, sims_U):
-    """selects the best percentage of assumed noise in terms of PU score (r_P^2 / Pr_{P+U} [f(X)=1])"""
-    lvls = [0.01 * x for x in range(50)]
-    scores = []
-
-    for lvl in lvls:
-        U_minus_PN, PN = select_PN_below_score(y_pos=sims_P, U=sims_U, y_U=sims_U,
-                                               noise_lvl=lvl)
-        y_U = [1] * num_rows(U_minus_PN) + \
-              [0] * num_rows(PN)
-        y_P = [1] * int((1 - lvl) * num_rows(sims_P)) + \
-              [0] * int((lvl) * num_rows(sims_P))
-
-        scores.append(pu_score(y_P, y_U))
-
-    [print(x) for x in zip(lvls, scores)]
-
-    return lvls[np.argmax(scores)]
-
-

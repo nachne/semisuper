@@ -158,7 +158,7 @@ def vectorize_preselection(P, U, ratio=1.0):
     return P_, U_, vec, sel
 
 
-def clean_corpus_pnu(mode=None, percentiles=[10, 25, 10], ratio=1.0):
+def clean_corpus_pnu(mode=None, percentiles=(10, 25, 10), ratio=1.0):
     """clean up HoC corpus using PU learning. Modes: "strict", "percentile", default
 
     default: remove CIViC-like from HoC[neg], HoC[neg]-like from CIViC
@@ -167,6 +167,8 @@ def clean_corpus_pnu(mode=None, percentiles=[10, 25, 10], ratio=1.0):
     """
 
     if mode == "percentile":
+        # Remove given best/worst percentile of sentences from each set
+
         print("\nRemoving CIViC-like sentences from HoC[neg] (", percentiles[0], "%)\n")
         hocneg_ = remove_most_similar_percent(U=hocneg, P=civic, ratio=ratio, percentile=percentiles[0])
 
@@ -176,7 +178,11 @@ def clean_corpus_pnu(mode=None, percentiles=[10, 25, 10], ratio=1.0):
         print("\nRemoving CIViC-unlike sentences from HoC[pos] (", percentiles[2], "%)\n")
         hocpos_ = remove_most_similar_percent(U=hocpos_, P=civic, ratio=ratio, percentile=percentiles[2],
                                               inverse=True)
+
     elif mode == "strict":
+        # Remove "good" sentences from HoC[neg], keep only "good" sentences in HoC[pos]
+        # (tends to overfit on differences between Civic + Abstracts VS. HoC)
+
         print("\nRemoving CIViC-like sentences from HoC[neg]\n")
         hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
 
@@ -184,15 +190,14 @@ def clean_corpus_pnu(mode=None, percentiles=[10, 25, 10], ratio=1.0):
         hocpos_ = remove_P_from_U(P=civic, U=hocpos, ratio=ratio, inverse=True)
 
     else:
+        # Remove "good" sentences from HoC[neg], remove "bad" sentences in HoC[pos]
+        # (seemsappears to be most reasonable choice)
+
         print("\nRemoving CIViC-like sentences from HoC[neg]\n")
         hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
 
         print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
         hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
-
-    # TODO obsolete (removes >90%) but show in paper
-    # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
-    # hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=civic, ratio=ratio, inverse=True)
 
     P_raw = np.concatenate((hocpos_, civic))
     U_raw = abstracts
@@ -237,7 +242,10 @@ def vectorized_clean_pnu(ratio=1.0):
     return P, N, U, vec, sel
 
 
-# TODO move
+# ------------------
+# Cleanup for PU learning: obsolete / only used in test script
+# ------------------
+
 def clean_corpus_pu(ratio=1.0):
     # remove worst percentage
     # print("\nRemoving CIViC-like sentences from HoC[neg]\n")

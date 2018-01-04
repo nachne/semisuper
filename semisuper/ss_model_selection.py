@@ -123,7 +123,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
         'df_min'        : [0.001],
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
-        'ner'           : [False], # [True, False],
+        'ner'           : [False],  # [True, False],
         'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [

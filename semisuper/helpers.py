@@ -35,13 +35,14 @@ def arrays(args):
     """make numpy arrays from args list"""
     return [np.array(a) for a in args]
 
+
 def partition(l, chunksize):
     l = list(l)
     start = 0
-    result=[]
-    for i in range(int(len(l)/chunksize)+1):
+    result = []
+    for i in range(int(len(l) / chunksize) + 1):
         chunksize = min(chunksize, len(l[start:]))
-        result.append(l[start:start+chunksize])
+        result.append(l[start:start + chunksize])
         start += chunksize
     return result
 
@@ -49,7 +50,7 @@ def partition(l, chunksize):
 def partition_pos_neg(X, y):
     """partitions X into elements where corresponding y element is nonzero VS zero"""
     if not np.isscalar(y[0]):
-        y = np.round(y[:,1])
+        y = np.round(y[:, 1])
     pos_idx = np.nonzero(y)
     neg_idx = np.ones(num_rows(y), dtype=bool)
     neg_idx[pos_idx] = False
@@ -84,9 +85,9 @@ def densify(X):
     else:
         return np.array(X)
 
-def ngrams(input_list, n):
-  return set(map("".join, zip(*[input_list[i:] for i in range(n)])))
 
+def ngrams(input_list, n):
+    return set(map("".join, zip(*[input_list[i:] for i in range(n)])))
 
 
 def pu_score(y_P, y_U):
@@ -116,7 +117,6 @@ def train_report(model, P, N):
     y_pred = model.predict(np.concatenate((P, N)))
     print(clsr([1. for _ in P] + [0. for _ in N], y_pred))
     return
-
 
 
 def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1, verbose=False):

@@ -58,7 +58,6 @@ def test_all(P, N, U, X_test=None, y_test=None, sample_sentences=False, outpath=
     # test_em(P, N, U, X_test, y_test, sample_sentences)
     # test_label_propagation(P, N, U, X_test, y_test)
 
-
     return
 
 
@@ -127,6 +126,7 @@ def test_self_training_linsvc(P, N, U, X_test=None, y_test=None, sample_sentence
     if sample_sentences:
         print_sentences(model, "Self-Training {} {}".format((clf or "LinearSVC"), confidence))
     return
+
 
 def test_neg_self_training(P, N, U, X_test=None, y_test=None, sample_sentences=False, clf=None):
     print("\n\n"

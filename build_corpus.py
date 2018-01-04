@@ -26,7 +26,7 @@ def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, rati
           "\tN (HoC unlabelled)", num_rows(N),
           "\tU (CIViC source abstracts)", num_rows(U))
 
-    best_pipeline = ss_model_selection.best_model_cross_val(P, N, U, fold=10)
+    best_pipeline = ss_model_selection.best_model_cross_val(P, N, U, fold=5)  # TODO restore 10
 
     if write or outpath:
         outpath = outpath or file_path("./semisuper/pickles/semi_pipeline.pickle")
@@ -38,7 +38,6 @@ def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, rati
 
 
 def save_silver_standard(pipeline, write=True, outpath=None):
-
     print("Building new silver standard")
 
     float_format = '%.4g'
@@ -73,7 +72,6 @@ def save_silver_standard(pipeline, write=True, outpath=None):
     return abs_classified
 
 
-
 def train_build(from_scratch=True, mode=None, ratio=1.0):
     now = datetime.now().strftime('%Y-%m-%d_%H-%M')
 
@@ -89,11 +87,13 @@ def train_build(from_scratch=True, mode=None, ratio=1.0):
 
     return silver_standard
 
+
 # ----------------------------------------------------------------
 
 def file_path(file_relative):
     """return the correct file path given the file's path relative to helpers"""
     return os.path.join(os.path.dirname(__file__), file_relative)
+
 
 # ----------------------------------------------------------------
 # Execution

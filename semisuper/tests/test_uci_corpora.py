@@ -1,7 +1,7 @@
-import semisuper.tests.load_test_corpora as test_corpus
+import semisuper.tests.test_uci_load_corpora as test_corpus
 from numpy import concatenate, shape
 
-from semisuper import pu_two_step, pu_biased_svm, pu_one_class_svm, ss_techniques, transformers
+from semisuper import pu_two_step, pu_biased_svm, ss_techniques, transformers
 from semisuper.helpers import densify, num_rows
 from sklearn.metrics import classification_report as clsr, accuracy_score
 
@@ -238,13 +238,11 @@ for tup in test_corpus.list_P_N_U_p_n_20_newsgroups(neg_noise=neg_noise,
     i += 1
     train_test_all_clfs_ss(prepare_corpus_ss(tup))
 
-
 print("---------------------------")
 print("---------------------------")
 print("PU LEARNING 20 NEWSGROUPS MAIN CATEGORIES")
 print("---------------------------")
 print("---------------------------")
-
 
 print("ONE-VS-REST PER CATEGORY,", (100.0 * newsgroups_ratio), "% OF DATA")
 i = 0
@@ -255,7 +253,6 @@ for tup in test_corpus.list_P_U_p_n_20_newsgroups(neg_noise=neg_noise,
     print("\nP := NEWSGROUP CATEGORY", i, "\n")
     i += 1
     train_test_all_clfs_pu(prepare_corpus_pu(tup))
-
 
 print("------------------------------------------------------------------------------------------------------------")
 sys.exit(0)

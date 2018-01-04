@@ -22,7 +22,7 @@ def build_proba_MNB(X, y, binary=True, verbose=False):
 
     clf = ProbaLabelMNB(alpha=0.1)
     if binary:
-        clf =Pipeline([('binarizer', Binarizer()), ('clf', clf)])
+        clf = Pipeline([('binarizer', Binarizer()), ('clf', clf)])
 
     model = clf.fit(X, y)
 

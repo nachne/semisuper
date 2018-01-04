@@ -37,7 +37,7 @@ def file_path(file_relative):
 # Tokenization
 # ----------------------------------------------------------------
 
-# TODO several or only one instance?
+# TODO how to run in parallel?
 tagger = GeniaTagger(file_path("./resources/geniatagger-3.0.2/geniatagger"))
 
 
@@ -134,16 +134,13 @@ def sentence_tokenize(text):
 class TextNormalizer(BaseEstimator, TransformerMixin):
     """replaces all non-ASCII characters by approximations, all numbers by 1"""
 
-    def __init__(self, individual_digits=True):
+    def __init__(self):
         return
 
     def fit(self, X=None, y=None):
         return self
 
     def transform(self, X):
-        return np.array([unidecode(x) for x in X])  # replace all numbers by "1"
-
-        # version without number replacement
         return np.array([unidecode(x) for x in X])
 
 
@@ -161,7 +158,6 @@ class DigitNormalizer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        # TODO check if these help
         return np.array([self.num.sub("1", x) for x in X])  # replace all numbers by "1"
 
 
@@ -236,10 +232,6 @@ lower_ahead = "(?=[a-z0-9])"
 nonw_behind = "(?<=\W)"
 
 prenormalize_dict = [
-    # replace ":" or whitespace after section headlines with dots so they will become separate sentences
-    # TODO check if this is better or worse (isolate headlines)
-    # (re.compile("(AIMS?|BACKGROUNDS?|METHODS?|RESULTS?|CONCLUSIONS?|PATIENTS?|FINDINGS?|FUNDINGS?)" "(:)"), r"\1. "),
-
     # common abbreviations
     (re.compile(nonw_behind + "[Ee]\.[Gg]\.\s" + lower_ahead), "e g  "),
     (re.compile(nonw_behind + "[Ee][Gg]\.\s" + lower_ahead), "e g "),
@@ -291,7 +283,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=
                                           ("preprocessor", TokenizePreprocessor(rules=rules, ner=ner)),
                                           ("word_tfidf", TfidfVectorizer(
                                                   analyzer='word',
-                                                  min_df=min_df_word,  # TODO find reasonable value (5 <= n << 50)
+                                                  min_df=min_df_word,
                                                   max_df=max_df,
                                                   tokenizer=helpers.identity,
                                                   preprocessor=None,
@@ -402,10 +394,11 @@ class TextLength(BaseEstimator, TransformerMixin):
     inverse_length: 1/(number of tokens)
     """
 
-    def __init__(self, inv_len=True, inv_tok_cnt=True):
+    def __init__(self, inv_len=True, inv_tok_cnt=False):
         key_dict = {
             'inv_len'    : inv_len,
             'inv_tok_cnt': inv_tok_cnt,
+            'zero'       : 'zero'  # TODO delete fake feature
         }
 
         self.key_dict = {key: key for key in key_dict if key_dict[key]}
@@ -421,7 +414,8 @@ class TextLength(BaseEstimator, TransformerMixin):
                 'inv_len'    : 1.0 / len(sentence)
                 if sentence and self.key_dict.get("inv_len") else 1.0,
                 'inv_tok_cnt': (1.0 / len(re.split("\s+", sentence)))
-                if self.key_dict.get("inv_tok_cnt") else 1.0
+                if self.key_dict.get("inv_tok_cnt") else 1.0,
+                'zero'       : 0  # TODO delete fake feature
             }
 
     def get_feature_names(self):

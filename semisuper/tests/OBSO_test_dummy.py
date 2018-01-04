@@ -41,7 +41,6 @@ print("\n\n"
 # comment out for quick testing of existing model
 model = SGDClassifier().fit(X, y)
 
-
 # ----------------------------------------------------------------
 
 print("civic: prediction", np.sum(model.predict(vec.transform(civic))), "/", len(civic))
@@ -51,8 +50,6 @@ print("abstracts: prediction", np.sum(model.predict(vec.transform(abstracts))), 
 print("hocpos: prediction", np.sum(model.predict(vec.transform(hocpos))), "/", len(hocpos))
 
 print("hocneg: prediction", np.sum(model.predict(vec.transform(hocneg))), "/", len(hocneg))
-
-
 
 # ----------------------------------------------------------------
 
@@ -69,22 +66,20 @@ lab_civ = pd.DataFrame(data={"Label" : model.predict(vec.transform(civic)),
                              "Tokens": preppy.transform(civic)},
                        columns=["Label", "Text", "Tokens"])
 
-
 lab_abs = pd.DataFrame(data={"Label" : model.predict(vec.transform(abstracts)),
                              "Text"  : abstracts,
                              "Tokens": preppy.transform(abstracts)},
                        columns=["Label", "Text", "Tokens"])
 
 lab_hocpos = pd.DataFrame(data={"Label" : model.predict(vec.transform(hocpos)),
-                             "Text"  : hocpos,
-                             "Tokens": preppy.transform(hocpos)},
-                       columns=["Label", "Text", "Tokens"])
+                                "Text"  : hocpos,
+                                "Tokens": preppy.transform(hocpos)},
+                          columns=["Label", "Text", "Tokens"])
 
 lab_hocneg = pd.DataFrame(data={"Label" : model.predict(vec.transform(hocneg)),
-                             "Text"  : hocneg,
-                             "Tokens": preppy.transform(hocneg)},
-                       columns=["Label", "Text", "Tokens"])
-
+                                "Text"  : hocneg,
+                                "Tokens": preppy.transform(hocneg)},
+                          columns=["Label", "Text", "Tokens"])
 
 # lab_oth = pd.DataFrame(data={"Label" : model.predict(vec.transform(piboso_other)),
 #                              "Text"  : piboso_other,
@@ -103,4 +98,3 @@ lab_hocneg = pd.DataFrame(data={"Label" : model.predict(vec.transform(hocneg)),
 # lab_abs.to_csv("../output/labelled_dummy_abstracts.csv")
 # lab_oth.to_csv("../output/labelled_dummy_other.csv")
 # lab_out.to_csv("../output/labelled_dummy_outcome.csv")
-

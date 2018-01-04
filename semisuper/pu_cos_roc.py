@@ -10,8 +10,6 @@ from sklearn.preprocessing import normalize
 # pipeline builders
 # ----------------------------------------------------------------
 
-
-# TODO: compute somewhat more meaningful threshold
 def ranking_cos_sim(X, threshold=0.1, compute_thresh=False):
     """fits mean training vector and predicts whether cosine similarity is above threshold (default: 0.0)
 
@@ -55,7 +53,7 @@ class SimRanker(BaseEstimator, ClassifierMixin):
         self.threshold = threshold
         self.compute_thresh = compute_thresh
         self.mean_X = None
-        self.verbose=verbose
+        self.verbose = verbose
         return
 
     def fit(self, X, y=None):
@@ -119,9 +117,9 @@ class BinaryRocchio(BaseEstimator, ClassifierMixin):
 
         proba = (sim_p - sim_n) / 2 + 0.5
 
-        return vstack((1-proba, proba)).T
+        return vstack((1 - proba, proba)).T
 
     def predict(self, X):
-        proba = self.predict_proba(X)[:,1]
+        proba = self.predict_proba(X)[:, 1]
 
         return proba.round()

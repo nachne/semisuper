@@ -54,7 +54,6 @@ def biased_SVM_weight_selection(P, U,
     """run biased SVMs with combinations of class weight values, choose the one with the best pu_measure"""
 
     # default values
-    # TODO refactor parameters, find good range of pos and neg weights
     if Cs is None:
         Cs = [10 ** x for x in range(-12, 12, 2)]
     if Cs_neg is None:
@@ -67,7 +66,7 @@ def biased_SVM_weight_selection(P, U,
 
     if verbose:
         print("Running Biased-SVM with range of C and positive class weight factors.",
-          num_rows(Cs), "parameter combinations.")
+              num_rows(Cs), "parameter combinations.")
 
     P_train, P_test = train_test_split(P, test_size=test_size)
     U_train, U_test = train_test_split(U, test_size=test_size)

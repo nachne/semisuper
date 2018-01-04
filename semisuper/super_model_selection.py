@@ -198,8 +198,8 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
         'df_max'        : [1.0],
         'rules'         : [False],  # [True, False],
         'ner'           : [False],
-        'wordgram_range': [(1, 1), (1, 2), (1, 3)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [(2, 5)],  # [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [(1, 3)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [(2, 6)],  # [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
             # transformers.identitySelector,
             # partial(transformers.percentile_selector, 'chi2', 30),

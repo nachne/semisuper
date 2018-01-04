@@ -47,12 +47,10 @@ best_pipeline = Pipeline([('vectorizer', best['vectorizer']),
                           ('clf', best['model'])])
 
 abstracts = np.array(abstracts2pmid_pos_sentence_title())
-y = best_pipeline.predict(abstracts[:,2])
-conf = best_pipeline.decision_function(abstracts[:,2])
+y = best_pipeline.predict(abstracts[:, 2])
+conf = best_pipeline.decision_function(abstracts[:, 2])
 
-abs_clfd = list(zip(y, conf, abstracts[:,1], abstracts[:,2]))
+abs_clfd = list(zip(y, conf, abstracts[:, 1], abstracts[:, 2]))
 
-for i in range(0,20):
-      print(abs_clfd[i])
-
-
+for i in range(0, 20):
+    print(abs_clfd[i])
