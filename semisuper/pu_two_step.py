@@ -436,7 +436,7 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
 
         if verbose: print("Ratio of positive examples misclassified as negative by final SVM:", final_neg_ratio)
 
-        if final_neg_ratio > max_neg_ratio:
+        if final_neg_ratio > max_neg_ratio and final_neg_ratio > initial_neg_ratio:
             print(iteration, "iterations - final SVM discards too many positive examples.",
                   "Returning initial SVM instead")
 

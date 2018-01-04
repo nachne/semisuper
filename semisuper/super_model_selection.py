@@ -196,15 +196,15 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
     preproc_params = {
         'df_min'        : [0.001],
         'df_max'        : [1.0],
-        'rules'         : [True, False],  # [True, False],
-        'ner'           : [True, False],
+        'rules'         : [False],  # [True, False],
+        'ner'           : [False],
         'wordgram_range': [(1, 1), (1, 2), (1, 3)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [None],  # [(2, 5)],  # [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
+        'chargram_range': [(2, 5)],  # [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
-            transformers.identitySelector,
+            # transformers.identitySelector,
             # partial(transformers.percentile_selector, 'chi2', 30),
             # partial(transformers.percentile_selector, 'chi2', 25),
-            # partial(transformers.percentile_selector, 'chi2', 20),
+            partial(transformers.percentile_selector, 'chi2', 20),
             # partial(transformers.percentile_selector, 'f', 30),
             # partial(transformers.percentile_selector, 'f', 25),
             # partial(transformers.percentile_selector, 'f', 20),
@@ -216,6 +216,9 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
             # partial(transformers.factorization, 'TruncatedSVD', 1000),
             # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
             # partial(transformers.factorization, 'TruncatedSVD', 3000),
+            partial(transformers.select_from_l1_svc, 1.0, 1e-3),
+            partial(transformers.select_from_l1_svc, 0.5, 1e-3),
+            # partial(transformers.select_from_l1_svc, 0.1, 1e-3),
         ]
     }
 

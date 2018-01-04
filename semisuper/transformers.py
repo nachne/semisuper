@@ -11,25 +11,34 @@ from nltk import pos_tag
 from nltk import sent_tokenize
 from nltk.corpus import stopwords, wordnet
 
-import spacy
-
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD, PCA, SparsePCA, FactorAnalysis
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_selection import chi2, SelectPercentile, f_classif, mutual_info_classif
+from sklearn.feature_selection import chi2, SelectPercentile, f_classif, mutual_info_classif, SelectFromModel
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.svm import LinearSVC
 from unidecode import unidecode
+from geniatagger import GeniaTagger
 
 from semisuper import helpers
+
+MIN_LEN = 8
+
+
+def file_path(file_relative):
+    """return the correct file path given the file's path relative to calling script"""
+    return os.path.join(os.path.dirname(__file__), file_relative)
+
 
 # ----------------------------------------------------------------
 # Tokenization
 # ----------------------------------------------------------------
 
-MIN_LEN = 8
+# TODO several or only one instance?
+tagger = GeniaTagger(file_path("./resources/geniatagger-3.0.2/geniatagger"))
 
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
@@ -39,9 +48,9 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         self.punct = punct or set(string.punctuation).difference(set('%='))
 
         self.rules = rules
-
         self.ner = ner
-        # self.nlp = spacy.load("en")
+
+        self.genia = True
 
         self.splitters = re.compile("-->|->|[-/.,|<>]")
 
@@ -71,16 +80,28 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         if len(sentence) < MIN_LEN:
             return []
 
-        for token, tag in pos_tag(self.tokenizer.tokenize(sentence)):
-            # Apply preprocessing to the token
-            token_nrm = self.normalize_token(token, tag)
-            subtokens = [self.normalize_token(t, tag) for t in self.splitters.split(token_nrm)]
+        if self.genia:
+            for token, base, pos, chunk, ne in tagger.parse(sentence):
+                # Apply preprocessing to the token
+                token_nrm = self.normalize_token(token, pos)
 
-            for subtoken in subtokens:
+                # TODO split into subtokens or not?
+
                 # If punctuation, ignore token and continue
-                if all(char in self.punct for char in token):
+                if all(char in self.punct for char in token_nrm):
                     continue
-                yield subtoken, tag
+                yield token_nrm, pos
+        else:
+            for token, pos in pos_tag(self.tokenizer.tokenize(sentence)):
+                # Apply preprocessing to the token
+                token_nrm = self.normalize_token(token, pos)
+                subtokens = [self.normalize_token(t, pos) for t in self.splitters.split(token_nrm)]
+
+                for subtoken in subtokens:
+                    # If punctuation, ignore token and continue
+                    if all(char in self.punct for char in token):
+                        continue
+                    yield subtoken, pos
 
     def normalize_token(self, token, tag):
         # Apply preprocessing to the token
@@ -90,14 +111,12 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
 
         token = token.lower() if self.lower else token
 
-
         if self.ner:
             token = self.dict_mapper.replace(token)
         if self.rules:
             token = map_regex_concepts(token)
 
         return token
-
 
 
 def sentence_tokenize(text):
@@ -116,6 +135,22 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
     """replaces all non-ASCII characters by approximations, all numbers by 1"""
 
     def __init__(self, individual_digits=True):
+        return
+
+    def fit(self, X=None, y=None):
+        return self
+
+    def transform(self, X):
+        return np.array([unidecode(x) for x in X])  # replace all numbers by "1"
+
+        # version without number replacement
+        return np.array([unidecode(x) for x in X])
+
+
+class DigitNormalizer(BaseEstimator, TransformerMixin):
+    """replaces all non-ASCII characters by approximations, all numbers by 1"""
+
+    def __init__(self, individual_digits=True):
         if individual_digits:
             self.num = re.compile("\d")
         else:
@@ -127,10 +162,7 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         # TODO check if these help
-        return np.array([self.num.sub("1", unidecode(x)) for x in X])  # replace all numbers by "1"
-
-        # version without number replacement
-        return np.array([unidecode(x) for x in X])
+        return np.array([self.num.sub("1", x) for x in X])  # replace all numbers by "1"
 
 
 def map_regex_concepts(token):
@@ -270,6 +302,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=
                                       ])),
                                       ("chargrams", None if chargrams is None else
                                       FeatureNamePipeline([
+                                          ("normalize_digits", DigitNormalizer()),
                                           ("char_tfidf", TfidfVectorizer(
                                                   analyzer='char',
                                                   min_df=min_df_char,
@@ -321,6 +354,11 @@ def percentile_selector(score_func='chi2', percentile=20):
 
     print("Supervised feature selection:,", percentile, "-th percentile in terms of", func)
     return SelectPercentile(score_func=func, percentile=percentile)
+
+
+def select_from_l1_svc(C=0.1, tol=1e-3, threshold="0.5*mean"):
+    return SelectFromModel(LinearSVC(C=C, penalty="l1", dual=False, tol=tol),
+                           prefit=False, threshold=threshold)
 
 
 def factorization(method='TruncatedSVD', n_components=10):
@@ -486,10 +524,9 @@ class HypernymMapper(DictReplacer):
 
         # only single words and no URLs etc
         illegal_substrs = re.compile("\s|\\\\|\.gov|\.org|\.com|http|www|^n=")
-        num = re.compile("\d")
 
         for line in source["Mentions"]:
-            for word in num.sub("1", str(line)).split("|"):
+            for word in str(line).split("|"):
                 # only include single words not appearing in normal language
                 if not (illegal_substrs.findall(word)
                         or word in common_words
@@ -552,8 +589,3 @@ class FeatureNamePipeline(Pipeline):
 
     def get_feature_names(self):
         return self._final_estimator.get_feature_names()
-
-
-def file_path(file_relative):
-    """return the correct file path given the file's path relative to calling script"""
-    return os.path.join(os.path.dirname(__file__), file_relative)

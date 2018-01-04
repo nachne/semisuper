@@ -26,6 +26,7 @@ from semisuper.helpers import num_rows, densify
 
 PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
 
+
 # ----------------------------------------------------------------
 # Cross-validation
 # ----------------------------------------------------------------
@@ -94,6 +95,7 @@ def eval_fold(model_record, P, N, U, i_splits):
     print("Fold no.", i, "acc", acc, "classification report:\n", classification_report(y_test, y_pred))
     return [pr, r, f1, acc]
 
+
 # ----------------------------------------------------------------
 # model selection
 # ----------------------------------------------------------------
@@ -120,8 +122,8 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     preproc_params = {
         'df_min'        : [0.001],
         'df_max'        : [1.0],
-        'rules'         : [False],  # [True, False],
-        'ner'     : [False],
+        'rules'         : [True],  # [True, False],
+        'ner'           : [False], # [True, False],
         'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
@@ -141,6 +143,9 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
             # partial(transformers.factorization, 'TruncatedSVD', 1000),
             # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
             # partial(transformers.factorization, 'TruncatedSVD', 3000),
+            partial(transformers.select_from_l1_svc, 1.0, 1e-3),
+            partial(transformers.select_from_l1_svc, 0.5, 1e-3),
+            # partial(transformers.select_from_l1_svc, 0.1, 1e-3),
         ]
     }
 
@@ -330,6 +335,7 @@ def print_reports(i):
         print("\n{}:\tacc: {}, relevant ratio in U: {}, classification report:\n{}".format(
                 m['name'], m['acc'], m['U_ratio'], m['clsr']))
     return
+
 
 # ----------------------------------------------------------------
 # helpers
