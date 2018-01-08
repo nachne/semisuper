@@ -4,6 +4,7 @@ import pickle
 import re
 import string
 from functools import partial
+import subprocess
 
 import pandas as pd
 from nltk import TreebankWordTokenizer
@@ -21,9 +22,14 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.svm import LinearSVC
 from unidecode import unidecode
-from geniatagger import GeniaTagger
+from geniatagger import GeniaTagger, GeniaTaggerClient
 
 from semisuper import helpers
+
+# ----------------------------------------------------------------
+# Required globals
+# ----------------------------------------------------------------
+
 
 MIN_LEN = 8
 
@@ -33,13 +39,28 @@ def file_path(file_relative):
     return os.path.join(os.path.dirname(__file__), file_relative)
 
 
+def new_genia_tagger():
+    return GeniaTagger(file_path("./resources/geniatagger-3.0.2/geniatagger"))
+
+
+def genia_tagger_server(port=9595):
+    p = subprocess.Popen(["geniatagger-server",
+                          "./semisuper/resources/geniatagger-3.0.2/geniatagger",
+                          "-p {}".format(port)])
+    return p
+
+
+def genia_tagger_client(port=9595):
+    return GeniaTaggerClient(port=port)
+
+
+# TODO how to run in parallel/with sklearn?
+# tagger = new_genia_tagger()
+
+
 # ----------------------------------------------------------------
 # Tokenization
 # ----------------------------------------------------------------
-
-# TODO how to run in parallel?
-tagger = GeniaTagger(file_path("./resources/geniatagger-3.0.2/geniatagger"))
-
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
     def __init__(self, punct=None, lower=True, strip=True, ner=False, rules=True):
@@ -51,6 +72,9 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         self.ner = ner
 
         self.genia = True
+        self.tagger = None
+        # self.tagger_server = None if not self.genia else self.new_genia_server()
+        # self.tagger = None if not self.genia else self.new_genia_client()
 
         self.splitters = re.compile("-->|->|[-/.,|<>]")
 
@@ -64,23 +88,30 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         return [", ".join(doc) for doc in X]
 
     def transform(self, X):
-        return [self.representation(sentence) for sentence in X]
 
-    def representation(self, sentence):
+        tagger = None if not self.genia else new_genia_tagger()
 
-        tokens_tags = list(self.tokenize(sentence))
+        result = [self.representation(sentence, tagger) for sentence in X]
+
+        return result
+
+    def representation(self, sentence, tagger = None):
+
+        tokens_tags = list(self.tokenize(sentence, tagger))
+
         if not tokens_tags:
             return ["_empty_sentence_"]
         return [t for (t, p) in tokens_tags]
 
-    def tokenize(self, sentence):
+
+    def tokenize(self, sentence, tagger=None):
         """break sentence into pos-tagged tokens; normalize and split on hyphens"""
 
         # extremely short sentences shall be ignored by next steps
         if len(sentence) < MIN_LEN:
             return []
 
-        if self.genia:
+        if tagger is not None:
             for token, base, pos, chunk, ne in tagger.parse(sentence):
                 # Apply preprocessing to the token
                 token_nrm = self.normalize_token(token, pos)
@@ -117,6 +148,17 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
             token = map_regex_concepts(token)
 
         return token
+
+    def new_genia_server(self, port=9595):
+        return genia_tagger_server(port)
+
+    def new_genia_client(self, port=9595):
+        tagger = genia_tagger_client(port)
+        try:
+            tagger.parse("test")
+        except:
+            self.tagger_server = self.new_genia_server(port)
+        return tagger
 
 
 def sentence_tokenize(text):
@@ -270,7 +312,7 @@ prenormalize_dict = [
 # ----------------------------------------------------------------
 
 
-def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, ner=False, rules=True,
+def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_word=0.001, ner=False, rules=True,
                max_df=1.0, binary=False, normalize=True, stats="length"):
     """Return pipeline that concatenates features from word and character n-grams and text stats"""
 

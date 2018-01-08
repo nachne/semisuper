@@ -134,8 +134,9 @@ def vectorize_preselection(P, U, ratio=1.0):
     """generate and select features for ratio of sentence sets"""
 
     print("Preprocessing corpora for PU learning")
-    print("Training on", 100 * ratio, "% of data")
+
     if ratio < 1.0:
+        print("Training on", 100 * ratio, "% of data")
         P, _ = train_test_split(P, train_size=ratio)
         U, _ = train_test_split(U, train_size=ratio)
 
