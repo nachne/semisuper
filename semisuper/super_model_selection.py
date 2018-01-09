@@ -216,8 +216,8 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
             # partial(transformers.factorization, 'TruncatedSVD', 1000),
             # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
             # partial(transformers.factorization, 'TruncatedSVD', 3000),
-            partial(transformers.select_from_l1_svc, 1.0, 1e-3),
-            partial(transformers.select_from_l1_svc, 0.5, 1e-3),
+            # partial(transformers.select_from_l1_svc, 1.0, 1e-3),
+            # partial(transformers.select_from_l1_svc, 0.5, 1e-3),
             # partial(transformers.select_from_l1_svc, 0.1, 1e-3),
         ]
     }

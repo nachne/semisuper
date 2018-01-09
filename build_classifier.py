@@ -69,7 +69,7 @@ def build_classifier():
 
     print("\nInductive Semi-Supervised model\n")
 
-    semi_pipeline = build_corpus.train_pipeline(from_scratch=False)
+    semi_pipeline = build_corpus.train_pipeline(from_scratch=False, ratio=0.25)
 
     # y_corpus_true = corpus_csv["label"].values.astype(int)
     # X_corpus = corpus_csv["text"].values

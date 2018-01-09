@@ -100,4 +100,4 @@ def file_path(file_relative):
 # ----------------------------------------------------------------
 
 if __name__ == "__main__":
-    train_build(ratio=0.25)
+    train_build(ratio=1.0)

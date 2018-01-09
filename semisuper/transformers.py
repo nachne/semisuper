@@ -54,7 +54,7 @@ def genia_tagger_client(port=9595):
     return GeniaTaggerClient(port=port)
 
 
-# TODO how to run in parallel/with sklearn?
+# TODO how to run in parallel?
 # tagger = new_genia_tagger()
 
 
@@ -72,7 +72,9 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         self.ner = ner
 
         self.genia = True
-        self.tagger = None
+        if self.genia:
+            self.create_global_tagger()
+
         # self.tagger_server = None if not self.genia else self.new_genia_server()
         # self.tagger = None if not self.genia else self.new_genia_client()
 
@@ -88,30 +90,29 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         return [", ".join(doc) for doc in X]
 
     def transform(self, X):
+        return [self.representation(sentence) for sentence in X]
 
-        tagger = None if not self.genia else new_genia_tagger()
+    def representation(self, sentence):
 
-        result = [self.representation(sentence, tagger) for sentence in X]
-
-        return result
-
-    def representation(self, sentence, tagger = None):
-
-        tokens_tags = list(self.tokenize(sentence, tagger))
-
+        tokens_tags = list(self.tokenize(sentence))
         if not tokens_tags:
             return ["_empty_sentence_"]
         return [t for (t, p) in tokens_tags]
 
-
-    def tokenize(self, sentence, tagger=None):
+    def tokenize(self, sentence):
         """break sentence into pos-tagged tokens; normalize and split on hyphens"""
 
         # extremely short sentences shall be ignored by next steps
         if len(sentence) < MIN_LEN:
             return []
 
-        if tagger is not None:
+        if self.genia:
+            try:
+                global tagger
+                tagger.parse("test")
+            except:
+                self.create_global_tagger()
+
             for token, base, pos, chunk, ne in tagger.parse(sentence):
                 # Apply preprocessing to the token
                 token_nrm = self.normalize_token(token, pos)
@@ -149,16 +150,13 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
 
         return token
 
-    def new_genia_server(self, port=9595):
-        return genia_tagger_server(port)
-
-    def new_genia_client(self, port=9595):
-        tagger = genia_tagger_client(port)
-        try:
-            tagger.parse("test")
-        except:
-            self.tagger_server = self.new_genia_server(port)
-        return tagger
+    def create_global_tagger(self):
+        """hacky solution for using GENIA tagger and still being picklable"""
+        # TODO this is ugly and horrible, try to find another solution
+        print("Instantiating new GENIA tagger")
+        global tagger
+        tagger = new_genia_tagger()
+        return
 
 
 def sentence_tokenize(text):
