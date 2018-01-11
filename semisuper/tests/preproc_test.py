@@ -29,19 +29,19 @@ print("PIBOSO other sentences:", len(piboso_other))
 # Pipeline
 # ----------------------------------------------------------------
 
-min_df_word = 20
-min_df_char = 50
-n_components = 100
-print("min_df: \tword:", min_df_word, "\tchar:", min_df_char, "\tn_components:", n_components)
-
-v = vectorizer(chargrams=(2, 6), min_df_char=min_df_char, wordgrams=(1, 4), min_df_word=min_df_word, ner=True,
-               rules=True, max_df=0.95)
-s = factorization('TruncatedSVD')
-
-pppl = Pipeline([
-    ('vectorizer', v),
-    ('selector', s)
-])
+# min_df_word = 20
+# min_df_char = 50
+# n_components = 100
+# print("min_df: \tword:", min_df_word, "\tchar:", min_df_char, "\tn_components:", n_components)
+#
+# v = vectorizer(chargrams=(2, 6), min_df_char=min_df_char, wordgrams=(1, 4), min_df_word=min_df_word, ner=True,
+#                rules=True, max_df=0.95)
+# s = factorization('TruncatedSVD')
+#
+# pppl = Pipeline([
+#     ('vectorizer', v),
+#     ('selector', s)
+# ])
 
 # ----------------------------------------------------------------
 # Regex tests
@@ -49,7 +49,7 @@ pppl = Pipeline([
 
 
 pp = Pipeline([("normalizer", TextNormalizer()),
-               ("preprocessor", TokenizePreprocessor(ner=False, rules=True))])
+               ("preprocessor", TokenizePreprocessor(rules=True, genia=True, ner=True, pos=True))])
 
 # ----------------------------------------------------------------
 # Regex tests

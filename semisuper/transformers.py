@@ -1,28 +1,28 @@
-import multiprocessing as multi
 import os.path
-import pickle
 import re
 import string
-from functools import partial
 import subprocess
+from functools import partial
 
+# TODO remove
+import pickle
 import pandas as pd
-from nltk import TreebankWordTokenizer
-from nltk import pos_tag
-from nltk import sent_tokenize
-from nltk.corpus import stopwords, wordnet
+import multiprocessing as multi
+from nltk.corpus import wordnet, stopwords
 
 import numpy as np
+from geniatagger import GeniaTagger, GeniaTaggerClient
+from nltk import TreebankWordTokenizer
+from nltk import sent_tokenize
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD, PCA, SparsePCA, FactorAnalysis
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2, SelectPercentile, f_classif, mutual_info_classif, SelectFromModel
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import LinearSVC
 from unidecode import unidecode
-from geniatagger import GeniaTagger, GeniaTaggerClient
 
 from semisuper import helpers
 
@@ -63,41 +63,91 @@ def genia_tagger_client(port=9595):
 # ----------------------------------------------------------------
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, punct=None, lower=True, strip=True, ner=False, rules=True):
-        self.lower = lower
-        self.strip = strip
-        self.punct = punct or set(string.punctuation).difference(set('%='))
+    def __init__(self, rules=True, genia=True, ner=True, pos=False):
 
-        self.rules = rules
-        self.ner = ner
+        self.punct = set(string.punctuation).difference(set('%='))
 
-        self.genia = True
+        self.genia = genia
         if self.genia:
             self.create_global_tagger()
 
-        # self.tagger_server = None if not self.genia else self.new_genia_server()
-        # self.tagger = None if not self.genia else self.new_genia_client()
+        self.chunks = True
+        self.pos = pos if not self.chunks else False
+        self.rules = rules
+        self.ner = ner
 
-        self.splitters = re.compile("-->|->|[-/.,|<>]")
+        self.splitters = re.compile("[-/.,|<>]")
 
-        self.dict_mapper = HypernymMapper()
         self.tokenizer = TreebankWordTokenizer()
 
-    def fit(self, X, y=None):
+    def fit(self, X=None, y=None):
         return self
 
     def inverse_transform(self, X):
         return [", ".join(doc) for doc in X]
 
     def transform(self, X):
-        return [self.representation(sentence) for sentence in X]
+        if self.genia:
+            try:
+                global tagger
+                tagger.parse("test")
+            except:
+                self.create_global_tagger()
+            return [self.genia_representation(sentence) for sentence in X]
+        else:
+            return [self.token_representation(sentence) for sentence in X]
 
-    def representation(self, sentence):
+    def genia_representation(self, sentence):
+        if self.chunks:
+            return list(self.genia_base_chunks(sentence))
+        if self.ner:
+            return list(self.genia_tokenize_replace_ne(sentence))
+        else:
+            return list(self.genia_tokenize(sentence))
 
-        tokens_tags = list(self.tokenize(sentence))
-        if not tokens_tags:
-            return ["_empty_sentence_"]
-        return [t for (t, p) in tokens_tags]
+    def genia_base_chunks(self, sentence):
+        chunk_tmp = ""
+
+        for token, base, pos, chunk, ne in tagger.parse(sentence):
+            if chunk[0] == 'I':
+                if not all(char in self.punct for char in base):
+                    chunk_tmp += " " + self.normalize_token(base)
+            else:
+                if chunk_tmp:
+                    yield chunk_tmp
+                if not all(char in self.punct for char in base):
+                    chunk_tmp = self.normalize_token(base)
+                else:
+                    chunk_tmp = ""
+        if chunk_tmp:
+            yield chunk_tmp
+
+    def genia_tokenize_replace_ne(self, sentence):
+        for token, base, pos, chunk, ne in tagger.parse(sentence):
+            if ne[0] == 'I':
+                pass
+            elif ne[0] == 'B':
+                yield ("_" + ne[2:] + "_" + (" " + pos if self.pos else ""))
+            else:
+                if not all(char in self.punct for char in token):
+                    yield (self.normalize_token(token) + (" " + pos if self.pos else ""))
+
+    def genia_tokenize(self, sentence):
+        for token, base, pos, chunk, ne in tagger.parse(sentence):
+            # Apply preprocessing to the token
+            token_nrm = self.normalize_token(token)
+
+            # If punctuation, ignore token and continue
+            if all(char in self.punct for char in token_nrm):
+                continue
+            if self.pos:
+                yield token_nrm + " " + pos
+            else:
+                yield token_nrm
+
+    def token_representation(self, sentence):
+        tokens = list(self.tokenize(sentence))
+        return tokens if tokens else ["_empty_sentence_"]
 
     def tokenize(self, sentence):
         """break sentence into pos-tagged tokens; normalize and split on hyphens"""
@@ -106,45 +156,21 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         if len(sentence) < MIN_LEN:
             return []
 
-        if self.genia:
-            try:
-                global tagger
-                tagger.parse("test")
-            except:
-                self.create_global_tagger()
+        for token in self.tokenizer.tokenize(sentence):
+            # Apply preprocessing to the token
+            token_nrm = self.normalize_token(token)
+            subtokens = [self.normalize_token(t) for t in self.splitters.split(token_nrm)]
 
-            for token, base, pos, chunk, ne in tagger.parse(sentence):
-                # Apply preprocessing to the token
-                token_nrm = self.normalize_token(token, pos)
-
-                # TODO split into subtokens or not?
-
+            for subtoken in subtokens:
                 # If punctuation, ignore token and continue
-                if all(char in self.punct for char in token_nrm):
+                if all(char in self.punct for char in token):
                     continue
-                yield token_nrm, pos
-        else:
-            for token, pos in pos_tag(self.tokenizer.tokenize(sentence)):
-                # Apply preprocessing to the token
-                token_nrm = self.normalize_token(token, pos)
-                subtokens = [self.normalize_token(t, pos) for t in self.splitters.split(token_nrm)]
+                yield subtoken
 
-                for subtoken in subtokens:
-                    # If punctuation, ignore token and continue
-                    if all(char in self.punct for char in token):
-                        continue
-                    yield subtoken, pos
-
-    def normalize_token(self, token, tag):
+    def normalize_token(self, token):
         # Apply preprocessing to the token
-        token = token.strip() if self.strip else token
-        token = token.strip('*') if self.strip else token
-        token = token.strip('.') if self.strip else token
+        token = token.lower().strip().strip('*').strip('.')
 
-        token = token.lower() if self.lower else token
-
-        if self.ner:
-            token = self.dict_mapper.replace(token)
         if self.rules:
             token = map_regex_concepts(token)
 
@@ -152,23 +178,20 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
 
     def create_global_tagger(self):
         """hacky solution for using GENIA tagger and still being picklable"""
-        # TODO this is ugly and horrible, try to find another solution
+        # TODO this is ugly, try to find another solution
         print("Instantiating new GENIA tagger")
         global tagger
         tagger = new_genia_tagger()
         return
 
 
+# ----------------------------------------------------------------
+# Sentence splitting, Normalization, RegEx based replacement
+# ----------------------------------------------------------------
+
 def sentence_tokenize(text):
     """tokenize text into sentences after simple normalization"""
-
-    # return PubMedSentenceTokenizer().tokenize(prenormalize(text))
-
     return sent_tokenize(prenormalize(text))
-
-
-# ----------------------------------------------------------------
-# Normalization, RegEx based replacement
 
 
 class TextNormalizer(BaseEstimator, TransformerMixin):
@@ -269,32 +292,33 @@ def prenormalize(text):
 
 
 lower_ahead = "(?=[a-z0-9])"
-nonw_behind = "(?<=\W)"
+nonword_behind = "(?<=\W)"
 
 prenormalize_dict = [
     # common abbreviations
-    (re.compile(nonw_behind + "[Ee]\.[Gg]\.\s" + lower_ahead), "e g  "),
-    (re.compile(nonw_behind + "[Ee][Gg]\.\s" + lower_ahead), "e g "),
-    (re.compile(nonw_behind + "[Ii]\.[Ee]\.\s" + lower_ahead), "i e  "),
-    (re.compile(nonw_behind + "[Ii][Ee]\.\s" + lower_ahead), "i e "),
-    (re.compile(nonw_behind + "[Aa]pprox\.\s" + lower_ahead), "approx  "),
-    (re.compile(nonw_behind + "[Nn]o\.\s" + lower_ahead), "no  "),
-    (re.compile(nonw_behind + "[Nn]o\.\s" + "(?=\w\d)"), "no  "),  # no. followed by abbreviation (patient no. V123)
-    (re.compile(nonw_behind + "[Cc]onf\.\s" + lower_ahead), "conf  "),
+    (re.compile(nonword_behind + "[Cc]a\.\s" + lower_ahead), "ca  "),
+    (re.compile(nonword_behind + "[Ee]\.[Gg]\.\s" + lower_ahead), "e g  "),
+    (re.compile(nonword_behind + "[Ee][Gg]\.\s" + lower_ahead), "e g "),
+    (re.compile(nonword_behind + "[Ii]\.[Ee]\.\s" + lower_ahead), "i e  "),
+    (re.compile(nonword_behind + "[Ii][Ee]\.\s" + lower_ahead), "i e "),
+    (re.compile(nonword_behind + "[Aa]pprox\.\s" + lower_ahead), "approx  "),
+    (re.compile(nonword_behind + "[Nn]o\.\s" + lower_ahead), "no  "),
+    (re.compile(nonword_behind + "[Nn]o\.\s" + "(?=\w\d)"), "no  "),  # no. followed by abbreviation (patient no. V123)
+    (re.compile(nonword_behind + "[Cc]onf\.\s" + lower_ahead), "conf  "),
     # scientific writing
-    (re.compile(nonw_behind + "et al\.\s" + lower_ahead), "et al  "),
-    (re.compile(nonw_behind + "[Rr]ef\.\s" + lower_ahead), "ref  "),
-    (re.compile(nonw_behind + "[Ff]ig\.\s" + lower_ahead), "fig  "),
+    (re.compile(nonword_behind + "et al\.\s" + lower_ahead), "et al  "),
+    (re.compile(nonword_behind + "[Rr]ef\.\s" + lower_ahead), "ref  "),
+    (re.compile(nonword_behind + "[Ff]ig\.\s" + lower_ahead), "fig  "),
     # medical
-    (re.compile(nonw_behind + "y\.o\.\s" + lower_ahead), "y o  "),
-    (re.compile(nonw_behind + "yo\.\s" + lower_ahead), "y o "),
-    (re.compile(nonw_behind + "[Pp]\.o\.\s" + lower_ahead), "p o  "),
-    (re.compile(nonw_behind + "[Ii]\.v\.\s" + lower_ahead), "i v  "),
-    (re.compile(nonw_behind + "[Qq]\.i\.\d\.\s" + lower_ahead), "q d  "),
-    (re.compile(nonw_behind + "[Bb]\.i\.\d\.\s" + lower_ahead), "b i d  "),
-    (re.compile(nonw_behind + "[Tt]\.i\.\d\.\s" + lower_ahead), "t i d  "),
-    (re.compile(nonw_behind + "[Qq]\.i\.\d\.\s" + lower_ahead), "q i d  "),
-    (re.compile(nonw_behind + "J\.\s" + "(?=(Cell|Bio|Med))"), "J  "),  # journal
+    (re.compile(nonword_behind + "y\.o\.\s" + lower_ahead), "y o  "),
+    (re.compile(nonword_behind + "yo\.\s" + lower_ahead), "y o "),
+    (re.compile(nonword_behind + "[Pp]\.o\.\s" + lower_ahead), "p o  "),
+    (re.compile(nonword_behind + "[Ii]\.v\.\s" + lower_ahead), "i v  "),
+    (re.compile(nonword_behind + "[Qq]\.i\.\d\.\s" + lower_ahead), "q d  "),
+    (re.compile(nonword_behind + "[Bb]\.i\.\d\.\s" + lower_ahead), "b i d  "),
+    (re.compile(nonword_behind + "[Tt]\.i\.\d\.\s" + lower_ahead), "t i d  "),
+    (re.compile(nonword_behind + "[Qq]\.i\.\d\.\s" + lower_ahead), "q i d  "),
+    (re.compile(nonword_behind + "J\.\s" + "(?=(Cell|Bio|Med))"), "J  "),  # journal
     # bracket complications
     (re.compile("\.\)."), " )."),
     (re.compile("\.\s\)."), "  )."),
@@ -302,6 +326,8 @@ prenormalize_dict = [
     # (re.compile("(\.+\s*\.+)+"), "."),
     # Typos: missing space after dot; only add space if there are at least two letters before and behind
     (re.compile("(?<=[A-Za-z]{2})" + "\." + "(?=[A-Z][a-z])"), ". "),
+    # whitespace
+    (re.compile("\s"), " "),
 ]
 
 
@@ -314,12 +340,12 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_wor
                max_df=1.0, binary=False, normalize=True, stats="length"):
     """Return pipeline that concatenates features from word and character n-grams and text stats"""
 
-    return FeatureNamePipeline([
+    return Pipeline([
         ("text_normalizer", None if not normalize else TextNormalizer()),
         ("features", FeatureUnion(n_jobs=2,
                                   transformer_list=[
                                       ("wordgrams", None if wordgrams is None else
-                                      FeatureNamePipeline([
+                                      Pipeline([
                                           ("preprocessor", TokenizePreprocessor(rules=rules, ner=ner)),
                                           ("word_tfidf", TfidfVectorizer(
                                                   analyzer='word',
@@ -333,7 +359,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_wor
                                                   use_idf=not binary))
                                       ])),
                                       ("chargrams", None if chargrams is None else
-                                      FeatureNamePipeline([
+                                      Pipeline([
                                           ("normalize_digits", DigitNormalizer()),
                                           ("char_tfidf", TfidfVectorizer(
                                                   analyzer='char',
@@ -346,7 +372,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_wor
                                                   use_idf=not binary))
                                       ])),
                                       ("stats", None if stats is None else
-                                      FeatureNamePipeline([
+                                      Pipeline([
                                           ("stats", TextLength()),
                                           ("vect", DictVectorizer())
                                       ]))
@@ -400,8 +426,8 @@ def factorization(method='TruncatedSVD', n_components=10):
         'LatentDirichletAllocation': LatentDirichletAllocation(n_components=n_components,
                                                                n_jobs=-1,
                                                                learning_method='online'),
-        'TruncatedSVD'             : FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
-                                                          ("normalizer", MinMaxScaler())])
+        'TruncatedSVD'             : Pipeline([("selector", TruncatedSVD(n_components)),
+                                               ("normalizer", MinMaxScaler())])
     }
 
     model = sparse.get(method, None)
@@ -418,14 +444,14 @@ def factorization(method='TruncatedSVD', n_components=10):
     model = dense.get(method, None)
 
     if model is not None:
-        return FeatureNamePipeline([("densifier", Densifier()),
-                                    ("selector", model),
-                                    ("normalizer", MinMaxScaler())])  # TODO Standard or MinMax?
+        return Pipeline([("densifier", Densifier()),
+                         ("selector", model),
+                         ("normalizer", MinMaxScaler())])  # TODO Standard or MinMax?
 
     else:
 
-        return FeatureNamePipeline([("selector", TruncatedSVD(n_components)),
-                                    ("normalizer", MinMaxScaler())])
+        return Pipeline([("selector", TruncatedSVD(n_components)),
+                         ("normalizer", MinMaxScaler())])
 
 
 class TextLength(BaseEstimator, TransformerMixin):
@@ -495,15 +521,21 @@ class StatFeatures(BaseEstimator, TransformerMixin):
 
     def inverse_matching_ngrams(self, src, txt, ngram=6):
         count = 0
+        max_val = 0
+
         if type(src) == str:
-            for ngram in helpers.ngrams(src, ngram):
+            ngrams = helpers.ngrams(src, ngram)
+            max_val = len(ngrams)
+
+            for ngram in ngrams:
                 if ngram in txt:
                     count += 1
-        return 1.0 if count == 0 else 1.0 / count
+        return 1.0 if count == 0 else max_val / count
 
 
 # ----------------------------------------------------------------
 # Mapping tokens to dictionary equivalents
+# TODO remove section
 # ----------------------------------------------------------------
 
 class DictReplacer(object):
@@ -616,10 +648,3 @@ class Densifier(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         return helpers.densify(X)
-
-
-class FeatureNamePipeline(Pipeline):
-    """Wrapper for Pipeline able to return last step's feature names"""
-
-    def get_feature_names(self):
-        return self._final_estimator.get_feature_names()

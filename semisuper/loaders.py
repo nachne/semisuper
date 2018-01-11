@@ -293,9 +293,39 @@ def piboso_category_offset(category):
 
 
 # ----------------------------------------------------------------
-# general helpers
+# load pipeline from pickle
 # ----------------------------------------------------------------
 
+def load_pipeline(path="./pickles/semi_pipeline.pickle"):
+    """load pipeline from pickle, replace tokenizer with new instance so GENIA tagger is invoked properly"""
+
+    path = file_path(path)
+    with open(path, "rb") as f:
+        ppl = pickle.load(f)
+    params = ppl.named_steps["vectorizer"].named_steps["features"].transformer_list[0][1].named_steps["preprocessor"] \
+        .get_params()
+    ppl.named_steps["vectorizer"].named_steps["features"].transformer_list[0][1].named_steps["preprocessor"] = \
+        transformers.TokenizePreprocessor(params)
+    return ppl
+
+
+def load_pipeline_dx(path="./pickles/semi_pipeline.pickle"):
+    """load pipeline from pickle, replace tokenizer with new instance so GENIA tagger is invoked properly"""
+
+    path = file_path(path)
+    with open(path, "rb") as f:
+        ppl = pickle.load(f)
+    params = ppl.named_steps["vectorizer"].transformer_list[0][1].named_steps["text_features"].named_steps[
+            "features"].transformer_list[0][1].named_steps["preprocessor"].get_params()
+    ppl.named_steps["vectorizer"].transformer_list[0][1].named_steps["text_features"].named_steps[
+        "features"].transformer_list[0][1].named_steps["preprocessor"] = \
+        transformers.TokenizePreprocessor(params)
+    return ppl
+
+
+# ----------------------------------------------------------------
+# general helpers
+# ----------------------------------------------------------------
 
 def file_path(file_relative):
     """return the correct file path given the file's path relative to calling script"""

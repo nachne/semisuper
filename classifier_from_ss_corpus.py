@@ -5,9 +5,9 @@ import time
 import numpy as np
 import pandas as pd
 
-from sklearn.metrics import classification_report, accuracy_score
+import pickle
 
-import build_corpus
+import build_corpus_and_ss_classifier
 from semisuper import loaders, super_model_selection
 from semisuper.helpers import num_rows
 
@@ -21,7 +21,7 @@ def load_silver_standard(path=None):
     except:
         pass
 
-    return build_corpus.train_build(from_scratch=False)
+    return build_corpus_and_ss_classifier.train_build(from_scratch=False)
 
 
 def X_y_from_csv(csv):
@@ -45,11 +45,16 @@ def X_y_from_csv(csv):
     return X, y
 
 
-def build_classifier():
+def build_classifier(outpath="./semisuper/pickles/super_pipeline.pickle"):
     corpus_csv = load_silver_standard()
     X_train, y_train = X_y_from_csv(corpus_csv)
 
     model = super_model_selection.best_model_cross_val(X_train, y_train, fold=5)  # TODO restore 10
+
+    if outpath:
+        with open(outpath, "wb") as f:
+            print("saving supervised pipeline to", outpath)
+            pickle.dump(model, f)
 
     new_abstracts = np.array(loaders.abstract_pmid_pos_sentences_query(anew=False, max_ids=1000))
     pmid, pos, text, title = [0, 1, 2, 3]
@@ -67,9 +72,12 @@ def build_classifier():
     print("Some negative sentences:")
     [print(x) for x in random.sample(X[np.where(y == 0.0)].tolist(), 10)]
 
+    # ----------------------------------------------------------------
+    # TODO remove these tests
+
     print("\nInductive Semi-Supervised model\n")
 
-    semi_pipeline = build_corpus.train_pipeline(from_scratch=False, ratio=0.25)
+    semi_pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False, ratio=1.0)
 
     # y_corpus_true = corpus_csv["label"].values.astype(int)
     # X_corpus = corpus_csv["text"].values
@@ -77,8 +85,6 @@ def build_classifier():
     # print("acc: {}\n{}".format(accuracy_score(y_corpus_true, y_corpus_pred),
     #                            classification_report(y_corpus_true, y_corpus_pred)))
 
-    # ----------------------------------------------------------------
-    # TODO remove these tests
 
     X_ss = new_abstracts[:, text]
     y_ss = semi_pipeline.predict(X_ss)

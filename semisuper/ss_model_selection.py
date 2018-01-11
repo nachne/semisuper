@@ -1,7 +1,5 @@
-import datetime
 import multiprocessing as multi
 import os
-import pickle
 import time
 from copy import deepcopy
 from functools import partial
@@ -100,7 +98,7 @@ def eval_fold(model_record, P, N, U, i_splits):
 # model selection
 # ----------------------------------------------------------------
 
-
+# TODO do sth with useless eval set
 def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     """Evaluate parameter combinations, save results and return object with stats of all models"""
 
@@ -112,18 +110,18 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
         X_test = np.concatenate((X_test_pos, X_test_neg))
         y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
 
-    X_eval, X_dev, y_eval, y_dev = train_test_split(X_test, y_test, test_size=0.5)
 
     X_train = np.concatenate((P_train, N_train, U_train))
     y_train_pp = np.concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U_train))))
 
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
+    # TODO genia, pos etc. parameters (for prepare_train_test) (avoid meaningless combinations!)
     preproc_params = {
         'df_min'        : [0.001],
         'df_max'        : [1.0],
-        'rules'         : [True],  # [True, False],
-        'ner'           : [False],  # [True, False],
+        'rules'         : [True, False],  # [True, False],
+        'ner'           : [True],  # [True, False],
         'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
@@ -143,8 +141,8 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
             # partial(transformers.factorization, 'TruncatedSVD', 1000),
             # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
             # partial(transformers.factorization, 'TruncatedSVD', 3000),
-            partial(transformers.select_from_l1_svc, 1.0, 1e-3),
-            partial(transformers.select_from_l1_svc, 0.5, 1e-3),
+            # partial(transformers.select_from_l1_svc, 1.0, 1e-3),
+            # partial(transformers.select_from_l1_svc, 0.5, 1e-3),
             # partial(transformers.select_from_l1_svc, 0.1, 1e-3),
         ]
     }
@@ -159,12 +157,12 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
 
                     print("\n----------------------------------------------------------------",
                           "\nwords:", wordgram, "chars:", chargram, "feature selection:", fs,
-                          "df_min, df_max:", df_min, df_max, "rules, dict:", r, ner,
+                          "df_min, df_max:", df_min, df_max, "rules, ner:", r, ner,
                           "\n----------------------------------------------------------------\n")
 
                     start_time = time.time()
 
-                    X_train_, X_dev_, vectorizer, selector = prepare_train_test(trainData=X_train, testData=X_dev,
+                    X_train_, X_test_, vectorizer, selector = prepare_train_test(trainData=X_train, testData=X_test,
                                                                                 trainLabels=y_train_pp,
                                                                                 wordgram_range=wordgram,
                                                                                 chargram_range=chargram,
@@ -203,11 +201,11 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                     if PARALLEL:
                         with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
                             iter_stats = list(p.map(partial(model_eval_record,
-                                                            P_train_, N_train_, U_train_, X_dev_, y_dev),
+                                                            P_train_, N_train_, U_train_, X_test_, y_test),
                                                     iteration, chunksize=1))
                     else:
                         iter_stats = list(map(partial(model_eval_record,
-                                                      P_train_, N_train_, U_train_, X_dev_, y_dev),
+                                                      P_train_, N_train_, U_train_, X_test_, y_test),
                                               iteration))
 
                     # finalize records: remove model, add n-gram stats, update best
@@ -231,7 +229,8 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
 
     print_results(results)
 
-    return test_best(results, X_eval, y_eval)
+    return results
+    # return test_best(results, X_eval, y_eval)
 
 
 def test_best(results, X_eval, y_eval):

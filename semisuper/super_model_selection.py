@@ -1,7 +1,4 @@
-import datetime
 import multiprocessing as multi
-import os
-import pickle
 import time
 from copy import deepcopy
 from functools import partial
@@ -10,10 +7,8 @@ from itertools import product
 from scipy.stats import randint as sp_randint, uniform
 
 import numpy as np
-from scipy.sparse import vstack
-from sklearn.metrics import classification_report, precision_recall_fscore_support, \
-    accuracy_score, f1_score, precision_score, recall_score, average_precision_score
-from sklearn.model_selection import train_test_split, KFold, cross_val_score, RandomizedSearchCV, GridSearchCV
+from sklearn.metrics import classification_report, precision_recall_fscore_support, accuracy_score
+from sklearn.model_selection import train_test_split, KFold, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 
 from sklearn.naive_bayes import MultinomialNB
@@ -25,7 +20,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 
 from semisuper import transformers
-from semisuper.helpers import num_rows, densify
+from semisuper.helpers import densify
 
 PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
 RAND_INT_MAX = 1000
@@ -181,6 +176,7 @@ def names_estimators_params():
     return l[:1]
 
 
+# TODO do sth with useless eval set
 def get_best_model(X_train, y_train, X_test=None, y_test=None):
     """Evaluate parameter combinations, save results and return object with stats of all models"""
 
@@ -189,16 +185,15 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
     if X_test is None or y_test is None:
         X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
 
-    X_eval, X_dev, y_eval, y_dev = train_test_split(X_test, y_test, test_size=0.5)
-
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
+    # TODO genia, pos etc. parameters (for prepare_train_test) (avoid meaningless combinations!)
     preproc_params = {
         'df_min'        : [0.001],
         'df_max'        : [1.0],
-        'rules'         : [False],  # [True, False],
-        'ner'           : [False],
-        'wordgram_range': [(1, 3)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
+        'rules'         : [True],  # [True, False],
+        'ner'           : [True],
+        'wordgram_range': [(1, 4)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
             # transformers.identitySelector,
@@ -239,7 +234,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
 
                     start_time = time.time()
 
-                    X_train_, X_dev_, vectorizer, selector = prepare_train_test(trainData=X_train, testData=X_dev,
+                    X_train_, X_test_, vectorizer, selector = prepare_train_test(trainData=X_train, testData=X_test,
                                                                                 trainLabels=y_train,
                                                                                 wordgram_range=wordgram,
                                                                                 chargram_range=chargram,
@@ -251,7 +246,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
                                                                                 rules=r)
 
                     # fit models
-                    iter_stats = list(map(partial(model_eval_record, X_train_, y_train, X_dev_, y_dev),
+                    iter_stats = list(map(partial(model_eval_record, X_train_, y_train, X_test_, y_test),
                                           estimators))
 
                     # finalize records: remove model, add n-gram stats, update best
@@ -275,7 +270,10 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
 
     # print_results(results)
 
-    return test_best(results, X_eval, y_eval)
+    return Pipeline([('vectorizer', results['best']['vectorizer']),
+                     ('selector', results['best']['selector']),
+                     ('clf', results['best']['model'])])
+
 
 
 def model_eval_record(X_train, y_train, X_test, y_test, model_params, cv=10):
@@ -304,9 +302,8 @@ def model_eval_record(X_train, y_train, X_test, y_test, model_params, cv=10):
     return {'name' : name, 'p': p, 'r': r, 'f1': f1, 'acc': acc, 'clsr': clsr,
             'model': model, 'params': params}
 
-
 def test_best(results, X_eval, y_eval):
-    """helper function for finding best model in parallel: evaluate model and return stat object. """
+    """helper function to evaluate best model on held-out set. returns pipeline with best parameters"""
 
     best_model = results['best']['model']
     name = results['best']['name']

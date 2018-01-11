@@ -1,10 +1,10 @@
 from semisuper import ss_model_selection, cleanup_corpora
+from semisuper.loaders import load_pipeline
 from semisuper.helpers import num_rows
 import pandas as pd
 import pickle
 from datetime import datetime
 import os
-import sys
 import numpy as np
 from semisuper.loaders import abstracts2pmid_pos_sentence_title
 
@@ -12,9 +12,7 @@ from semisuper.loaders import abstracts2pmid_pos_sentence_title
 def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, ratio=1.0):
     if not from_scratch:
         try:
-            with open(file_path("./semisuper/pickles/semi_pipeline.pickle"), "rb") as f:
-                best_pipeline = pickle.load(f)
-            return best_pipeline
+            return load_pipeline()
         except:
             pass
 

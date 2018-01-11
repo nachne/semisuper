@@ -165,7 +165,6 @@ def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1
 
     print("Running EM")
 
-    # TODO balance P and N better
     if num_rows(P) > max_imbalance_P_N * num_rows(N):
         P_init = np.array(random.sample(list(P), int(max_imbalance_P_N * num_rows(N))))
     else:
