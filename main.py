@@ -26,9 +26,12 @@ def get_positions(sentences):
 
 
 def main():
+    # TODO decide: input(), cmd() or sys.stdin?
+
     pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False, ratio=1.0)
 
     text = " "
+    pipeline.predict([text])
 
     while text:
         text = input()
@@ -43,6 +46,7 @@ def main():
         for sentence, position, score in zip(sentences, positions, scores):
             if score > 0:
                 print(sentence, position, score)
+        print()
     return
 
 if __name__ == "__main__":

@@ -1,17 +1,10 @@
 import os.path
 import re
 import string
-import subprocess
 from functools import partial
 
-# TODO remove
-import pickle
-import pandas as pd
-import multiprocessing as multi
-from nltk.corpus import wordnet, stopwords
-
 import numpy as np
-from geniatagger import GeniaTagger, GeniaTaggerClient
+from geniatagger import GeniaTagger
 from nltk import TreebankWordTokenizer
 from nltk import sent_tokenize
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -426,7 +419,7 @@ def factorization(method='TruncatedSVD', n_components=10):
     if model is not None:
         return Pipeline([("densifier", Densifier()),
                          ("selector", model),
-                         ("normalizer", MinMaxScaler())])  # TODO Standard or MinMax?
+                         ("normalizer", MinMaxScaler())])
 
     else:
 
