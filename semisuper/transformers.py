@@ -34,51 +34,31 @@ from semisuper import helpers
 MIN_LEN = 8
 
 
-def file_path(file_relative):
-    """return the correct file path given the file's path relative to calling script"""
-    return os.path.join(os.path.dirname(__file__), file_relative)
-
-
-def new_genia_tagger():
-    return GeniaTagger(file_path("./resources/geniatagger-3.0.2/geniatagger"))
-
-
-def genia_tagger_server(port=9595):
-    p = subprocess.Popen(["geniatagger-server",
-                          "./semisuper/resources/geniatagger-3.0.2/geniatagger",
-                          "-p {}".format(port)])
-    return p
-
-
-def genia_tagger_client(port=9595):
-    return GeniaTaggerClient(port=port)
-
-
-# TODO how to run in parallel?
-# tagger = new_genia_tagger()
-
-
 # ----------------------------------------------------------------
 # Tokenization
 # ----------------------------------------------------------------
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, rules=True, genia=True, ner=True, pos=False):
+    def __init__(self, rules=True, genia_opts=None):
 
         self.punct = set(string.punctuation).difference(set('%='))
 
-        self.genia = genia
-        if self.genia:
-            self.create_global_tagger()
+        if genia_opts:
+            self.genia = True
 
-        self.chunks = True
-        self.pos = pos if not self.chunks else False
+            self.chunks = False # TODO decide whether to drop chunks altogether
+
+            self.pos = genia_opts["pos"] if not self.chunks else False
+            self.ner = genia_opts["ner"]
+
+            self.create_global_tagger()
+        else:
+            self.genia = self.pos = self.ner = self.chunks = False
+
         self.rules = rules
-        self.ner = ner
 
         self.splitters = re.compile("[-/.,|<>]")
-
-        self.tokenizer = TreebankWordTokenizer()
+        self.tokenizer = None if genia_opts else TreebankWordTokenizer()
 
     def fit(self, X=None, y=None):
         return self
@@ -336,7 +316,7 @@ prenormalize_dict = [
 # ----------------------------------------------------------------
 
 
-def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_word=0.001, ner=False, rules=True,
+def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_word=0.001, genia_opts=None, rules=True,
                max_df=1.0, binary=False, normalize=True, stats="length"):
     """Return pipeline that concatenates features from word and character n-grams and text stats"""
 
@@ -346,7 +326,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_wor
                                   transformer_list=[
                                       ("wordgrams", None if wordgrams is None else
                                       Pipeline([
-                                          ("preprocessor", TokenizePreprocessor(rules=rules, ner=ner)),
+                                          ("preprocessor", TokenizePreprocessor(rules=rules, genia_opts=genia_opts)),
                                           ("word_tfidf", TfidfVectorizer(
                                                   analyzer='word',
                                                   min_df=min_df_word,
@@ -380,7 +360,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_wor
     ])
 
 
-def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, ner=False, rules=True,
+def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, genia_opts=None, rules=True,
                   max_df=1.0, binary=False, normalize=True, stats="length"):
     """concatenates vectorizer and additional text stats (e.g. sentence position in abstract)
 
@@ -390,8 +370,8 @@ def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_wo
         ("text_features", Pipeline([("text_selector", ItemGetter(0)),
                                     ("text_features",
                                      vectorizer(chargrams=chargrams, min_df_char=min_df_char, wordgrams=wordgrams,
-                                                min_df_word=min_df_word, ner=ner, rules=rules,
-                                                max_df=max_df, binary=binary, normalize=normalize, stats=stats))])),
+                                                min_df_word=min_df_word, genia_opts=genia_opts, rules=rules, max_df=max_df,
+                                                binary=binary, normalize=normalize, stats=stats))])),
         ("stats", Pipeline([("stat_features", StatFeatures()),
                             ("vect", DictVectorizer())]))
     ])
@@ -461,13 +441,8 @@ class TextLength(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, inv_len=True, inv_tok_cnt=False):
-        key_dict = {
-            'inv_len'    : inv_len,
-            'inv_tok_cnt': inv_tok_cnt,
-            'zero'       : 'zero'  # TODO delete fake feature
-        }
-
-        self.key_dict = {key: key for key in key_dict if key_dict[key]}
+        self.inv_len = inv_len
+        self.inv_tok_cnt = inv_tok_cnt
 
         super(TextLength, self).__init__()
 
@@ -477,29 +452,17 @@ class TextLength(BaseEstimator, TransformerMixin):
     def transform(self, X):
         for sentence in X:
             yield {
-                'inv_len'    : 1.0 / len(sentence)
-                if sentence and self.key_dict.get("inv_len") else 1.0,
-                'inv_tok_cnt': (1.0 / len(re.split("\s+", sentence)))
-                if self.key_dict.get("inv_tok_cnt") else 1.0,
-                'zero'       : 0  # TODO delete fake feature
+                'inv_len'    : 1.0 / len(sentence) if sentence and self.inv_len else 1.0,
+                'inv_tok_cnt': (1.0 / len(re.split("\s+", sentence))) if self.inv_tok_cnt else 1.0,
             }
-
-    def get_feature_names(self):
-        return list(self.key_dict.keys())
 
 
 class StatFeatures(BaseEstimator, TransformerMixin):
     """Extract metadata features from document record for a DictVectorizer"""
 
     def __init__(self, pos=True, title_words=True):
-        key_dict = {
-            'pos'        : pos,
-            'title_words': title_words,
-            'zero'       : 'zero'  # TODO delete fake feature
-        }
-
-        self.key_dict = {key: key for key in key_dict if key_dict[key]}
-
+        self.pos= pos
+        self.title_words= title_words
         super(StatFeatures, self).__init__()
 
     def fit(self, X=None, y=None):
@@ -509,17 +472,11 @@ class StatFeatures(BaseEstimator, TransformerMixin):
         # text, pos, title = [0, 1, 2]
         for x in X:
             yield {
-                'pos'        : float(x[1])
-                if self.key_dict.get("pos") else 1.0,
-                'title_words': self.inverse_matching_ngrams(x[2], x[0], ngram=6)
-                if self.key_dict.get("title_words") else 1.0,
-                'zero'       : 0  # TODO delete fake feature
+                'pos'        : float(x[1]) if self.pos else 1.0,
+                'title_words': self.matching_ngrams_ratio(x[2], x[0], ngram=6) if self.title_words else 1.0,
             }
 
-    def get_feature_names(self):
-        return list(self.key_dict.keys())
-
-    def inverse_matching_ngrams(self, src, txt, ngram=6):
+    def matching_ngrams_ratio(self, src, txt, ngram=6):
         count = 0
         max_val = 0
 
@@ -531,77 +488,6 @@ class StatFeatures(BaseEstimator, TransformerMixin):
                 if ngram in txt:
                     count += 1
         return 1.0 if count == 0 else max_val / count
-
-
-# ----------------------------------------------------------------
-# Mapping tokens to dictionary equivalents
-# TODO remove section
-# ----------------------------------------------------------------
-
-class DictReplacer(object):
-    def __init__(self, word_map):
-        self.word_map = word_map
-
-    def replace(self, word):
-        return self.word_map.get(word, word)
-
-    def replace_all(self, words):
-        return [self.replace(w) for w in words]
-
-
-class HypernymMapper(DictReplacer):
-    def __init__(self):
-        dictionary = self.load_hypernyms()
-        super(HypernymMapper, self).__init__(dictionary)
-
-    def load_hypernyms(self):
-        """read hypernym dict from disk or build from tsv files"""
-        try:
-            with open(file_path("./pickles/hypernyms.pickle"), "rb") as f:
-                hypernyms = pickle.load(f)
-                # print("Loaded hypernyms from disk.")
-        except IOError:
-            print("Building hypernym resources...")
-            hypernyms = self.build_hypernym_dict()
-            with open(file_path("./pickles/hypernyms.pickle"), "wb") as f:
-                pickle.dump(hypernyms, f)
-                print("Built hypernym dict and wrote to disk.")
-        return hypernyms
-
-    def build_hypernym_dict(self):
-        concepts = ["chemical", "gene", "mutation"]  # "disease"
-
-        with multi.Pool(min(multi.cpu_count(), len(concepts))) as p:
-            dicts = list(p.map(self.make_hypernym_entries, concepts))
-
-        dictionary = dicts[0].copy()
-        for d in dicts[1:]:
-            dictionary.update(d)
-
-        return dictionary
-
-    def make_hypernym_entries(self, hypernym):
-        entries = {}
-        source = pd.read_csv(file_path("./resources/" + hypernym + "2pubtator.csv"),
-                             sep='\t', dtype=str)
-
-        with open(file_path("./resources/common_words.txt"), "r") as cw:
-            common_words = set(cw.read().split("\n") + stopwords.words('english'))
-
-        # only single words and no URLs etc
-        illegal_substrs = re.compile("\s|\\\\|\.gov|\.org|\.com|http|www|^n=")
-
-        for line in source["Mentions"]:
-            for word in str(line).split("|"):
-                # only include single words not appearing in normal language
-                if not (illegal_substrs.findall(word)
-                        or word in common_words
-                        or word in entries
-                        or len(word) < 4
-                        or wordnet.synsets(word)):
-                    entries[word] = "_" + hypernym + "_"
-
-        return entries
 
 
 # ----------------------------------------------------------------
@@ -648,3 +534,13 @@ class Densifier(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         return helpers.densify(X)
+
+
+def file_path(file_relative):
+    """return the correct file path given the file's path relative to calling script"""
+    return os.path.join(os.path.dirname(__file__), file_relative)
+
+
+def new_genia_tagger():
+    return GeniaTagger(file_path("./resources/geniatagger-3.0.2/geniatagger"))
+

@@ -36,7 +36,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
         'df_min'        : [0.002],
         'df_max'        : [1.0],
         'rules'         : [True],
-        'lemmatize'     : [False],
+        'genia_opts'     : [None],
         'wordgram_range': [(1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [partial(transformers.percentile_selector, 'chi2'),
@@ -47,7 +47,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
     }
 
     for wordgram, chargram in product(preproc_params['wordgram_range'], preproc_params['chargram_range']):
-        for r, l in product(preproc_params['rules'], preproc_params['lemmatize']):
+        for r, g in product(preproc_params['rules'], preproc_params['genia_opts']):
             for df_min, df_max in product(preproc_params['df_min'], preproc_params['df_max']):
                 for fs in preproc_params['feature_select']:
 
@@ -64,10 +64,9 @@ def getBestModel(P_train, U_train, X_test, y_test):
                                                                               trainLabels=y_train_pp, rules=r,
                                                                               wordgram_range=wordgram,
                                                                               feature_select=fs,
-                                                                              min_df_char=df_min,
-                                                                              min_df_word=df_min,
-                                                                              max_df=df_max,
-                                                                              chargram_range=chargram, lemmatize=l)
+                                                                              chargram_range=chargram, genia_opts=g,
+                                                                              min_df_char=df_min, min_df_word=df_min,
+                                                                              max_df=df_max)
                     if selector:
                         P_train_ = selector.transform(vectorizer.transform(P_train))
                         U_train_ = selector.transform(vectorizer.transform(U_train))
@@ -174,7 +173,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
 
 def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_range=None, feature_select=None,
-                     chargram_range=None, lemmatize=True, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
+                     chargram_range=None, genia_opts=None, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
     """prepare training and test vectors and vectorizer for validating classifiers
     :param min_df_char:
     """
@@ -182,7 +181,7 @@ def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_rang
     print("Fitting vectorizer, preparing training and test data")
 
     vectorizer = transformers.vectorizer(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
-                                         min_df_word=min_df_word, ner=lemmatize, rules=rules)
+                                         min_df_word=min_df_word, genia_opts=genia_opts, rules=rules)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)

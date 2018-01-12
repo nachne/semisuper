@@ -176,7 +176,6 @@ def names_estimators_params():
     return l[:1]
 
 
-# TODO do sth with useless eval set
 def get_best_model(X_train, y_train, X_test=None, y_test=None):
     """Evaluate parameter combinations, save results and return object with stats of all models"""
 
@@ -187,19 +186,19 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
 
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
-    # TODO genia, pos etc. parameters (for prepare_train_test) (avoid meaningless combinations!)
     preproc_params = {
         'df_min'        : [0.001],
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
-        'ner'           : [True],
+        'genia_opts'    : [None, {"pos": False, "ner": False}],
+        # [None, {"pos": False, "ner": False}, {"pos": True, "ner": False}, {"pos": False, "ner": True}, {"pos": True, "ner": True}],
         'wordgram_range': [(1, 4)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
             # transformers.identitySelector,
             # partial(transformers.percentile_selector, 'chi2', 30),
-            # partial(transformers.percentile_selector, 'chi2', 25),
-            partial(transformers.percentile_selector, 'chi2', 20),
+            partial(transformers.percentile_selector, 'chi2', 25),
+            # partial(transformers.percentile_selector, 'chi2', 20),
             # partial(transformers.percentile_selector, 'f', 30),
             # partial(transformers.percentile_selector, 'f', 25),
             # partial(transformers.percentile_selector, 'f', 20),
@@ -220,7 +219,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
     estimators = names_estimators_params()
 
     for wordgram, chargram in product(preproc_params['wordgram_range'], preproc_params['chargram_range']):
-        for r, ner in product(preproc_params['rules'], preproc_params['ner']):
+        for r, genia_opts in product(preproc_params['rules'], preproc_params['genia_opts']):
             for df_min, df_max in product(preproc_params['df_min'], preproc_params['df_max']):
                 for fs in preproc_params['feature_select']:
 
@@ -229,21 +228,18 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
 
                     print("\n----------------------------------------------------------------",
                           "\nwords:", wordgram, "chars:", chargram, "feature selection:", fs,
-                          "df_min, df_max:", df_min, df_max, "rules, dict:", r, ner,
+                          "df_min, df_max:", df_min, df_max, "rules, genia_opts:", r, genia_opts,
                           "\n----------------------------------------------------------------\n")
 
                     start_time = time.time()
 
                     X_train_, X_test_, vectorizer, selector = prepare_train_test(trainData=X_train, testData=X_test,
-                                                                                trainLabels=y_train,
-                                                                                wordgram_range=wordgram,
-                                                                                chargram_range=chargram,
-                                                                                min_df_char=df_min,
-                                                                                min_df_word=df_min,
-                                                                                max_df=df_max,
-                                                                                feature_select=fs,
-                                                                                ner=ner,
-                                                                                rules=r)
+                                                                                 trainLabels=y_train, rules=r,
+                                                                                 wordgram_range=wordgram,
+                                                                                 feature_select=fs,
+                                                                                 chargram_range=chargram,
+                                                                                 genia_opts=genia_opts, min_df_char=df_min,
+                                                                                 min_df_word=df_min, max_df=df_max)
 
                     # fit models
                     iter_stats = list(map(partial(model_eval_record, X_train_, y_train, X_test_, y_test),
@@ -252,7 +248,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
                         m['n-grams'] = {'word': wordgram, 'char': chargram},
-                        m['rules, dict'] = (r, ner)
+                        m['rules, genia_opts'] = (r, genia_opts)
                         m['df_min, df_max'] = (df_min, df_max)
                         m['fs'] = fs()
                         if m['acc'] > results['best']['acc']:
@@ -332,13 +328,13 @@ def test_best(results, X_eval, y_eval):
 
 
 def prepare_train_test(trainData, testData, trainLabels, rules=True, wordgram_range=None, feature_select=None,
-                       chargram_range=None, ner=True, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
+                       chargram_range=None, genia_opts=None, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
     """prepare training and test vectors, vectorizer and selector for validating classifiers"""
 
     print("Fitting vectorizer, preparing training and test data")
 
     vectorizer = transformers.vectorizer_dx(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
-                                            min_df_word=min_df_word, max_df=max_df, ner=ner, rules=rules)
+                                            min_df_word=min_df_word, genia_opts=genia_opts, rules=rules, max_df=max_df)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)

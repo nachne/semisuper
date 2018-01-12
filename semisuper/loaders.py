@@ -201,7 +201,7 @@ def fetch(idlist):
 
 
 def pmid_pos_sentence_title(pmid_abstract_title):
-    """return list of tuples (pmid, sentence position, sentence)"""
+    """return list of tuples (pmid, sentence position, sentence, title)"""
 
     pmid = pmid_abstract_title[0]
     title = pmid_abstract_title[2]

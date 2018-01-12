@@ -11,11 +11,16 @@ from sklearn.svm import LinearSVC
 from semisuper import loaders, pu_two_step, pu_cos_roc, pu_biased_svm, transformers
 from semisuper.helpers import num_rows, densify, pu_score, select_PN_below_score
 
+# ------------------
+# globals
+# ------------------
+
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
 piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
+genia_defaults = None # {"pos": False, "ner": False} # TODO safe default options
 
 # ------------------
 # select sentences
@@ -140,7 +145,7 @@ def vectorize_preselection(P, U, ratio=1.0):
         P, _ = train_test_split(P, train_size=ratio)
         U, _ = train_test_split(U, train_size=ratio)
 
-    vec = transformers.vectorizer()
+    vec = transformers.vectorizer(genia_opts=genia_defaults)
     vec.fit(np.concatenate((P, U)))
 
     P_ = vec.transform(P)
@@ -221,7 +226,7 @@ def vectorized_clean_pnu(ratio=1.0):
           "\tU: ABSTRACTS (", num_rows(U_raw), ")"
           )
 
-    vec = transformers.vectorizer()
+    vec = transformers.vectorizer(genia_opts=genia_defaults)
     vec.fit(np.concatenate((P_raw, N_raw, U_raw)))
 
     P = vec.transform(P_raw)
@@ -298,7 +303,7 @@ def vectorized_clean_pu(ratio=1.0):
           "\tTEST SET (HOC POS + CIVIC + HOC NEG):", num_rows(X_test_raw)
           )
 
-    vec = transformers.vectorizer()
+    vec = transformers.vectorizer(genia_opts=genia_defaults)
     vec.fit(np.concatenate((P_raw, U_raw)))
 
     P = vec.transform(P_raw)
