@@ -11,10 +11,15 @@ import build_corpus_and_ss_classifier
 from semisuper import loaders, super_model_selection
 from semisuper.helpers import num_rows
 
+# ----------------------------------------------------------------
+# Loading silver standard
+# ----------------------------------------------------------------
+
 
 def load_silver_standard(path=None):
     if path is None:
         path = file_path("./semisuper/output/silver_standard.tsv")
+
     try:
         corpus = pd.read_csv(path, sep="\t")
         return corpus
@@ -44,6 +49,16 @@ def X_y_from_csv(csv):
 
     return X, y
 
+def max_score_from_csv(csv):
+    """get maximum absolute decision function/probability value in corpus"""
+
+    vals = csv["decision_function"].values
+    return np.max(vals)
+
+
+# ----------------------------------------------------------------
+# Building supervised pipeline
+# ----------------------------------------------------------------
 
 def build_classifier(outpath="./semisuper/pickles/super_pipeline.pickle"):
     corpus_csv = load_silver_standard()
@@ -73,18 +88,11 @@ def build_classifier(outpath="./semisuper/pickles/super_pipeline.pickle"):
     [print(x) for x in random.sample(X[np.where(y == 0.0)].tolist(), 10)]
 
     # ----------------------------------------------------------------
-    # TODO remove these tests
+    # TODO remove tests below this line
 
     print("\nInductive Semi-Supervised model\n")
 
     semi_pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False, ratio=1.0)
-
-    # y_corpus_true = corpus_csv["label"].values.astype(int)
-    # X_corpus = corpus_csv["text"].values
-    # y_corpus_pred = semi_pipeline.predict(X_corpus)
-    # print("acc: {}\n{}".format(accuracy_score(y_corpus_true, y_corpus_pred),
-    #                            classification_report(y_corpus_true, y_corpus_pred)))
-
 
     X_ss = new_abstracts[:, text]
     y_ss = semi_pipeline.predict(X_ss)
@@ -95,9 +103,6 @@ def build_classifier(outpath="./semisuper/pickles/super_pipeline.pickle"):
     [print(x) for x in random.sample(X_ss[np.where(y_ss == 1.0)].tolist(), 10)]
     print("Some negative sentences:")
     [print(x) for x in random.sample(X_ss[np.where(y_ss == 0.0)].tolist(), 10)]
-
-    # ----------------------------------------------------------------
-    # TODO remove these tests
 
     print("\nTest abstracts\n")
     start_time = time.time()

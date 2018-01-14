@@ -23,9 +23,7 @@ from semisuper import helpers
 # Required globals
 # ----------------------------------------------------------------
 
-
 MIN_LEN = 8
-
 
 # ----------------------------------------------------------------
 # Tokenization
@@ -39,7 +37,7 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         if genia_opts:
             self.genia = True
 
-            self.chunks = False # TODO decide whether to drop chunks altogether
+            self.chunks = False  # TODO decide whether to drop chunks altogether
 
             self.pos = genia_opts["pos"] if not self.chunks else False
             self.ner = genia_opts["ner"]
@@ -363,7 +361,8 @@ def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_wo
         ("text_features", Pipeline([("text_selector", ItemGetter(0)),
                                     ("text_features",
                                      vectorizer(chargrams=chargrams, min_df_char=min_df_char, wordgrams=wordgrams,
-                                                min_df_word=min_df_word, genia_opts=genia_opts, rules=rules, max_df=max_df,
+                                                min_df_word=min_df_word, genia_opts=genia_opts, rules=rules,
+                                                max_df=max_df,
                                                 binary=binary, normalize=normalize, stats=stats))])),
         ("stats", Pipeline([("stat_features", StatFeatures()),
                             ("vect", DictVectorizer())]))
@@ -454,8 +453,8 @@ class StatFeatures(BaseEstimator, TransformerMixin):
     """Extract metadata features from document record for a DictVectorizer"""
 
     def __init__(self, pos=True, title_words=True):
-        self.pos= pos
-        self.title_words= title_words
+        self.pos = pos
+        self.title_words = title_words
         super(StatFeatures, self).__init__()
 
     def fit(self, X=None, y=None):
@@ -536,4 +535,3 @@ def file_path(file_relative):
 
 def new_genia_tagger():
     return GeniaTagger(file_path("./resources/geniatagger-3.0.2/geniatagger"))
-

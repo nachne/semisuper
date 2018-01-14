@@ -8,11 +8,10 @@ import pandas as pd
 from Bio import Medline, Entrez
 
 from semisuper import transformers, helpers
-from datetime import datetime
 
 # needed for querying PubMed API
-
 Entrez.email = 'wackerbm@informatik.hu-berlin.de'
+
 MIN_LEN = 8
 
 
@@ -316,7 +315,7 @@ def load_pipeline_dx(path="./pickles/semi_pipeline.pickle"):
     with open(path, "rb") as f:
         ppl = pickle.load(f)
     params = ppl.named_steps["vectorizer"].transformer_list[0][1].named_steps["text_features"].named_steps[
-            "features"].transformer_list[0][1].named_steps["preprocessor"].get_params()
+        "features"].transformer_list[0][1].named_steps["preprocessor"].get_params()
     ppl.named_steps["vectorizer"].transformer_list[0][1].named_steps["text_features"].named_steps[
         "features"].transformer_list[0][1].named_steps["preprocessor"] = \
         transformers.TokenizePreprocessor(params)

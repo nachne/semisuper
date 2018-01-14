@@ -26,7 +26,69 @@ PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too ma
 
 
 # ----------------------------------------------------------------
-# Cross-validation
+# Estimators and parameters to evaluate
+# ----------------------------------------------------------------
+
+def estimator_list():
+    l = [
+        {'name': 'neglinSVC_C1.0', 'model': partial(ss.iterate_linearSVC_C, 1.0)},
+        # {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
+        # {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
+        # {'name' : 'negSGDmh',
+        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='modified_huber'))},
+        # {'name' : 'negSGDsh',
+        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
+        # {'name' : 'negSGDpc',
+        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='perceptron'))},
+        # {'name': 'negNB0.1', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=0.1))},
+        # {'name': 'negNB1.0', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=1.0))},
+        # {'name' : 'self-logit', 'model': ss.self_training},
+        # {'name' : 'EM', 'model': ss.EM},
+        # {'name' : 'kNN', 'model': ss.iterate_knn},
+        # {'name' : 'label_propagation', 'model': ss.propagate_labels},
+    ]
+
+    return l
+
+
+def preproc_param_dict():
+    d = {
+        'df_min'        : [0.001],
+        'df_max'        : [1.0],
+        'rules'         : [True, False],
+        'genia_opts'    : [None, {"pos": False, "ner": True}],
+        # [None, {"pos": False, "ner": False}, {"pos": True, "ner": False}, {"pos": False, "ner": True},
+        #  {"pos": True, "ner": True}],
+        'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
+        'feature_select': [
+            # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
+            # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 31%
+
+            # transformers.identitySelector,
+            # partial(transformers.percentile_selector, 'chi2', 30),
+            partial(transformers.percentile_selector, 'chi2', 25),
+            # partial(transformers.percentile_selector, 'chi2', 20),
+            # partial(transformers.percentile_selector, 'f', 30),
+            # partial(transformers.percentile_selector, 'f', 25),
+            # partial(transformers.percentile_selector, 'f', 20),
+            # partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
+            # partial(transformers.percentile_selector, 'mutual_info', 25),
+            # partial(transformers.percentile_selector, 'mutual_info', 20),
+            # partial(transformers.factorization, 'TruncatedSVD', 1000),
+            # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
+            # partial(transformers.factorization, 'TruncatedSVD', 3000),
+            # partial(transformers.select_from_l1_svc, 1.0, 1e-3),
+            # partial(transformers.select_from_l1_svc, 0.5, 1e-3),
+            # partial(transformers.select_from_l1_svc, 0.1, 1e-3),
+        ]
+    }
+
+    return d
+
+
+# ----------------------------------------------------------------
+# Cross validation
 # ----------------------------------------------------------------
 
 def best_model_cross_val(P, N, U, fold=10):
@@ -95,7 +157,7 @@ def eval_fold(model_record, P, N, U, i_splits):
 
 
 # ----------------------------------------------------------------
-# model selection
+# Model selection
 # ----------------------------------------------------------------
 
 def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
@@ -114,36 +176,8 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
 
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
-    preproc_params = {
-        'df_min'        : [0.001],
-        'df_max'        : [1.0],
-        'rules'         : [True, False],  # [True, False],
-        'genia_opts': # [None, {"pos": False, "ner": False}],
-    [None, {"pos": False, "ner": False}, {"pos": True, "ner": False}, {"pos": False, "ner": True}, {"pos": True, "ner": True}],
-        'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
-        'feature_select': [
-            # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
-            # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 34%
-
-            # transformers.identitySelector,
-            # partial(transformers.percentile_selector, 'chi2', 30),
-            partial(transformers.percentile_selector, 'chi2', 25),
-            # partial(transformers.percentile_selector, 'chi2', 20),
-            # partial(transformers.percentile_selector, 'f', 30),
-            # partial(transformers.percentile_selector, 'f', 25),
-            # partial(transformers.percentile_selector, 'f', 20),
-            # partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
-            # partial(transformers.percentile_selector, 'mutual_info', 25),
-            # partial(transformers.percentile_selector, 'mutual_info', 20),
-            # partial(transformers.factorization, 'TruncatedSVD', 1000),
-            # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
-            # partial(transformers.factorization, 'TruncatedSVD', 3000),
-            # partial(transformers.select_from_l1_svc, 1.0, 1e-3),
-            # partial(transformers.select_from_l1_svc, 0.5, 1e-3),
-            # partial(transformers.select_from_l1_svc, 0.1, 1e-3),
-        ]
-    }
+    preproc_params = preproc_param_dict()
+    estimators = estimator_list()
 
     for wordgram, chargram in product(preproc_params['wordgram_range'], preproc_params['chargram_range']):
         for r, genia_opts in product(preproc_params['rules'], preproc_params['genia_opts']):
@@ -176,33 +210,15 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                                                         for x in [P_train, N_train, U_train]]
 
                     # fit models
-                    iteration = [
-                        {'name': 'neglinSVC_C1.0', 'model': partial(ss.iterate_linearSVC_C, 1.0)},
-                        # {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
-                        # {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
-                        # {'name' : 'negSGDmh',
-                        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='modified_huber'))},
-                        # {'name' : 'negSGDsh',
-                        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
-                        # {'name' : 'negSGDpc',
-                        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='perceptron'))},
-                        # {'name': 'negNB0.1', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=0.1))},
-                        # {'name': 'negNB1.0', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=1.0))},
-                        # {'name' : 'self-logit', 'model': ss.self_training},
-                        # {'name' : 'EM', 'model': ss.EM},
-                        # {'name' : 'kNN', 'model': ss.iterate_knn},
-                        # {'name' : 'label_propagation', 'model': ss.propagate_labels},
-                    ]
-
                     if PARALLEL:
-                        with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
+                        with multi.Pool(min(multi.cpu_count(), len(estimators))) as p:
                             iter_stats = list(p.map(partial(model_eval_record,
                                                             P_train_, N_train_, U_train_, X_test_, y_test),
-                                                    iteration, chunksize=1))
+                                                    estimators, chunksize=1))
                     else:
                         iter_stats = list(map(partial(model_eval_record,
                                                       P_train_, N_train_, U_train_, X_test_, y_test),
-                                              iteration))
+                                              estimators))
 
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
@@ -229,6 +245,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     # return test_best(results, X_eval, y_eval)
 
 
+# TODO obsolete, remove
 def test_best(results, X_eval, y_eval):
     """helper function to evaluate best model on held-out set. returns full results of model selection"""
 
@@ -302,13 +319,17 @@ def model_eval_record(P, N, U, X, y, m):
             'model': model, 'untrained_model': untrained_model, 'U_ratio': pos_ratio}
 
 
+# ----------------------------------------------------------------
+# Printing
+# ----------------------------------------------------------------
+
 def print_results(results):
     """helper function to print stat objects, starting with best model"""
 
     print("\n----------------------------------------------------------------\n")
     print("\nAll stats:\n")
-    for i in results['all']:
-        print_reports(i)
+    for r in results['all']:
+        print_reports(r)
 
     print("\nBest:\n")
     best = results['best']
