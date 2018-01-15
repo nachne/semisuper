@@ -360,10 +360,11 @@ def print_sentences(model, modelname=""):
 # ------------------
 
 
-P, N, U, vectorizer, selector = vectorized_clean_pnu(ratio=1.0)
-P, X_test_pos = train_test_split(P, test_size=0.2)
-N, X_test_neg = train_test_split(N, test_size=0.2)
-test_all(P, N, U,
-         X_test=np.concatenate((X_test_pos, X_test_neg)),
-         y_test=np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg)))),
-         sample_sentences=True)
+if __name__ == "__main__":
+    P_, N_, U_, vectorizer, selector = vectorized_clean_pnu(ratio=1.0)
+    P_, X_test_pos = train_test_split(P_, test_size=0.2)
+    N_, X_test_neg = train_test_split(N_, test_size=0.2)
+    test_all(P_, N_, U_,
+             X_test=np.concatenate((X_test_pos, X_test_neg)),
+             y_test=np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg)))),
+             sample_sentences=True)

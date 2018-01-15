@@ -50,9 +50,13 @@ def main():
 
     while text:
         text = input()
+        if not text:
+            print()
+            return
         sentences = transformers.sentence_tokenize(text)
         positions = get_positions(sentences)
 
+        scores = None
         if hasattr(pipeline, 'decision_function'):
             scores = pipeline.decision_function(sentences)
         elif hasattr(pipeline, 'predict_proba'):

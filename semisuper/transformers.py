@@ -24,6 +24,7 @@ from semisuper import helpers
 # ----------------------------------------------------------------
 
 MIN_LEN = 8
+tagger = None
 
 # ----------------------------------------------------------------
 # Tokenization
@@ -54,7 +55,8 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
     def fit(self, X=None, y=None):
         return self
 
-    def inverse_transform(self, X):
+    @staticmethod
+    def inverse_transform(X):
         return [", ".join(doc) for doc in X]
 
     def transform(self, X):
@@ -174,7 +176,8 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
     def fit(self, X=None, y=None):
         return self
 
-    def transform(self, X):
+    @staticmethod
+    def transform(X):
         return np.array([unidecode(x) for x in X])
 
 
@@ -306,7 +309,7 @@ prenormalize_dict = [
 # Features
 # ----------------------------------------------------------------
 
-
+# TODO test binary representation instead of tf-idf
 def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_word=0.001, genia_opts=None, rules=True,
                max_df=1.0, binary=False, normalize=True, stats="length"):
     """Return pipeline that concatenates features from word and character n-grams and text stats"""
@@ -487,7 +490,7 @@ class StatFeatures(BaseEstimator, TransformerMixin):
 # ----------------------------------------------------------------
 
 
-class identitySelector(BaseEstimator, TransformerMixin):
+class IdentitySelector(BaseEstimator, TransformerMixin):
     """feature selector that does nothing"""
 
     def __init__(self):

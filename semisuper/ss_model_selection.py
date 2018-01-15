@@ -22,7 +22,7 @@ import semisuper.ss_techniques as ss
 from semisuper import transformers
 from semisuper.helpers import num_rows, densify
 
-PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
+PARALLEL = True  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
 
 
 # ----------------------------------------------------------------
@@ -32,10 +32,10 @@ PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too ma
 def estimator_list():
     l = [
         {'name': 'neglinSVC_C1.0', 'model': partial(ss.iterate_linearSVC_C, 1.0)},
-        # {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
-        # {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
-        # {'name' : 'negSGDmh',
-        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='modified_huber'))},
+        {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
+        {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
+        {'name' : 'negSGDmh',
+         'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='modified_huber'))},
         # {'name' : 'negSGDsh',
         #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
         # {'name' : 'negSGDpc',
@@ -65,7 +65,7 @@ def preproc_param_dict():
             # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
             # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 31%
 
-            # transformers.identitySelector,
+            # transformers.IdentitySelector,
             # partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
             # partial(transformers.percentile_selector, 'chi2', 20),
@@ -203,10 +203,10 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                                                                                  min_df_char=df_min,
                                                                                  min_df_word=df_min, max_df=df_max)
                     if selector:
-                        P_train_, N_train_, U_train_ = [densify(selector.transform(vectorizer.transform(x)))
+                        P_train_, N_train_, U_train_ = [(selector.transform(vectorizer.transform(x)))
                                                         for x in [P_train, N_train, U_train]]
                     else:
-                        P_train_, N_train_, U_train_ = [densify(vectorizer.transform(x))
+                        P_train_, N_train_, U_train_ = [(vectorizer.transform(x))
                                                         for x in [P_train, N_train, U_train]]
 
                     # fit models

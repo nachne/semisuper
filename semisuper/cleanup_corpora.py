@@ -20,6 +20,8 @@ hocpos, hocneg = loaders.sentences_HoC()
 piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
+PARALLEL = True
+
 genia_defaults = None # {"pos": False, "ner": False} # TODO safe default options
 
 # ------------------
@@ -47,7 +49,7 @@ def remove_P_from_U(P, U, ratio=1.0, inverse=False, verbose=True):
     print(action, (100 * np.sum(y_noisy) / num_rows(y_noisy)), "% of noisy data (", np.sum(y_noisy), "sentences )",
           "as per result of PU learning")
 
-    keeping = np.array([x for (x, y) in zip(U, y_noisy) if y == criterion])
+    keeping = np.array([x for (x, y) in zip(U, y_noisy) if y == criterion], dtype=object)
 
     if verbose:
         discarding = [x for (x, y) in zip(U, y_noisy) if y != criterion]
@@ -76,7 +78,7 @@ def remove_most_similar_percent(P, U, ratio=1.0, percentile=10, inverse=False, v
     print("Removing", percentile, "% of noisy data", predicate, "similar to guide set (cos-similarity)"
           , "(", (percentile * num_rows(U) / 100), "sentences )")
 
-    U = np.array(U)
+    U = np.array(U, dtype=object)
     U_minus_PN, PN = select_PN_below_score(y_pred, U, y_pred, noise_lvl=percentile / 100)
 
     if verbose:
@@ -105,7 +107,11 @@ def best_pu(P, U):
         # {"name": "BIASED-SVM", "model": pu_biased_svm.biased_SVM_weight_selection},
     ]
 
-    stats = list(map(partial(model_pu_score_record, P_train, U_train, P_test, U_test), models))
+    if PARALLEL:
+        with multi.Pool(multi.cpu_count()) as p:
+            stats = list(p.map(partial(model_pu_score_record, P_train, U_train, P_test, U_test), models))
+    else:
+        stats = list(map(partial(model_pu_score_record, P_train, U_train, P_test, U_test), models))
 
     for s in stats:
         print(s["name"], "\tPU-score:", s["pu_score"])
@@ -197,7 +203,7 @@ def clean_corpus_pnu(mode=None, percentiles=(10, 25, 10), ratio=1.0):
 
     else:
         # Remove "good" sentences from HoC[neg], remove "bad" sentences in HoC[pos]
-        # (seemsappears to be most reasonable choice)
+        # (appears to be most reasonable choice)
 
         print("\nRemoving CIViC-like sentences from HoC[neg]\n")
         hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
@@ -311,7 +317,7 @@ def vectorized_clean_pu(ratio=1.0):
 
     print("Features before selection:", np.shape(P)[1])
 
-    # sel = identitySelector()
+    # sel = IdentitySelector()
     sel = transformers.percentile_selector()
     # sel = basic_pipeline.factorization('LatentDirichletAllocation')
 

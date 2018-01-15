@@ -19,6 +19,11 @@ from semisuper.helpers import num_rows, densify
 
 # TODO: whole file obsolete (only used in test script)
 
+
+# TODO multiprocessing; breaks on macOS but not on Linux
+PARALLEL = False
+
+
 def getBestModel(P_train, U_train, X_test, y_test):
     """Evaluate parameter combinations, save results and return pipeline with best model"""
 
@@ -36,7 +41,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
         'df_min'        : [0.002],
         'df_max'        : [1.0],
         'rules'         : [True],
-        'genia_opts'     : [None],
+        'genia_opts'    : [None],
         'wordgram_range': [(1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [partial(transformers.percentile_selector, 'chi2'),
@@ -51,7 +56,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
             for df_min, df_max in product(preproc_params['df_min'], preproc_params['df_max']):
                 for fs in preproc_params['feature_select']:
 
-                    if wordgram == None and chargram == None:
+                    if wordgram is None and chargram is None:
                         break
 
                     print("\n----------------------------------------------------------------",
@@ -106,7 +111,10 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
                     # eval models
                     # TODO multiprocessing; breaks on macOS but not on Linux
-                    with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
+                    if PARALLEL:
+                        with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
+                            iter_stats = list(p.map(partial(model_eval_record, X_dev_, y_dev, U_train_), iteration))
+                    else:
                         iter_stats = list(map(partial(model_eval_record, X_dev_, y_dev, U_train_), iteration))
 
                     # finalize records: remove model, add n-gram stats, update best
@@ -175,7 +183,6 @@ def getBestModel(P_train, U_train, X_test, y_test):
 def prepareTrainTest(trainData, testData, trainLabels, rules=True, wordgram_range=None, feature_select=None,
                      chargram_range=None, genia_opts=None, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
     """prepare training and test vectors and vectorizer for validating classifiers
-    :param min_df_char:
     """
 
     print("Fitting vectorizer, preparing training and test data")

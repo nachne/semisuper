@@ -1,14 +1,13 @@
 import string
 from collections import Counter
 from operator import itemgetter
-import matplotlib.pyplot as plt
-from sklearn.manifold import MDS
-import gensim
+
 from gensim import corpora
 from gensim.models.ldamulticore import LdaMulticore
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
+
 from semisuper import loaders, transformers
 
 civic, abstracts = loaders.sentences_civic_abstracts()
@@ -40,7 +39,7 @@ print("TRAINING SET FROM",
       # ", HOC POS",
       # ", HOC NEG"
       )
-corpus = (
+corpus_ = (
         []
         + c
         + a
@@ -62,7 +61,7 @@ corpus_test = (
 
 prepro = transformers.TokenizePreprocessor(rules=False, genia_opts=None)
 
-corpus_vec = prepro.fit_transform(corpus)
+corpus_vec = prepro.fit_transform(corpus_)
 corpus_vec_test = prepro.transform(corpus_test)
 
 # --------------------------------
@@ -85,9 +84,9 @@ def topics2label(topics):
     return max(topics, key=itemgetter(1))[0]
 
 
-def label_dist(corpus, dict, ldamodel):
+def label_dist(corpus, dictionary, ldamodel):
     labels = [topics2label(ldamodel[x]) for x in
-              [dict.doc2bow(doc) for doc in corpus]]
+              [dictionary.doc2bow(doc) for doc in corpus]]
 
     freqs = Counter(labels)
 
@@ -114,7 +113,7 @@ print("\nPIBOSO outcome:")
 [print(x, end="\t") for x in (label_dist(prepro.transform(pp_test), dictionary, lda))]
 
 print("\nPIBOSO other:")
-[print(x, end="\t") for x in (label_dist(prepro.transform(po_test), dictionary, lda))]
+[print(x, end="\t") for x in (label_dist(prepro.transform(pn_test), dictionary, lda))]
 
 print("\n--------------------------------"
       "FULL CORPORA"

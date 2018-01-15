@@ -11,4 +11,4 @@ nltk_downloads = ["wordnet",
 for d in nltk_downloads:
     nltk.download(d)
 
-# TODO Genia tagger etc.
+# TODO Genia tagger, GENIA tagger wrapper etc.

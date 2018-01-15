@@ -57,7 +57,7 @@ def abstract_pmid_pos_sentences_query(max_ids=10000, term="cancer OR oncology OR
             with open(path, "rb") as f:
                 dump = pickle.load(f)
                 return dump[:min(len(dump), max_ids)]
-        except(Exception):
+        except:
             pass
 
     print("Retrieving PubMed abstracts for query \"{}\" (max. {})".format(term, max_ids))
@@ -186,7 +186,7 @@ def get_abstracts(idlist):
             df = df.append(pd.DataFrame([[pmid, title, ab]],
                                         columns=["pmid", "title", "abstract"]),
                            ignore_index=True)
-        except Exception:
+        except:
             pass
 
     return df

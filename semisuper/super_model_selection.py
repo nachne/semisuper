@@ -139,7 +139,7 @@ def preproc_param_dict():
         'wordgram_range': [(1, 4)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
-            # transformers.identitySelector,
+            # transformers.IdentitySelector,
             # partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
             # partial(transformers.percentile_selector, 'chi2', 20),
@@ -160,6 +160,7 @@ def preproc_param_dict():
         ]
     }
     return d
+
 
 
 # ----------------------------------------------------------------

@@ -33,6 +33,8 @@ def num_rows(a):
 
 def arrays(args):
     """make numpy arrays from args list"""
+    if type(args[0]) == str:
+        return [np.array(a, dtype=object) for a in args]
     return [np.array(a) for a in args]
 
 
