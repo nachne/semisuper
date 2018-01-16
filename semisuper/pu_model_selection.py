@@ -21,7 +21,7 @@ from semisuper.helpers import num_rows, densify
 
 
 # TODO multiprocessing; breaks on macOS but not on Linux
-PARALLEL = False
+PARALLEL = True
 
 
 def getBestModel(P_train, U_train, X_test, y_test):

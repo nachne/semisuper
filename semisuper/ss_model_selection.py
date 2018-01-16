@@ -203,10 +203,10 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                                                                                  min_df_char=df_min,
                                                                                  min_df_word=df_min, max_df=df_max)
                     if selector:
-                        P_train_, N_train_, U_train_ = [(selector.transform(vectorizer.transform(x)))
+                        P_train_, N_train_, U_train_ = [densify(selector.transform(vectorizer.transform(x)))
                                                         for x in [P_train, N_train, U_train]]
                     else:
-                        P_train_, N_train_, U_train_ = [(vectorizer.transform(x))
+                        P_train_, N_train_, U_train_ = [densify(vectorizer.transform(x))
                                                         for x in [P_train, N_train, U_train]]
 
                     # fit models
