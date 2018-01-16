@@ -28,6 +28,8 @@ def cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.2, alpha=16, beta=4, kernel=None
 
     print("Running CR-SVM")
 
+    P, U = arrays([P, U])
+
     # step 1
     if verbose: print("Determining RN using Cosine Similarity threshold and Rocchio\n")
     U_minus_RN, RN = get_RN_cosine_rocchio(P, U, noise_lvl=noise_lvl, alpha=alpha, beta=beta,
@@ -51,6 +53,8 @@ def roc_SVM(P, U, max_neg_ratio=0.1, alpha=16, beta=4, kernel=None, C=0.1, verbo
 
     print("Running Roc-SVM")
 
+    P, U = arrays([P, U])
+
     # step 1
     if verbose: print("Determining RN using Rocchio method\n")
     U_minus_RN, RN = get_RN_rocchio(P, U, alpha=alpha, beta=beta, verbose=verbose)
@@ -72,6 +76,8 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=1.0, tolerance=0.1, noise_lvl=0.1, c
     """
 
     print("Running S-EM")
+
+    P, U = arrays([P, U])
 
     # step 1
     if verbose: print("Determining confidence threshold using Spy Documents and I-EM\n")
@@ -117,6 +123,8 @@ def standalone_rocchio(P, U, alpha=16, beta=4, verbose=False):
 
     print("Running Rocchio")
 
+    P, U = arrays([P, U])
+
     if verbose: print("Building Rocchio model to determine Reliable Negative examples")
     model = rocchio(P, U, alpha=alpha, beta=beta)
 
@@ -138,6 +146,8 @@ def spy_SVM(P, U, spy_ratio=0.1, max_neg_ratio=0.1, tolerance=0.1, noise_lvl=0.1
     """
 
     print("Running Spy-SVM")
+
+    P, U = arrays([P, U])
 
     # step 1
     if verbose: print("Determining confidence threshold using Spy Documents and I-EM\n")
@@ -163,6 +173,8 @@ def roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, clf_selection=True,
     """
 
     print("Running Roc-EM")
+
+    P, U = arrays([P, U])
 
     # step 1
     if verbose: print("Determining RN using Rocchio method\n")
@@ -202,6 +214,8 @@ def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise
 
 def get_RN_rocchio(P, U, alpha=16, beta=4, verbose=False):
     """extract Reliable Negative documents using Binary Rocchio algorithm"""
+
+    P, U = arrays([P, U])
 
     if verbose: print("Building Rocchio model to determine Reliable Negative examples")
     model = rocchio(P, U, alpha=alpha, beta=beta)
@@ -286,9 +300,9 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, clf_
         iterate NB classifier with updated labels for unlabelled set (with optional initial labels) until convergence"""
 
     if y_P is None:
-        y_P = np.ones(num_rows(P))
+        y_P = ([1.] * num_rows(P))
     if ypU is None:
-        ypU = np.zeros(num_rows(U))
+        ypU = ([0.] * num_rows(U))
 
     ypU_old = [-999]
 
@@ -490,3 +504,4 @@ def em_getting_worse(old_model, new_model, P, U, verbose=False):
     if verbose: print("Delta_i:", Delta_i)
 
     return Delta_i > 0
+
