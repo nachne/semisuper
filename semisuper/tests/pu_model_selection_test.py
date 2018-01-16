@@ -25,9 +25,9 @@ abstracts_train, abstracts_test = train_test_split(abstracts, test_size=0.01)
 
 # TODO check why this doesn't kill multiprocessing but clean corpus does
 
-P = random.sample(hocpos_train + civic_train, 400)
-U = random.sample(hocneg_train + abstracts_train, 800)
-half_test_size = 100
+P = random.sample(hocpos_train + civic_train, 4000)
+U = random.sample(hocneg_train + abstracts_train, 8000)
+half_test_size = 1000
 X_test = random.sample(hocpos_test, half_test_size) + random.sample(hocneg_test, half_test_size)
 y_test = [1] * half_test_size + [0] * half_test_size
 
@@ -36,7 +36,7 @@ y_test = [1] * half_test_size + [0] * half_test_size
 # X_test = hocpos_test + hocneg_test
 # y_test = [1] * num_rows(hocpos_test) + [0] * num_rows(hocneg_test)
 
-# P, U, X_test, y_test = cleanup_corpora.clean_corpus_pu(ratio=1.0)
+P, U, X_test, y_test = cleanup_corpora.clean_corpus_pu(ratio=1.0)
 
 print("Training sets: \tP (HoC labelled + CIViC)", num_rows(P),
       "\tU (HoC unlabelled + CIViC source abstracts)", num_rows(U),

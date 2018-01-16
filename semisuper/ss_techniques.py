@@ -107,7 +107,7 @@ def self_training_lin_svc(P, N, U, confidence=0.5, clf=None, verbose=False):
 
 
 def neg_self_training(P, N, U, clf=None, verbose=False):
-    """Iteratively augment negative set. Optional classifier (must implement predict_proba) and confidence threshold.
+    """Iteratively augment negative set. Optional classifier (must implement predict)
     Default: Logistic Regression"""
 
     print("Iteratively augmenting negative set with", (clf or "Logistic Regression"), "classifier")
@@ -129,12 +129,12 @@ def neg_self_training(P, N, U, clf=None, verbose=False):
 
     iteration = 0
 
-    while np.size(RN):
+    while np.size(RN) and np.size(U):
         iteration += 1
         if verbose:
             print("Iteration #", iteration, "\tRN", num_rows(RN), "\tremaining:", num_rows(U))
 
-        N = np.concatenate((N, RN)) if np.size(RN) else N
+        N = np.concatenate((N, RN))
 
         model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
@@ -143,6 +143,10 @@ def neg_self_training(P, N, U, clf=None, verbose=False):
 
         ypU = model.predict(U)
         U, RN = partition_pos_neg(U, ypU)
+
+    if np.size(RN):
+        N = np.concatenate((N, RN))
+        model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
     print("Returning final model after", iteration, "iterations.")
     return model

@@ -17,20 +17,17 @@ import semisuper.transformers as transformers
 from semisuper.helpers import num_rows, densify
 
 
-# TODO: whole file obsolete (only used in test script)
-
+# TODO: obsolete (only used in test script, left here for documentation)
+# TODO: cross-validation
 
 # TODO multiprocessing; breaks on macOS but not on Linux
-PARALLEL = True
+PARALLEL = os.sys.platform == "linux"
 
 
 def getBestModel(P_train, U_train, X_test, y_test):
     """Evaluate parameter combinations, save results and return pipeline with best model"""
 
     print("\nEvaluating parameter ranges for preprocessor and classifiers")
-
-    # splitting test set (should have true labels) in test and dev set
-    X_test, X_dev, y_test, y_dev = train_test_split(X_test, y_test, test_size=0.5)
 
     X_train = np.concatenate((P_train, U_train), 0)
     y_train_pp = np.concatenate((np.ones(num_rows(P_train)), np.zeros(num_rows(U_train))))
@@ -65,7 +62,7 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
                     start_time = time.time()
 
-                    X_train_, X_dev_, vectorizer, selector = prepareTrainTest(trainData=X_train, testData=X_dev,
+                    X_train_, X_dev_, vectorizer, selector = prepareTrainTest(trainData=X_train, testData=X_test,
                                                                               trainLabels=y_train_pp, rules=r,
                                                                               wordgram_range=wordgram,
                                                                               feature_select=fs,
@@ -113,9 +110,10 @@ def getBestModel(P_train, U_train, X_test, y_test):
                     # TODO multiprocessing; breaks on macOS but not on Linux
                     if PARALLEL:
                         with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
-                            iter_stats = list(p.map(partial(model_eval_record, X_dev_, y_dev, U_train_), iteration))
+                            iter_stats = list(p.map(partial(model_eval_record, X_dev_, y_test, U_train_), iteration,
+                                chunksize=1))
                     else:
-                        iter_stats = list(map(partial(model_eval_record, X_dev_, y_dev, U_train_), iteration))
+                        iter_stats = list(map(partial(model_eval_record, X_dev_, y_test, U_train_), iteration))
 
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
@@ -144,29 +142,12 @@ def getBestModel(P_train, U_train, X_test, y_test):
         pickle.dump(results, f)
 
     # ----------------------------------------------------------------
-    # test best on held-out test set
+    # check how much of U (abstracts) is supposed to be positive
     # ----------------------------------------------------------------
 
     best_model = results['best']['model']
     selector = results['best']['selector']
     vectorizer = results['best']['vectorizer']
-
-    if selector:
-        transformedTestData = densify(selector.transform(vectorizer.transform(X_test)))
-    else:
-        transformedTestData = densify(vectorizer.transform(X_test))
-
-    y_pred_test = best_model.predict(transformedTestData)
-
-    p, r, f, s = precision_recall_fscore_support(y_test, y_pred_test, average='macro')
-    acc = accuracy_score(y_test, y_pred_test)
-
-    print("Testing best model on held-out test set:\n", results['best']['name'], results['best']['n-grams'], "\n",
-          'p={}\tr={}\tf1={}\tacc={}'.format(p, r, f, acc))
-
-    # ----------------------------------------------------------------
-    # check how much of U (abstracts) is supposed to be positive
-    # ----------------------------------------------------------------
 
     print("\nAmount of unlabelled training set classified as positive:")
     if selector:

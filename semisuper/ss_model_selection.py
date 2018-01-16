@@ -22,18 +22,22 @@ import semisuper.ss_techniques as ss
 from semisuper import transformers
 from semisuper.helpers import num_rows, densify
 
-PARALLEL = True  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
+# TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
+PARALLEL = os.sys.platform == "linux"
 
 
 # ----------------------------------------------------------------
 # Estimators and parameters to evaluate
 # ----------------------------------------------------------------
 
+
 def estimator_list():
-    l = [
+    l = [{'name': 'neglinSVC_C{}'.format(C), 'model': partial(ss.neg_self_training_clf,
+                                                              LinearSVC(C=C, class_weight='balanced'))}
+            for C in np.arange(0.5, 2.1, 0.1)] + [
         {'name': 'neglinSVC_C1.0', 'model': partial(ss.iterate_linearSVC_C, 1.0)},
-        {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
-        {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
+        # {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
+        # {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
         {'name' : 'negSGDmh',
          'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='modified_huber'))},
         # {'name' : 'negSGDsh',

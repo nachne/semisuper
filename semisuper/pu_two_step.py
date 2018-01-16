@@ -389,8 +389,16 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
         print("Warning: Returning initial SVM because all of U was assigned label", y_U[0])
         return initial_model
 
+    if clf_selection:
+        y_P_initial = initial_model.predict(P)
+        initial_neg_ratio = 1 - np.average(y_P_initial)
+
+        if initial_neg_ratio > max_neg_ratio:
+            print("Returning initial SVM (more than {}% of P classified as negative)".format(100*initial_neg_ratio))
+            return initial_model
+
     # iterate SVM, each turn augmenting RN by the documents in Q classified negative
-    while num_rows(W) > 0 and num_rows(Q) > 0:
+    while np.size(W) and np.size(Q):
         iteration += 1
 
         RN = np.concatenate((RN, W))
@@ -402,28 +410,23 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
             clf = (BaggingClassifier(
                     svm.SVC(class_weight='balanced', kernel=kernel, C=C)
                     , bootstrap=True, n_estimators=n_estimators, n_jobs=min(n_estimators, cpu_count()),
-                    max_samples=(1.0 if n_estimators < 4 else 1.0 / (n_estimators - 2))
-            )
+                    max_samples=(1.0 if n_estimators < 4 else 1.0 / (n_estimators - 2)))
             )
         else:
             clf = svm.LinearSVC(class_weight='balanced', C=C)
 
         model = clf.fit(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)))
-        y_U = model.predict(Q)
-        Q, W = partition_pos_neg(Q, y_U)
+        y_Q = model.predict(Q)
+        Q, W = partition_pos_neg(Q, y_Q)
 
-    RN = np.concatenate((RN, W))
-    model = clf.fit(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)))
+    if np.size(W):
+        RN = np.concatenate((RN, W))
+        model = clf.fit(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)))
 
     if verbose: print("Iterative SVM converged. Reliable negative examples:", num_rows(RN))
 
     if clf_selection:
-
-        y_P_initial = initial_model.predict(P)
-        initial_neg_ratio = 1 - np.average(y_P_initial)
-
         if verbose: print("Ratio of positive examples misclassified as negative by initial SVM:", initial_neg_ratio)
-
         if model is None: return initial_model
 
         y_P_final = model.predict(P)
@@ -434,7 +437,6 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
         if final_neg_ratio > max_neg_ratio and final_neg_ratio > initial_neg_ratio:
             print(iteration, "iterations - final SVM discards too many positive examples.",
                   "Returning initial SVM instead")
-
             return initial_model
 
     print("Returning final SVM after", iteration, "iterations")
@@ -504,4 +506,3 @@ def em_getting_worse(old_model, new_model, P, U, verbose=False):
     if verbose: print("Delta_i:", Delta_i)
 
     return Delta_i > 0
-
