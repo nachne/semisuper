@@ -79,25 +79,27 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
                     # fit models
                     iteration = [
-                        {'name': 'i-em', 'model': partial(two_step.i_EM, P_train_, U_train_)},
-                        {'name' : 's-em spy=0.1',
-                         'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
-                        {'name' : 's-em spy=0.2',
-                         'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
+                        # {'name': 'i-em', 'model': partial(two_step.i_EM, P_train_, U_train_)},
+                        # {'name' : 's-em spy=0.1',
+                        #  'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
+                        # {'name' : 's-em spy=0.2',
+                        #  'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
                         {'name': 'roc-svm', 'model': partial(two_step.roc_SVM, P_train_, U_train_)},
                         {'name' : 'cr_svm noise=0.1',
                          'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.1)},
                         {'name' : 'cr_svm noise=0.2',
                          'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.2)},
-                        {'name': 'roc_em', 'model': partial(two_step.roc_EM, P_train_, U_train_)},
-                        {'name' : 'spy_svm spy=0.1',
-                         'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
-                        {'name' : 'spy_svm spy=0.2',
-                         'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
-                        {'name' : 'biased-svm',
-                         'model': partial(biased_svm.biased_SVM_weight_selection, P_train_, U_train_)},
-                        # {'name' : 'bagging-svm',
-                        #  'model': biased_svm.biased_SVM_grid_search(P_train_, U_train_)}
+                        {'name' : 'cr_svm noise=0.3',
+                         'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.3)},
+                        # {'name': 'roc_em', 'model': partial(two_step.roc_EM, P_train_, U_train_)},
+                        # {'name' : 'spy_svm spy=0.1',
+                        #  'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
+                        # {'name' : 'spy_svm spy=0.2',
+                        #  'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
+                        # {'name' : 'biased-svm',
+                        #  'model': partial(biased_svm.biased_SVM_weight_selection, P_train_, U_train_)},
+                        ## {'name' : 'bagging-svm',
+                        ##  'model': partial(biased_svm.biased_SVM_grid_search, P_train_, U_train_)}
                     ]
 
                     # eval models

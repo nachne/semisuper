@@ -28,8 +28,8 @@ def biased_SVM_grid_search(P, U, Cs=None, kernel='linear', n_estimators=9, verbo
                                            ### fit parameters for Bagging wrapper
                                            'bootstrap'                   : [True],
                                            'n_estimators'                : [n_estimators],
-                                           ### parallelization crashes with LinearSVC (not with SVC)
-                                           # 'n_jobs'                      : [n_estimators]
+                                           ### parallelization incompatible with multiprocessing
+                                           'n_jobs'                      : [n_estimators]
                                            },
                                scoring=pu_scorer,
                                verbose=0)
@@ -41,7 +41,8 @@ def biased_SVM_grid_search(P, U, Cs=None, kernel='linear', n_estimators=9, verbo
 
     grid_search.fit(X, y)
 
-    if verbose: train_report(grid_search.best_estimator_, P, U)
+    if verbose:
+        train_report(grid_search.best_estimator_, P, U)
     print("Biased-SVM parameters:", grid_search.best_params_, "\tPU score:", grid_search.best_score_)
 
     return grid_search.best_estimator_
@@ -92,7 +93,8 @@ def biased_SVM_weight_selection(P, U,
                              C=best_score_params[1]['C'],
                              probability=True, kernel=kernel)
 
-    if verbose: train_report(model, P, U)
+    if verbose:
+        train_report(model, P, U)
     print("Returning Biased-SVM with parameters", best_score_params[1], "and PU-score", best_score_params[0])
     return model
 

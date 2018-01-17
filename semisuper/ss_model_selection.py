@@ -9,6 +9,7 @@ import numpy as np
 from sklearn.metrics import classification_report, precision_recall_fscore_support, accuracy_score
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.pipeline import Pipeline
+from sklearn.base import clone
 
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
@@ -32,21 +33,21 @@ PARALLEL = True  # os.sys.platform == "linux"
 def estimator_list():
     svms = [{'name' : 'neglinSVC_C{}'.format(C),
              'model': partial(ss_techniques.neg_self_training_clf, LinearSVC(C=C, class_weight='balanced'))}
-            for C in np.arange(0.5, 1.01, 0.1)] # step 0.1
+            for C in np.arange(0.5, 1.01, 1.1)] # step 0.1
     others = [
-        # {'name': 'neglinSVC_C1.0', 'model': partial(ss_techniques.iterate_linearSVC_C, 1.0)},
-        # {'name': 'neglinSVC_C.75', 'model': partial(ss_techniques.iterate_linearSVC_C, 0.75)},
-        # {'name': 'neglinSVC_C0.5', 'model': partial(ss_techniques.iterate_linearSVC_C, 0.5)},
-        # {'name' : 'negSGDmh',
-        #  'model': partial(ss_techniques.neg_self_training_clf,
-        #                   SGDClassifier(loss='modified_huber', class_weight='balanced'))},
-        # {'name' : 'negSGDsh',
-        #  'model': partial(ss_techniques.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
-        # {'name' : 'negSGDpc',
-        #  'model': partial(ss_techniques.neg_self_training_clf, SGDClassifier(loss='perceptron'))},
-        # {'name': 'negNB0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
-        # {'name': 'negNB1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
-        # {'name' : 'self-logit', 'model': ss_techniques.self_training},
+        {'name': 'neglinSVC_C1.0', 'model': partial(ss_techniques.iterate_linearSVC_C, 1.0)},
+        {'name': 'neglinSVC_C.75', 'model': partial(ss_techniques.iterate_linearSVC_C, 0.75)},
+        {'name': 'neglinSVC_C0.5', 'model': partial(ss_techniques.iterate_linearSVC_C, 0.5)},
+        {'name' : 'negSGDmh',
+         'model': partial(ss_techniques.neg_self_training_clf,
+                          SGDClassifier(loss='modified_huber', class_weight='balanced'))},
+        {'name' : 'negSGDsh',
+         'model': partial(ss_techniques.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
+        {'name' : 'negSGDpc',
+         'model': partial(ss_techniques.neg_self_training_clf, SGDClassifier(loss='perceptron'))},
+        {'name': 'negNB0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
+        {'name': 'negNB1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
+        {'name' : 'self-logit', 'model': ss_techniques.self_training},
         # {'name' : 'EM', 'model': ss_techniques.EM},
         # {'name' : 'kNN', 'model': ss_techniques.iterate_knn},
         # {'name' : 'label_propagation', 'model': ss_techniques.propagate_labels},
@@ -69,22 +70,22 @@ def preproc_param_dict():
             # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
             # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 31%
 
-            # transformers.IdentitySelector,
-            # partial(transformers.percentile_selector, 'chi2', 30),
+            transformers.IdentitySelector,
+            partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
-            # partial(transformers.percentile_selector, 'chi2', 20),
-            # partial(transformers.percentile_selector, 'f', 30),
-            # partial(transformers.percentile_selector, 'f', 25),
-            # partial(transformers.percentile_selector, 'f', 20),
-            # partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
-            # partial(transformers.percentile_selector, 'mutual_info', 25),
-            # partial(transformers.percentile_selector, 'mutual_info', 20),
-            # partial(transformers.factorization, 'TruncatedSVD', 1000),
-            # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
-            # partial(transformers.factorization, 'TruncatedSVD', 3000),
-            # partial(transformers.select_from_l1_svc, 1.0, 1e-3),
-            # partial(transformers.select_from_l1_svc, 0.5, 1e-3),
-            # partial(transformers.select_from_l1_svc, 0.1, 1e-3),
+            partial(transformers.percentile_selector, 'chi2', 20),
+            partial(transformers.percentile_selector, 'f', 30),
+            partial(transformers.percentile_selector, 'f', 25),
+            partial(transformers.percentile_selector, 'f', 20),
+            partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
+            partial(transformers.percentile_selector, 'mutual_info', 25),
+            partial(transformers.percentile_selector, 'mutual_info', 20),
+            partial(transformers.factorization, 'TruncatedSVD', 1000),
+            partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
+            partial(transformers.factorization, 'TruncatedSVD', 3000),
+            partial(transformers.select_from_l1_svc, 1.0, 1e-3),
+            partial(transformers.select_from_l1_svc, 0.5, 1e-3),
+            partial(transformers.select_from_l1_svc, 0.1, 1e-3),
         ]
     }
 
@@ -109,7 +110,7 @@ def best_model_cross_val(P, N, U, fold=10):
 
     # TODO can't do this in parallel
     # if PARALLEL:
-    #     with multi.Pool(fold) as p:
+    #     with multi.Pool(min(fold, multi.cpu_count(), 1)) as p:
     #         stats = list(p.map(partial(eval_fold, best, P, N, U), enumerate(splits), chunksize=1))
     # else:
     #     stats = list(map(partial(eval_fold, best, P, N, U), enumerate(splits)))
@@ -145,15 +146,33 @@ def eval_fold(model_record, P, N, U, i_splits):
     P_train, P_test = P[p_split[0]], P[p_split[1]]
     N_train, N_test = N[n_split[0]], N[n_split[1]]
 
+    # TODO fix this so it can run in parallel, remove print-debugging
+    print("a")
+
     y_train_pp = concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U))))
-    pp = Pipeline([('vectorizer', model_record['vectorizer']), ('selector', model_record['selector'])])
+
+    print("b")
+
+    pp = clone(Pipeline([('vectorizer', model_record['vectorizer']), ('selector', model_record['selector'])]))
+
+    print("c")
+
     pp.fit(concatenate((P_train, N_train, U)), y_train_pp)
+
+    print("d")
+
     P_, N_, U_, P_test_, N_test_ = [(pp.transform(x)) for x in [P_train, N_train, U, P_test, N_test]]
+
+    print("e")
 
     model = model_record['untrained_model'](P_, N_, U_)
 
+    print("f")
+
     y_pred = model.predict(concatenate((P_test_, N_test_)))
     y_test = concatenate((np.ones(num_rows(P_test_)), np.zeros(num_rows(N_test_))))
+
+    print("g")
 
     pr, r, f1, _ = precision_recall_fscore_support(y_test, y_pred)
     acc = accuracy_score(y_test, y_pred)

@@ -180,11 +180,13 @@ def best_model_cross_val(X, y, fold=10):
     kf = KFold(n_splits=fold, shuffle=True)
     splits = kf.split(X, y)
 
-    if PARALLEL:
-        with multi.Pool(fold) as p:
-            stats = list(p.map(partial(eval_fold, best, X, y), enumerate(splits), chunksize=1))
-    else:
-        stats = list(map(partial(eval_fold, best, X, y), enumerate(splits)))
+    # TODO: parallel fix
+    # if PARALLEL:
+    #     with multi.Pool(fold) as p:
+    #         stats = list(p.map(partial(eval_fold, best, X, y), enumerate(splits), chunksize=1))
+    # else:
+    #     stats = list(map(partial(eval_fold, best, X, y), enumerate(splits)))
+    stats = list(map(partial(eval_fold, best, X, y), enumerate(splits)))
 
     mean_stats = np.mean(stats, 0)
     print("Cross-validation average: p {}, r {}, f1 {}, acc {}".format(
