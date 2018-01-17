@@ -49,7 +49,7 @@ def save_silver_standard(pipeline, write=True, outpath=None):
     elif hasattr(pipeline, 'predict_proba'):
         dec_fn = np.abs(pipeline.predict_proba(abstracts[:, text])[:, 1])
     else:
-        dec_fn = [-999] * num_rows(abstracts)
+        dec_fn = [0] * num_rows(abstracts)
 
     y = pipeline.predict(abstracts[:, text]).astype(int)
 

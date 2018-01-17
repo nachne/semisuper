@@ -1,8 +1,8 @@
 from functools import partial
 from multiprocessing import Pool, cpu_count
 
-from numpy import concatenate, zeros, ones
-from semisuper.helpers import num_rows, pu_score, partition_pos_neg, train_report
+from numpy import zeros, ones
+from semisuper.helpers import num_rows, pu_score, partition_pos_neg, train_report, concatenate
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC, LinearSVC

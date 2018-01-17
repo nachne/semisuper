@@ -316,7 +316,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_wor
 
     return Pipeline([
         ("text_normalizer", None if not normalize else TextNormalizer()),
-        ("features", FeatureUnion(n_jobs=2,
+        ("features", FeatureUnion(# n_jobs=2,
                                   transformer_list=[
                                       ("wordgrams", None if wordgrams is None else
                                       Pipeline([

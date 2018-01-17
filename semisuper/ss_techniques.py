@@ -13,7 +13,7 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
 from semisuper import pu_two_step
-from semisuper.helpers import num_rows, partition_pos_neg, partition_pos_neg_unsure, arrays
+from semisuper.helpers import num_rows, partition_pos_neg, partition_pos_neg_unsure, arrays, concatenate
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_two_step import almost_equal
 
@@ -39,7 +39,7 @@ def self_training(P, N, U, clf=None, confidence=0.8, verbose=False):
             model = clf
     else:
         model = LogisticRegression(solver='sag', C=1.0)
-    model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+    model.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
     ypU = model.predict_proba(U)
     RP, RN, U = partition_pos_neg_unsure(U, ypU, confidence)
@@ -50,10 +50,10 @@ def self_training(P, N, U, clf=None, confidence=0.8, verbose=False):
         iteration += 1
         if verbose:
             print("Iteration #", iteration, "\tRP", num_rows(RP), "\tRN", num_rows(RN), "\tunclear:", num_rows(U))
-        P = np.concatenate((P, RP)) if np.size(RP) else P
-        N = np.concatenate((N, RN)) if np.size(RN) else N
+        P = concatenate((P, RP)) if np.size(RP) else P
+        N = concatenate((N, RN)) if np.size(RN) else N
 
-        model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+        model.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
         if not np.size(U):
             break
@@ -78,7 +78,7 @@ def self_training_lin_svc(P, N, U, confidence=0.5, clf=None, verbose=False):
             model = clf
     else:
         model = LinearSVC(C=1.0)
-    model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+    model.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
     ypU = model.decision_function(U)
     ypU = np.vstack((-ypU, ypU)).T
@@ -90,10 +90,10 @@ def self_training_lin_svc(P, N, U, confidence=0.5, clf=None, verbose=False):
         iteration += 1
         if verbose:
             print("Iteration #", iteration, "\tRP", num_rows(RP), "\tRN", num_rows(RN), "\tunclear:", num_rows(U))
-        P = np.concatenate((P, RP)) if np.size(RP) else P
-        N = np.concatenate((N, RN)) if np.size(RN) else N
+        P = concatenate((P, RP)) if np.size(RP) else P
+        N = concatenate((N, RN)) if np.size(RN) else N
 
-        model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+        model.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
         if not np.size(U):
             break
@@ -122,7 +122,7 @@ def neg_self_training(P, N, U, clf=None, verbose=False):
     else:
         model = LogisticRegression(solver='sag', C=1.0)
 
-    model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+    model.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
     ypU = model.predict(U)
     U, RN = partition_pos_neg(U, ypU)
@@ -134,9 +134,9 @@ def neg_self_training(P, N, U, clf=None, verbose=False):
         if verbose:
             print("Iteration #", iteration, "\tRN", num_rows(RN), "\tremaining:", num_rows(U))
 
-        N = np.concatenate((N, RN))
+        N = concatenate((N, RN))
 
-        model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+        model.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
         if not np.size(U):
             break
@@ -145,8 +145,8 @@ def neg_self_training(P, N, U, clf=None, verbose=False):
         U, RN = partition_pos_neg(U, ypU)
 
     if np.size(RN):
-        N = np.concatenate((N, RN))
-        model.fit(np.concatenate((P, N)), np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
+        N = concatenate((N, RN))
+        model.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
     print("Returning final model after", iteration, "iterations.")
     return model
@@ -155,7 +155,7 @@ def neg_self_training(P, N, U, clf=None, verbose=False):
 def iterate_linearSVC(P, N, U, C=1.0, verbose=False):
     """run SVM iteratively until labels for U converge"""
 
-    print("Running iterative linear SVM")
+    print("Running iterative linear SVM with C = ", C)
 
     return pu_two_step.iterate_SVM(P=P, U=U, RN=N, C=C,
                                    kernel=None,
@@ -176,8 +176,8 @@ def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1
 
     if ypU is None:
         if verbose: print("\nBuilding classifier from Positive and Reliable Negative set")
-        initial_model = build_proba_MNB(np.concatenate((P_init, N)),
-                                        np.concatenate((np.ones(num_rows(P_init)), np.zeros(num_rows(N)))))
+        initial_model = build_proba_MNB(concatenate((P_init, N)),
+                                        concatenate((np.ones(num_rows(P_init)), np.zeros(num_rows(N)))))
 
         if verbose: print("\nCalculating initial probabilistic labels for Unlabelled set")
         ypU = initial_model.predict_proba(U)[:, 1]
@@ -213,8 +213,8 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
 
         if verbose: print("Iteration #", iterations, "\tBuilding new model using probabilistic labels")
 
-        new_model = build_proba_MNB(np.concatenate((P, N, U)),
-                                    np.concatenate((y_P, y_N, ypU)))
+        new_model = build_proba_MNB(concatenate((P, N, U)),
+                                    concatenate((y_P, y_N, ypU)))
 
         if verbose: print("Predicting probabilities for U")
         ypU_old = ypU
@@ -238,7 +238,7 @@ def iterate_knn(P, N, U, n_neighbors=7, thresh=0.6):
     P_, N_, U_ = arrays((P, N, U))
 
     knn = KNeighborsClassifier(n_neighbors=n_neighbors, weights='uniform', n_jobs=multi.cpu_count() - 1)
-    knn.fit(np.concatenate((P_, N_)), np.concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+    knn.fit(concatenate((P_, N_)), concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
 
     y_pred = knn.predict_proba(U_)
     U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
@@ -249,10 +249,10 @@ def iterate_knn(P, N, U, n_neighbors=7, thresh=0.6):
         print("New confidently predicted examples: \tpos", num_rows(U_pos), "\tneg", num_rows(U_neg))
         print("Remaining unlabelled:", num_rows(U_))
 
-        P_ = np.concatenate((P_, U_pos))
-        N_ = np.concatenate((N_, U_neg))
+        P_ = concatenate((P_, U_pos))
+        N_ = concatenate((N_, U_neg))
 
-        knn.fit(np.concatenate((P_, N_)), np.concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+        knn.fit(concatenate((P_, N_)), concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
 
         y_pred = knn.predict_proba(U_)
         U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
@@ -278,8 +278,8 @@ def iterate_SVC(P, N, U, kernel="rbf", verbose=False):
 
 # horrible results!
 def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-1):
-    X = np.concatenate((P, N, U))
-    y_init = np.concatenate((np.ones(num_rows(P)),
+    X = concatenate((P, N, U))
+    y_init = concatenate((np.ones(num_rows(P)),
                              -np.ones(num_rows(N)),
                              np.zeros(num_rows(U))))
     propagation = semi_supervised.LabelPropagation(kernel=kernel, n_neighbors=n_neighbors, max_iter=max_iter,
@@ -312,8 +312,8 @@ def self_training_clf_conf(clf, confidence, P, N, U):
 
 # quite good and fast (grid search: not so fast)
 def logreg(P, N, U=None, verbose=False):
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = GridSearchCV(estimator=LogisticRegression(),
                          param_grid={
                              'C'           : [10 ** x for x in range(-3, 3)],
@@ -327,32 +327,32 @@ def logreg(P, N, U=None, verbose=False):
 
 
 def sgd(P, N, U, loss="modified_huber", verbose=False):
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-    model = SGDClassifier(loss=loss).fit(X, y)
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = SGDClassifier(loss=loss, class_weight="balanced").fit(X, y)
     return model
 
 
 # bad (biased towards one class)
 def mnb(P, N, U, verbose=False):
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = MultinomialNB().fit(X, y)
     return model
 
 
 # very good but slow
 def mlp(P, N, U, verbose=False):
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = MLPClassifier().fit(X, y)
     return model
 
 
 # ok but slow
 def dectree(P, N, U, verbose=False):
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = DecisionTreeClassifier().fit(X, y)
     return model
 
@@ -371,8 +371,8 @@ def grid_search_linearSVM(P, N, U, verbose=False):
 
     if verbose:
         print("Grid searching parameters for Linear SVC")
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
 
     grid_search.fit(X, y)
 
@@ -395,8 +395,8 @@ def grid_search_SVC(P, N, U, verbose=False):
 
     if verbose:
         print("Grid searching parameters for SVC")
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
 
     grid_search.fit(X, y)
 
@@ -407,23 +407,23 @@ def grid_search_SVC(P, N, U, verbose=False):
 
 # terrible
 def lasso(P, N, U, verbose=True):
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = Lasso().fit(X, y)
     return model
 
 
 # terrible
 def elastic(P, N, U, verbose=True):
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = Lasso().fit(X, y)
     return model
 
 
 # bad
 def randomforest(P, N, U, verbose=True):
-    X = np.concatenate((P, N))
-    y = np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = RandomForestClassifier().fit(X, y)
     return model

@@ -1,6 +1,6 @@
-from numpy import concatenate, ones, zeros
+from numpy import ones, zeros
 from scipy import vstack
-from semisuper.helpers import partition_pos_neg, num_rows, label2num, densify
+from semisuper.helpers import partition_pos_neg, num_rows, label2num, densify, concatenate
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
@@ -101,8 +101,8 @@ class BinaryRocchio(BaseEstimator, ClassifierMixin):
 
         P, N = partition_pos_neg(X, y)
 
-        normalized_p = normalize([P.mean(axis=0)])
-        normalized_n = normalize([N.mean(axis=0)])
+        normalized_p = normalize(P.mean(axis=0))
+        normalized_n = normalize(N.mean(axis=0))
 
         self.proto_p = normalize(self.alpha * normalized_p - self.beta * normalized_n)
         self.proto_n = normalize(self.alpha * normalized_n - self.beta * normalized_p)

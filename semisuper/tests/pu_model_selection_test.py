@@ -21,15 +21,15 @@ print("HoC negative sentences:", len(hocneg))
 hocpos_train, hocpos_test = train_test_split(hocpos, test_size=0.3)
 hocneg_train, hocneg_test = train_test_split(hocneg, test_size=0.3)
 civic_train, civic_test = train_test_split(civic, test_size=0.3)
-abstracts_train, abstracts_test = train_test_split(abstracts, test_size=0.01)
+abstracts_train, abstracts_test = train_test_split(abstracts, test_size=0.03)
 
 # TODO check why this doesn't kill multiprocessing but clean corpus does
 
-P = random.sample(hocpos_train + civic_train, 4000)
-U = random.sample(hocneg_train + abstracts_train, 8000)
-half_test_size = 1000
-X_test = random.sample(hocpos_test, half_test_size) + random.sample(hocneg_test, half_test_size)
-y_test = [1] * half_test_size + [0] * half_test_size
+# P = random.sample(hocpos_train + civic_train, 4000)
+# U = random.sample(hocneg_train + abstracts_train, 8000)
+# half_test_size = 1000
+# X_test = random.sample(hocpos_test, half_test_size) + random.sample(hocneg_test, half_test_size)
+# y_test = [1] * half_test_size + [0] * half_test_size
 
 # P = hocpos_train + civic_train
 # U = hocneg_train + abstracts_train
@@ -50,7 +50,13 @@ best_pipeline = Pipeline([('vectorizer', best['vectorizer']),
 
 abstracts = np.array(abstracts2pmid_pos_sentence_title())
 y = best_pipeline.predict(abstracts[:, 2])
-conf = best_pipeline.decision_function(abstracts[:, 2])
+
+if hasattr(best_pipeline, 'decision_function'):
+    conf = best_pipeline.decision_function(abstracts[:, 2])
+elif hasattr(best_pipeline, 'predict_proba'):
+    conf = np.abs(best_pipeline.predict_proba(abstracts[:, 2])[:, 1])
+else:
+    conf = [0] * num_rows(abstracts)
 
 abs_clfd = list(zip(y, conf, abstracts[:, 1], abstracts[:, 2]))
 

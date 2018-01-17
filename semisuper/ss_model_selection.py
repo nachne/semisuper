@@ -6,7 +6,6 @@ from functools import partial
 from itertools import product
 
 import numpy as np
-from scipy.sparse import vstack
 from sklearn.metrics import classification_report, precision_recall_fscore_support, accuracy_score
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.pipeline import Pipeline
@@ -18,12 +17,11 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
-import semisuper.ss_techniques as ss
-from semisuper import transformers
-from semisuper.helpers import num_rows, densify
+from semisuper import transformers, ss_techniques
+from semisuper.helpers import num_rows, concatenate
 
 # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
-PARALLEL = os.sys.platform == "linux"
+PARALLEL = True  # os.sys.platform == "linux"
 
 
 # ----------------------------------------------------------------
@@ -32,35 +30,37 @@ PARALLEL = os.sys.platform == "linux"
 
 
 def estimator_list():
-    l = [{'name': 'neglinSVC_C{}'.format(C), 'model': partial(ss.neg_self_training_clf,
-                                                              LinearSVC(C=C, class_weight='balanced'))}
-            for C in np.arange(0.5, 2.1, 0.1)] + [
-        {'name': 'neglinSVC_C1.0', 'model': partial(ss.iterate_linearSVC_C, 1.0)},
-        # {'name': 'neglinSVC_C.75', 'model': partial(ss.iterate_linearSVC_C, 0.75)},
-        # {'name': 'neglinSVC_C0.5', 'model': partial(ss.iterate_linearSVC_C, 0.5)},
-        {'name' : 'negSGDmh',
-         'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='modified_huber'))},
+    svms = [{'name' : 'neglinSVC_C{}'.format(C),
+             'model': partial(ss_techniques.neg_self_training_clf, LinearSVC(C=C, class_weight='balanced'))}
+            for C in np.arange(0.5, 1.01, 0.1)] # step 0.1
+    others = [
+        # {'name': 'neglinSVC_C1.0', 'model': partial(ss_techniques.iterate_linearSVC_C, 1.0)},
+        # {'name': 'neglinSVC_C.75', 'model': partial(ss_techniques.iterate_linearSVC_C, 0.75)},
+        # {'name': 'neglinSVC_C0.5', 'model': partial(ss_techniques.iterate_linearSVC_C, 0.5)},
+        # {'name' : 'negSGDmh',
+        #  'model': partial(ss_techniques.neg_self_training_clf,
+        #                   SGDClassifier(loss='modified_huber', class_weight='balanced'))},
         # {'name' : 'negSGDsh',
-        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
+        #  'model': partial(ss_techniques.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
         # {'name' : 'negSGDpc',
-        #  'model': partial(ss.neg_self_training_clf, SGDClassifier(loss='perceptron'))},
-        # {'name': 'negNB0.1', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=0.1))},
-        # {'name': 'negNB1.0', 'model': partial(ss.neg_self_training_clf, MultinomialNB(alpha=1.0))},
-        # {'name' : 'self-logit', 'model': ss.self_training},
-        # {'name' : 'EM', 'model': ss.EM},
-        # {'name' : 'kNN', 'model': ss.iterate_knn},
-        # {'name' : 'label_propagation', 'model': ss.propagate_labels},
+        #  'model': partial(ss_techniques.neg_self_training_clf, SGDClassifier(loss='perceptron'))},
+        # {'name': 'negNB0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
+        # {'name': 'negNB1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
+        # {'name' : 'self-logit', 'model': ss_techniques.self_training},
+        # {'name' : 'EM', 'model': ss_techniques.EM},
+        # {'name' : 'kNN', 'model': ss_techniques.iterate_knn},
+        # {'name' : 'label_propagation', 'model': ss_techniques.propagate_labels},
     ]
 
-    return l
+    return svms + others
 
 
 def preproc_param_dict():
     d = {
         'df_min'        : [0.001],
         'df_max'        : [1.0],
-        'rules'         : [True, False],
-        'genia_opts'    : [None, {"pos": False, "ner": True}],
+        'rules'         : [True],  # [True, False],
+        'genia_opts'    : [None], # [None, {"pos": False, "ner": True}],
         # [None, {"pos": False, "ner": False}, {"pos": True, "ner": False}, {"pos": False, "ner": True},
         #  {"pos": True, "ner": True}],
         'wordgram_range': [(1, 4)],  # [(1, 2), (1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
@@ -107,11 +107,13 @@ def best_model_cross_val(P, N, U, fold=10):
     kf = KFold(n_splits=fold, shuffle=True)
     splits = zip(list(kf.split(P)), list(kf.split(N)))
 
-    if PARALLEL:
-        with multi.Pool(fold) as p:
-            stats = list(p.map(partial(eval_fold, best, P, N, U), enumerate(splits), chunksize=1))
-    else:
-        stats = list(map(partial(eval_fold, best, P, N, U), enumerate(splits)))
+    # TODO can't do this in parallel
+    # if PARALLEL:
+    #     with multi.Pool(fold) as p:
+    #         stats = list(p.map(partial(eval_fold, best, P, N, U), enumerate(splits), chunksize=1))
+    # else:
+    #     stats = list(map(partial(eval_fold, best, P, N, U), enumerate(splits)))
+    stats = list(map(partial(eval_fold, best, P, N, U), enumerate(splits)))
 
     mean_stats = np.mean(stats, 0)
     print("Cross-validation average: p {}, r {}, f1 {}, acc {}".format(
@@ -120,12 +122,12 @@ def best_model_cross_val(P, N, U, fold=10):
     print("Retraining model on full data")
 
     vec, sel = best['vectorizer'], best['selector']
-    vec.fit(np.concatenate((P, N, U)))
+    vec.fit(concatenate((P, N, U)))
     P_, N_, U_ = [vec.transform(x) for x in [P, N, U]]
 
-    y_pp = np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))
-    sel.fit(vstack((P_, N_, U_)), y_pp)
-    P_, N_, U_ = [densify(sel.transform(x)) for x in [P_, N_, U_]]
+    y_pp = concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))
+    sel.fit(concatenate((P_, N_, U_)), y_pp)
+    P_, N_, U_ = [(sel.transform(x)) for x in [P_, N_, U_]]
 
     model = best['untrained_model'](P_, N_, U_)
 
@@ -143,15 +145,15 @@ def eval_fold(model_record, P, N, U, i_splits):
     P_train, P_test = P[p_split[0]], P[p_split[1]]
     N_train, N_test = N[n_split[0]], N[n_split[1]]
 
-    y_train_pp = np.concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U))))
+    y_train_pp = concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U))))
     pp = Pipeline([('vectorizer', model_record['vectorizer']), ('selector', model_record['selector'])])
-    pp.fit(np.concatenate((P_train, N_train, U)), y_train_pp)
-    P_, N_, U_, P_test_, N_test_ = [densify(pp.transform(x)) for x in [P_train, N_train, U, P_test, N_test]]
+    pp.fit(concatenate((P_train, N_train, U)), y_train_pp)
+    P_, N_, U_, P_test_, N_test_ = [(pp.transform(x)) for x in [P_train, N_train, U, P_test, N_test]]
 
     model = model_record['untrained_model'](P_, N_, U_)
 
-    y_pred = model.predict(np.concatenate((P_test_, N_test_)))
-    y_test = np.concatenate((np.ones(num_rows(P_test_)), np.zeros(num_rows(N_test_))))
+    y_pred = model.predict(concatenate((P_test_, N_test_)))
+    y_test = concatenate((np.ones(num_rows(P_test_)), np.zeros(num_rows(N_test_))))
 
     pr, r, f1, _ = precision_recall_fscore_support(y_test, y_pred)
     acc = accuracy_score(y_test, y_pred)
@@ -172,11 +174,11 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     if X_test is None or y_test is None:
         P_train, X_test_pos = train_test_split(P_train, test_size=0.2)
         N_train, X_test_neg = train_test_split(N_train, test_size=0.2)
-        X_test = np.concatenate((X_test_pos, X_test_neg))
-        y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
+        X_test = concatenate((X_test_pos, X_test_neg))
+        y_test = concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
 
-    X_train = np.concatenate((P_train, N_train, U_train))
-    y_train_pp = np.concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U_train))))
+    X_train = concatenate((P_train, N_train, U_train))
+    y_train_pp = concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U_train))))
 
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
@@ -207,10 +209,10 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                                                                                  min_df_char=df_min,
                                                                                  min_df_word=df_min, max_df=df_max)
                     if selector:
-                        P_train_, N_train_, U_train_ = [densify(selector.transform(vectorizer.transform(x)))
+                        P_train_, N_train_, U_train_ = [(selector.transform(vectorizer.transform(x)))
                                                         for x in [P_train, N_train, U_train]]
                     else:
-                        P_train_, N_train_, U_train_ = [densify(vectorizer.transform(x))
+                        P_train_, N_train_, U_train_ = [(vectorizer.transform(x))
                                                         for x in [P_train, N_train, U_train]]
 
                     # fit models
@@ -258,9 +260,9 @@ def test_best(results, X_eval, y_eval):
     vectorizer = results['best']['vectorizer']
 
     if selector:
-        transformedTestData = densify(selector.transform(vectorizer.transform(X_eval)))
+        transformedTestData = (selector.transform(vectorizer.transform(X_eval)))
     else:
-        transformedTestData = densify(vectorizer.transform(X_eval))
+        transformedTestData = (vectorizer.transform(X_eval))
 
     y_pred = best_model.predict(transformedTestData)
 

@@ -6,7 +6,8 @@ import numpy as np
 from sklearn import svm
 from sklearn.ensemble import BaggingClassifier
 
-from semisuper.helpers import num_rows, arrays, partition_pos_neg, pu_score, train_report, select_PN_below_score
+from semisuper.helpers import num_rows, arrays, partition_pos_neg, pu_score, train_report, select_PN_below_score, \
+    concatenate
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_cos_roc import ranking_cos_sim, rocchio
 
@@ -28,18 +29,21 @@ def cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.2, alpha=16, beta=4, kernel=None
 
     print("Running CR-SVM")
 
-    P, U = arrays([P, U])
+    # P, U = arrays([P, U])
 
     # step 1
-    if verbose: print("Determining RN using Cosine Similarity threshold and Rocchio\n")
+    if verbose:
+        print("Determining RN using Cosine Similarity threshold and Rocchio\n")
     U_minus_RN, RN = get_RN_cosine_rocchio(P, U, noise_lvl=noise_lvl, alpha=alpha, beta=beta,
                                            verbose=verbose)
 
     # step2
-    if verbose: print("\nIterating SVM with P, U-RN, and RN")
+    if verbose:
+        print("\nIterating SVM with P, U-RN, and RN")
     model = iterate_SVM(P, U_minus_RN, RN, kernel=kernel, C=C, max_neg_ratio=max_neg_ratio, verbose=verbose)
 
-    if verbose: train_report(model, P, U)
+    if verbose:
+        train_report(model, P, U)
 
     return model
 
@@ -53,17 +57,20 @@ def roc_SVM(P, U, max_neg_ratio=0.1, alpha=16, beta=4, kernel=None, C=0.1, verbo
 
     print("Running Roc-SVM")
 
-    P, U = arrays([P, U])
+    # P, U = arrays([P, U])
 
     # step 1
-    if verbose: print("Determining RN using Rocchio method\n")
+    if verbose:
+        print("Determining RN using Rocchio method\n")
     U_minus_RN, RN = get_RN_rocchio(P, U, alpha=alpha, beta=beta, verbose=verbose)
 
     # step2
-    if verbose: print("\nIterating SVM with P, U-RN, and RN")
+    if verbose:
+        print("\nIterating SVM with P, U-RN, and RN")
     model = iterate_SVM(P, U_minus_RN, RN, kernel=kernel, C=C, max_neg_ratio=max_neg_ratio, verbose=verbose)
 
-    if verbose: train_report(model, P, U)
+    if verbose:
+        train_report(model, P, U)
 
     return model
 
@@ -77,21 +84,24 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=1.0, tolerance=0.1, noise_lvl=0.1, c
 
     print("Running S-EM")
 
-    P, U = arrays([P, U])
+    # P, U = arrays([P, U])
 
     # step 1
-    if verbose: print("Determining confidence threshold using Spy Documents and I-EM\n")
+    if verbose:
+        print("Determining confidence threshold using Spy Documents and I-EM\n")
     U_minus_RN, RN = get_RN_Spy_Docs(P, U,
                                      spy_ratio=spy_ratio, tolerance=tolerance, noise_lvl=noise_lvl,
                                      verbose=verbose)
 
     # step2
-    if verbose: print("\nIterating I-EM with P, U-RN, and RN")
+    if verbose:
+        print("\nIterating I-EM with P, U-RN, and RN")
     model = run_EM_with_RN(P, U_minus_RN, RN,
                            tolerance=tolerance, max_pos_ratio=max_pos_ratio,
                            clf_selection=clf_selection, verbose=verbose)
 
-    if verbose: train_report(model, P, U)
+    if verbose:
+        train_report(model, P, U)
 
     return model
 
@@ -109,7 +119,8 @@ def i_EM(P, U, max_imbalance=10.0, max_pos_ratio=1.0, tolerance=0.1, verbose=Fal
 
     model = iterate_EM(P, U, tolerance=tolerance, max_pos_ratio=max_pos_ratio, clf_selection=False, verbose=verbose)
 
-    if verbose: train_report(model, P, U)
+    if verbose:
+        train_report(model, P, U)
 
     return model
 
@@ -123,9 +134,10 @@ def standalone_rocchio(P, U, alpha=16, beta=4, verbose=False):
 
     print("Running Rocchio")
 
-    P, U = arrays([P, U])
+    # P, U = arrays([P, U])
 
-    if verbose: print("Building Rocchio model to determine Reliable Negative examples")
+    if verbose:
+        print("Building Rocchio model to determine Reliable Negative examples")
     model = rocchio(P, U, alpha=alpha, beta=beta)
 
     y_U = model.predict(U)
@@ -147,19 +159,22 @@ def spy_SVM(P, U, spy_ratio=0.1, max_neg_ratio=0.1, tolerance=0.1, noise_lvl=0.1
 
     print("Running Spy-SVM")
 
-    P, U = arrays([P, U])
+    # P, U = arrays([P, U])
 
     # step 1
-    if verbose: print("Determining confidence threshold using Spy Documents and I-EM\n")
+    if verbose:
+        print("Determining confidence threshold using Spy Documents and I-EM\n")
     U_minus_RN, RN = get_RN_Spy_Docs(P, U,
                                      spy_ratio=spy_ratio, tolerance=tolerance, noise_lvl=noise_lvl,
                                      verbose=verbose)
 
     # step2
-    if verbose: print("\nIterating SVM with P, U-RN, and RN")
+    if verbose:
+        print("\nIterating SVM with P, U-RN, and RN")
     model = iterate_SVM(P, U_minus_RN, RN, max_neg_ratio=max_neg_ratio, verbose=verbose)
 
-    if verbose: train_report(model, P, U)
+    if verbose:
+        train_report(model, P, U)
 
     return model
 
@@ -174,19 +189,22 @@ def roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, clf_selection=True,
 
     print("Running Roc-EM")
 
-    P, U = arrays([P, U])
+    # P, U = arrays([P, U])
 
     # step 1
-    if verbose: print("Determining RN using Rocchio method\n")
+    if verbose:
+        print("Determining RN using Rocchio method\n")
     U_minus_RN, RN = get_RN_rocchio(P, U, alpha=alpha, beta=beta, verbose=verbose)
 
     # step2
-    if verbose: print("\nIterating I-EM with P, U-RN, and RN")
+    if verbose:
+        print("\nIterating I-EM with P, U-RN, and RN")
     model = run_EM_with_RN(P, U_minus_RN, RN,
                            tolerance=tolerance, max_pos_ratio=max_pos_ratio,
                            clf_selection=clf_selection, verbose=verbose)
 
-    if verbose: train_report(model, P, U)
+    if verbose:
+        train_report(model, P, U)
 
     return model
 
@@ -199,7 +217,7 @@ def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise
     """First step technique: Compute reliable negative docs from P using Spy Documents and I-EM"""
 
     P_minus_spies, spies = spy_partition(P, spy_ratio)
-    U_plus_spies = np.concatenate((U, spies))
+    U_plus_spies = concatenate((U, spies))
 
     model = iterate_EM(P_minus_spies, U_plus_spies, tolerance=tolerance, max_pos_ratio=max_pos_ratio,
                        clf_selection=False, verbose=verbose)
@@ -215,15 +233,17 @@ def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise
 def get_RN_rocchio(P, U, alpha=16, beta=4, verbose=False):
     """extract Reliable Negative documents using Binary Rocchio algorithm"""
 
-    P, U = arrays([P, U])
+    # P, U = arrays([P, U])
 
-    if verbose: print("Building Rocchio model to determine Reliable Negative examples")
+    if verbose:
+        print("Building Rocchio model to determine Reliable Negative examples")
     model = rocchio(P, U, alpha=alpha, beta=beta)
 
     y_U = model.predict(U)
 
     U_minus_RN, RN = partition_pos_neg(U, y_U)
-    if verbose: print("Reliable Negative examples in U:", num_rows(RN), "(", 100 * num_rows(RN) / num_rows(U), "%)")
+    if verbose:
+        print("Reliable Negative examples in U:", num_rows(RN), "(", 100 * num_rows(RN) / num_rows(U), "%)")
 
     return U_minus_RN, RN
 
@@ -236,22 +256,26 @@ def get_RN_cosine_rocchio(P, U, noise_lvl=0.20, alpha=16, beta=4, verbose=False)
     source: negative harmful
     """
 
-    if verbose: print("Computing ranking (cosine similarity to mean positive example)")
+    if verbose:
+        print("Computing ranking (cosine similarity to mean positive example)")
     mean_p_ranker = ranking_cos_sim(P)
 
     sims_P = mean_p_ranker.predict_proba(P)
     sims_U = mean_p_ranker.predict_proba(U)
 
-    if verbose: print("Choosing Potential Negative examples with ranking threshold")
+    if verbose:
+        print("Choosing Potential Negative examples with ranking threshold")
     _, PN = select_PN_below_score(sims_P, U, sims_U, noise_lvl=noise_lvl, verbose=verbose)
 
-    if verbose: print("Building Rocchio model to determine Reliable Negative examples")
+    if verbose:
+        print("Building Rocchio model to determine Reliable Negative examples")
     model = rocchio(P, PN, alpha=alpha, beta=beta)
 
     y_U = model.predict(U)
 
     U_minus_RN, RN = partition_pos_neg(U, y_U)
-    if verbose: print("Reliable Negative examples in U:", num_rows(RN), "(", 100 * num_rows(RN) / num_rows(U), "%)")
+    if verbose:
+        print("Reliable Negative examples in U:", num_rows(RN), "(", 100 * num_rows(RN) / num_rows(U), "%)")
 
     return U_minus_RN, RN
 
@@ -269,9 +293,10 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_
     else:
         P_init = P
 
-        if verbose: print("\nBuilding classifier from Positive and Reliable Negative set")
-    initial_model = build_proba_MNB(np.concatenate((P_init, RN)),
-                                    np.concatenate((np.ones(num_rows(P_init)),
+        if verbose:
+            print("\nBuilding classifier from Positive and Reliable Negative set")
+    initial_model = build_proba_MNB(concatenate((P_init, RN)),
+                                    concatenate((np.ones(num_rows(P_init)),
                                                     np.zeros(num_rows(RN)))),
                                     verbose=verbose)
 
@@ -281,13 +306,15 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_
 
     y_P = np.array([1] * num_rows(P))
 
-    if verbose: print("\nCalculating initial probabilistic labels for Reliable Negative and Unlabelled set")
+    if verbose:
+        print("\nCalculating initial probabilistic labels for Reliable Negative and Unlabelled set")
     ypU = initial_model.predict_proba(U)[:, 1]
     ypN = initial_model.predict_proba(RN)[:, 1]
 
-    if verbose: print("\nIterating EM algorithm on P, RN and U\n")
-    model = iterate_EM(P, np.concatenate((RN, U)),
-                       y_P, np.concatenate((ypN, ypU)),
+    if verbose:
+        print("\nIterating EM algorithm on P, RN and U\n")
+    model = iterate_EM(P, concatenate((RN, U)),
+                       y_P, concatenate((ypN, ypU)),
                        tolerance=tolerance, max_pos_ratio=max_pos_ratio,
                        clf_selection=clf_selection, verbose=verbose)
 
@@ -314,33 +341,38 @@ def iterate_EM(P, U, y_P=None, ypU=None, tolerance=0.05, max_pos_ratio=1.0, clf_
 
         iterations += 1
 
-        if verbose: print("Iteration #", iterations, "\tBuilding new model using probabilistic labels")
+        if verbose:
+            print("Iteration #", iterations, "\tBuilding new model using probabilistic labels")
 
         if clf_selection:
             old_model = new_model
 
-        new_model = build_proba_MNB(np.concatenate((P, U)),
-                                    np.concatenate((y_P, ypU)), verbose=verbose)
+        new_model = build_proba_MNB(concatenate((P, U)),
+                                    concatenate((y_P, ypU)), verbose=verbose)
 
-        if verbose: print("Predicting probabilities for U")
+        if verbose:
+            print("Predicting probabilities for U")
 
         ypU_old = ypU
         ypU = new_model.predict_proba(U)[:, 1]
 
         predU = [round(p) for p in ypU]
-        pos_ratio = sum(predU) / len(U)
+        pos_ratio = sum(predU) / num_rows(U)
 
-        if verbose: print("Unlabelled instances classified as positive:", sum(predU), "/", len(U),
-                          "(", pos_ratio * 100, "%)\n")
+        if verbose:
+            print("Unlabelled instances classified as positive:", sum(predU), "/", num_rows(U),
+                  "(", pos_ratio * 100, "%)\n")
 
         if clf_selection and old_model is not None:
             if em_getting_worse(old_model, new_model, P, U):
-                if verbose: print("Approximated error has grown since last iteration.\n"
-                                  "Aborting and returning classifier #", iterations - 1)
+                if verbose:
+                    print("Approximated error has grown since last iteration.\n"
+                          "Aborting and returning classifier #", iterations - 1)
                 return old_model
 
         if pos_ratio >= max_pos_ratio:
-            if verbose: print("Acceptable ratio of positively labelled sentences in U is reached.")
+            if verbose:
+                print("Acceptable ratio of positively labelled sentences in U is reached.")
             break
 
     print("Returning final NB after", iterations, "iterations")
@@ -359,8 +391,9 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
     y_RN = np.zeros(num_rows(RN))
 
     if kernel is not None:
-        if verbose: print("Building initial Bagging SVC (", n_estimators, "clfs)",
-                          "with Positive and Reliable Negative docs")
+        if verbose:
+            print("Building initial Bagging SVC (", n_estimators, "clfs)",
+                  "with Positive and Reliable Negative docs")
         clf = (
             BaggingClassifier(
                     svm.SVC(class_weight='balanced', kernel=kernel, C=C)
@@ -369,16 +402,18 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
             )
         )
     else:
-        if verbose: print("Building initial linearSVM classifier with Positive and Reliable Negative docs")
+        if verbose:
+            print("Building initial linearSVM classifier with Positive and Reliable Negative docs")
         clf = svm.LinearSVC(class_weight='balanced', C=C)
 
-    initial_model = clf.fit(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)))
+    initial_model = clf.fit(concatenate((P, RN)), concatenate((y_P, y_RN)))
 
     if num_rows(U) == 0:
         print("Warning: SVM: All of U was classified as negative.")
         return initial_model
 
-    if verbose: print("Predicting U with initial SVM, adding negatively classified docs to RN for iteration")
+    if verbose:
+        print("Predicting U with initial SVM, adding negatively classified docs to RN for iteration")
 
     y_U = initial_model.predict(U)
     Q, W = partition_pos_neg(U, y_U)
@@ -394,17 +429,18 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
         initial_neg_ratio = 1 - np.average(y_P_initial)
 
         if initial_neg_ratio > max_neg_ratio:
-            print("Returning initial SVM (more than {}% of P classified as negative)".format(100*initial_neg_ratio))
+            print("Returning initial SVM ({}% of P classified as negative)".format(100 * initial_neg_ratio))
             return initial_model
 
     # iterate SVM, each turn augmenting RN by the documents in Q classified negative
     while np.size(W) and np.size(Q):
         iteration += 1
 
-        RN = np.concatenate((RN, W))
+        RN = concatenate((RN, W))
         y_RN = np.zeros(num_rows(RN))
 
-        if verbose: print("\nIteration #", iteration, "\tReliable negative examples:", num_rows(RN))
+        if verbose:
+            print("\nIteration #", iteration, "\tReliable negative examples:", num_rows(RN))
 
         if kernel is not None:
             clf = (BaggingClassifier(
@@ -415,24 +451,28 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
         else:
             clf = svm.LinearSVC(class_weight='balanced', C=C)
 
-        model = clf.fit(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)))
+        model = clf.fit(concatenate((P, RN)), concatenate((y_P, y_RN)))
         y_Q = model.predict(Q)
         Q, W = partition_pos_neg(Q, y_Q)
 
     if np.size(W):
-        RN = np.concatenate((RN, W))
-        model = clf.fit(np.concatenate((P, RN)), np.concatenate((y_P, y_RN)))
+        RN = concatenate((RN, W))
+        model = clf.fit(concatenate((P, RN)), concatenate((y_P, y_RN)))
 
-    if verbose: print("Iterative SVM converged. Reliable negative examples:", num_rows(RN))
+    if verbose:
+        print("Iterative SVM converged. Reliable negative examples:", num_rows(RN))
 
     if clf_selection:
-        if verbose: print("Ratio of positive examples misclassified as negative by initial SVM:", initial_neg_ratio)
-        if model is None: return initial_model
+        if verbose:
+            print("Ratio of positive examples misclassified as negative by initial SVM:", initial_neg_ratio)
+        if model is None:
+            return initial_model
 
         y_P_final = model.predict(P)
         final_neg_ratio = 1 - np.average(y_P_final)
 
-        if verbose: print("Ratio of positive examples misclassified as negative by final SVM:", final_neg_ratio)
+        if verbose:
+            print("Ratio of positive examples misclassified as negative by final SVM:", final_neg_ratio)
 
         if final_neg_ratio > max_neg_ratio and final_neg_ratio > initial_neg_ratio:
             print(iteration, "iterations - final SVM discards too many positive examples.",
@@ -503,6 +543,7 @@ def em_getting_worse(old_model, new_model, P, U, verbose=False):
     Delta_i = (Pr_U_pos_new - Pr_U_pos_old
                + 2 * (Pr_P_neg_new - Pr_P_neg_old) * Pr_U_pos_old)
 
-    if verbose: print("Delta_i:", Delta_i)
+    if verbose:
+        print("Delta_i:", Delta_i)
 
     return Delta_i > 0

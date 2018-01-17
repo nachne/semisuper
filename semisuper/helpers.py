@@ -1,10 +1,10 @@
 import os.path
 from functools import reduce
 from itertools import islice
-from operator import mul
+from operator import mul, or_
 
 import numpy as np
-from scipy.sparse import issparse
+import scipy.sparse as sp
 from sklearn.metrics import classification_report as clsr, accuracy_score
 
 
@@ -26,7 +26,7 @@ def identity(x):
 
 def num_rows(a):
     """returns length of array or vector, number of rows for 2-dimensional arrays"""
-    if issparse(a):
+    if sp.issparse(a):
         return np.shape(a)[0]
     return len(a)
 
@@ -82,7 +82,7 @@ def label2num(label):
 
 
 def densify(X):
-    if issparse(X):
+    if sp.issparse(X):
         return X.todense()
     else:
         return np.array(X)
@@ -141,6 +141,14 @@ def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1, verbose=False):
     U_minus_PN = U[pos_idx]
 
     return U_minus_PN, PN
+
+def concatenate(tup):
+    """vertically stack arrays/csr matrices in tup, preserving any sparsity"""
+
+    if reduce(or_, map(sp.issparse, tup)):
+        return sp.vstack(tup, format='csr')
+    else:
+        return np.concatenate(tup)
 
 
 def file_path(file_relative):

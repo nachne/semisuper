@@ -1,6 +1,7 @@
 import multiprocessing as multi
 import random
 from functools import partial
+import os
 
 import numpy as np
 from scipy.sparse import vstack
@@ -8,8 +9,8 @@ from sklearn.model_selection import train_test_split
 
 from sklearn.svm import LinearSVC
 
-from semisuper import loaders, pu_two_step, pu_cos_roc, pu_biased_svm, transformers
-from semisuper.helpers import num_rows, densify, pu_score, select_PN_below_score
+from semisuper import loaders, pu_two_step, pu_cos_roc, pu_biased_svm, transformers, helpers
+from semisuper.helpers import num_rows, pu_score, select_PN_below_score
 
 # ------------------
 # globals
@@ -20,9 +21,10 @@ hocpos, hocneg = loaders.sentences_HoC()
 piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
-PARALLEL = False
+PARALLEL = True
 
-genia_defaults = None # {"pos": False, "ner": False} # TODO safe default options
+genia_defaults = None  # {"pos": False, "ner": False} # TODO safe default options
+
 
 # ------------------
 # select sentences
@@ -37,7 +39,7 @@ def remove_P_from_U(P, U, ratio=1.0, inverse=False, verbose=True):
 
     model = best_pu(guide_, noisy_)
 
-    y_noisy = model.predict(selector.transform(densify(vectorizer.transform(U))))
+    y_noisy = model.predict(selector.transform((vectorizer.transform(U))))
 
     if inverse:
         action = "Keeping"
@@ -127,7 +129,7 @@ def model_pu_score_record(P_train, U_train, P_test, U_test, m):
     model = m['model'](P_train, U_train)
     name = m['name']
 
-    y_pred = model.predict(np.concatenate((P_test, U_test)))
+    y_pred = model.predict(helpers.concatenate((P_test, U_test)))
     y_P = y_pred[:num_rows(P_test)]
     y_U = y_pred[num_rows(P_test):]
 
@@ -152,7 +154,7 @@ def vectorize_preselection(P, U, ratio=1.0):
         U, _ = train_test_split(U, train_size=ratio)
 
     vec = transformers.vectorizer(genia_opts=genia_defaults)
-    vec.fit(np.concatenate((P, U)))
+    vec.fit(helpers.concatenate((P, U)))
 
     P_ = vec.transform(P)
     U_ = vec.transform(U)
@@ -162,10 +164,10 @@ def vectorize_preselection(P, U, ratio=1.0):
     sel = transformers.percentile_selector()
     # sel = basic_pipeline.factorization('TruncatedSVD', 1000)
     sel.fit(vstack((P_, U_)),
-            np.concatenate((np.ones(num_rows(P_)), -np.ones(num_rows(U_)))))
+            helpers.concatenate((np.ones(num_rows(P_)), -np.ones(num_rows(U_)))))
 
-    P_ = densify(sel.transform(P_))
-    U_ = densify(sel.transform(U_))
+    P_ = sel.transform(P_)
+    U_ = sel.transform(U_)
 
     return P_, U_, vec, sel
 
@@ -211,7 +213,7 @@ def clean_corpus_pnu(mode=None, percentiles=(10, 25, 10), ratio=1.0):
         print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
         hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
 
-    P_raw = np.concatenate((hocpos_, civic))
+    P_raw = helpers.concatenate((hocpos_, civic))
     U_raw = abstracts
     N_raw = hocneg_
 
@@ -233,7 +235,7 @@ def vectorized_clean_pnu(ratio=1.0):
           )
 
     vec = transformers.vectorizer(genia_opts=genia_defaults)
-    vec.fit(np.concatenate((P_raw, N_raw, U_raw)))
+    vec.fit(helpers.concatenate((P_raw, N_raw, U_raw)))
 
     P = vec.transform(P_raw)
     N = vec.transform(N_raw)
@@ -243,11 +245,11 @@ def vectorized_clean_pnu(ratio=1.0):
 
     sel = transformers.percentile_selector()
     sel.fit(vstack((P, N, U)),
-            (np.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
+            (helpers.concatenate((np.ones(num_rows(P)), -np.ones(num_rows(N)), np.zeros(num_rows(U))))))
 
-    P = densify(sel.transform(P))
-    N = densify(sel.transform(N))
-    U = densify(sel.transform(U))
+    P = (sel.transform(P))
+    N = (sel.transform(N))
+    U = (sel.transform(U))
 
     print("Features after selection:", np.shape(P)[1])
 
@@ -283,10 +285,10 @@ def clean_corpus_pu(ratio=1.0):
 
     hocneg_train, X_test_neg = train_test_split(hocneg_, test_size=0.2)
 
-    P_raw = np.concatenate((hocpos_train, civic_train))
-    U_raw = np.concatenate((abstracts, hocneg_train))
+    P_raw = helpers.concatenate((hocpos_train, civic_train))
+    U_raw = helpers.concatenate((abstracts, hocneg_train))
 
-    X_test_pos = np.concatenate((hocpos_test, civic_test))
+    X_test_pos = helpers.concatenate((hocpos_test, civic_test))
 
     if ratio < 1.0:
         P_raw, _ = train_test_split(P_raw, train_size=ratio)
@@ -294,8 +296,8 @@ def clean_corpus_pu(ratio=1.0):
         X_test_pos, _ = train_test_split(X_test_pos, train_size=ratio)
         X_test_neg, _ = train_test_split(X_test_neg, train_size=ratio)
 
-    X_test_raw = np.concatenate((X_test_pos, X_test_neg))
-    y_test = np.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
+    X_test_raw = helpers.concatenate((X_test_pos, X_test_neg))
+    y_test = helpers.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
 
     return P_raw, U_raw, X_test_raw, y_test
 
@@ -310,7 +312,7 @@ def vectorized_clean_pu(ratio=1.0):
           )
 
     vec = transformers.vectorizer(genia_opts=genia_defaults)
-    vec.fit(np.concatenate((P_raw, U_raw)))
+    vec.fit(helpers.concatenate((P_raw, U_raw)))
 
     P = vec.transform(P_raw)
     U = vec.transform(U_raw)
@@ -322,10 +324,10 @@ def vectorized_clean_pu(ratio=1.0):
     # sel = basic_pipeline.factorization('LatentDirichletAllocation')
 
     sel.fit(vstack((P, U)),
-            (np.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U))))))
-    P = densify(sel.transform(P))
-    U = densify(sel.transform(U))
-    X_test = densify(sel.transform(vec.transform(X_test_raw)))
+            (helpers.concatenate((np.ones(num_rows(P)), np.zeros(num_rows(U))))))
+    P = sel.transform(P)
+    U = sel.transform(U)
+    X_test = (sel.transform(vec.transform(X_test_raw)))
 
     print("Features after selection:", np.shape(P)[1])
 

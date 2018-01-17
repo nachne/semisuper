@@ -14,14 +14,13 @@ from sklearn.model_selection import train_test_split
 import semisuper.pu_biased_svm as biased_svm
 import semisuper.pu_two_step as two_step
 import semisuper.transformers as transformers
-from semisuper.helpers import num_rows, densify
-
+from semisuper.helpers import num_rows, concatenate
 
 # TODO: obsolete (only used in test script, left here for documentation)
 # TODO: cross-validation
 
 # TODO multiprocessing; breaks on macOS but not on Linux
-PARALLEL = os.sys.platform == "linux"
+PARALLEL = True  # os.sys.platform == "linux"
 
 
 def getBestModel(P_train, U_train, X_test, y_test):
@@ -29,8 +28,8 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
     print("\nEvaluating parameter ranges for preprocessor and classifiers")
 
-    X_train = np.concatenate((P_train, U_train), 0)
-    y_train_pp = np.concatenate((np.ones(num_rows(P_train)), np.zeros(num_rows(U_train))))
+    X_train = concatenate((P_train, U_train))
+    y_train_pp = concatenate((np.ones(num_rows(P_train)), np.zeros(num_rows(U_train))))
 
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
@@ -76,30 +75,25 @@ def getBestModel(P_train, U_train, X_test, y_test):
                         P_train_ = vectorizer.transform(P_train)
                         U_train_ = vectorizer.transform(U_train)
 
-                    P_train_ = densify(P_train_)
-                    U_train_ = densify(U_train_)
-                    X_train_ = densify(X_train_)
-                    X_dev_ = densify(X_dev_)
-
                     pp = {'word': wordgram, 'char': chargram}
 
                     # fit models
                     iteration = [
                         {'name': 'i-em', 'model': partial(two_step.i_EM, P_train_, U_train_)},
-                        # {'name' : 's-em spy=0.1',
-                        #  'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
-                        # {'name' : 's-em spy=0.2',
-                        #  'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
+                        {'name' : 's-em spy=0.1',
+                         'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
+                        {'name' : 's-em spy=0.2',
+                         'model': partial(two_step.s_EM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
                         {'name': 'roc-svm', 'model': partial(two_step.roc_SVM, P_train_, U_train_)},
                         {'name' : 'cr_svm noise=0.1',
                          'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.1)},
                         {'name' : 'cr_svm noise=0.2',
                          'model': partial(two_step.cr_SVM, P_train_, U_train_, noise_lvl=0.2)},
-                        # {'name': 'roc_em', 'model': partial(two_step.roc_EM, P_train_, U_train_)},
-                        # {'name' : 'spy_svm spy=0.1',
-                        #  'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
-                        # {'name' : 'spy_svm spy=0.2',
-                        #  'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
+                        {'name': 'roc_em', 'model': partial(two_step.roc_EM, P_train_, U_train_)},
+                        {'name' : 'spy_svm spy=0.1',
+                         'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.1, noise_lvl=0.1)},
+                        {'name' : 'spy_svm spy=0.2',
+                         'model': partial(two_step.spy_SVM, P_train_, U_train_, spy_ratio=0.2, noise_lvl=0.2)},
                         {'name' : 'biased-svm',
                          'model': partial(biased_svm.biased_SVM_weight_selection, P_train_, U_train_)},
                         # {'name' : 'bagging-svm',
@@ -111,7 +105,8 @@ def getBestModel(P_train, U_train, X_test, y_test):
                     if PARALLEL:
                         with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
                             iter_stats = list(p.map(partial(model_eval_record, X_dev_, y_test, U_train_), iteration,
-                                chunksize=1))
+                                                    chunksize=1
+                                                    ))
                     else:
                         iter_stats = list(map(partial(model_eval_record, X_dev_, y_test, U_train_), iteration))
 
@@ -151,9 +146,9 @@ def getBestModel(P_train, U_train, X_test, y_test):
 
     print("\nAmount of unlabelled training set classified as positive:")
     if selector:
-        transformedU = densify(selector.transform(vectorizer.transform(U_train)))
+        transformedU = (selector.transform(vectorizer.transform(U_train)))
     else:
-        transformedU = densify(vectorizer.transform(U_train))
+        transformedU = (vectorizer.transform(U_train))
     y_predicted_U = best_model.predict(transformedU)
     print(np.sum(y_predicted_U), "/", num_rows(y_predicted_U),
           "(", np.sum(y_predicted_U) / num_rows(y_predicted_U), ")")

@@ -2,7 +2,7 @@ import semisuper.tests.test_uci_load_corpora as test_corpus
 from numpy import concatenate, shape
 
 from semisuper import pu_two_step, pu_biased_svm, ss_techniques, transformers
-from semisuper.helpers import densify, num_rows
+from semisuper.helpers import num_rows
 from sklearn.metrics import classification_report as clsr, accuracy_score
 
 from sklearn.naive_bayes import MultinomialNB
@@ -39,12 +39,12 @@ def prepare_corpus_pu(data_tuple):
     print("Fitting vectorizer")
     vectorizer.fit(P)
 
-    P = densify(vectorizer.transform(P))
-    U = densify(vectorizer.transform(U))
-    P_test = densify(vectorizer.transform(P_test))
-    N_test = densify(vectorizer.transform(N_test))
-    X = densify(vectorizer.transform(X))
-    X_test = densify(vectorizer.transform(X_test))
+    P = (vectorizer.transform(P))
+    U = (vectorizer.transform(U))
+    P_test = (vectorizer.transform(P_test))
+    N_test = (vectorizer.transform(N_test))
+    X = (vectorizer.transform(X))
+    X_test = (vectorizer.transform(X_test))
 
     print("P:", shape(P), ", U:", shape(U))
 
@@ -72,13 +72,13 @@ def prepare_corpus_ss(data_tuple):
     print("Fitting vectorizer")
     vectorizer.fit(P)
 
-    P = densify(vectorizer.transform(P))
-    N = densify(vectorizer.transform(N))
-    U = densify(vectorizer.transform(U))
-    P_test = densify(vectorizer.transform(P_test))
-    N_test = densify(vectorizer.transform(N_test))
-    X = densify(vectorizer.transform(X))
-    X_test = densify(vectorizer.transform(X_test))
+    P = (vectorizer.transform(P))
+    N = (vectorizer.transform(N))
+    U = (vectorizer.transform(U))
+    P_test = (vectorizer.transform(P_test))
+    N_test = (vectorizer.transform(N_test))
+    X = (vectorizer.transform(X))
+    X_test = (vectorizer.transform(X_test))
 
     print("P:", shape(P), ", N:", shape(N), "U:", shape(U))
 

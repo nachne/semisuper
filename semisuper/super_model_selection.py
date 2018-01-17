@@ -22,7 +22,8 @@ from sklearn.neural_network import MLPClassifier
 from semisuper import transformers
 from semisuper.helpers import densify
 
-PARALLEL = False  # TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
+#  TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
+PARALLEL = True  # os.sys.platform == "linux"
 RAND_INT_MAX = 1000
 
 
@@ -135,7 +136,8 @@ def preproc_param_dict():
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
         'genia_opts'    : [None, {"pos": False, "ner": False}],
-        # [None, {"pos": False, "ner": False}, {"pos": True, "ner": False}, {"pos": False, "ner": True}, {"pos": True, "ner": True}],
+        # [None, {"pos": False, "ner": False}, {"pos": True, "ner": False}, {"pos": False, "ner": True},
+        # {"pos": True, "ner": True}],
         'wordgram_range': [(1, 4)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [(2, 5), (2, 6)], # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
@@ -160,7 +162,6 @@ def preproc_param_dict():
         ]
     }
     return d
-
 
 
 # ----------------------------------------------------------------
@@ -322,9 +323,9 @@ def test_best(results, X_eval, y_eval):
     vectorizer = results['best']['vectorizer']
 
     if selector:
-        transformedTestData = densify(selector.transform(vectorizer.transform(X_eval)))
+        transformedTestData = selector.transform(vectorizer.transform(X_eval))
     else:
-        transformedTestData = densify(vectorizer.transform(X_eval))
+        transformedTestData = vectorizer.transform(X_eval)
 
     y_pred = best_model.predict(transformedTestData)
 
