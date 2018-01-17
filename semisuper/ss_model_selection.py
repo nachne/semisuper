@@ -33,11 +33,11 @@ PARALLEL = True  # os.sys.platform == "linux"
 def estimator_list():
     svms = [{'name' : 'neglinSVC_C{}'.format(C),
              'model': partial(ss_techniques.neg_self_training_clf, LinearSVC(C=C, class_weight='balanced'))}
-            for C in np.arange(0.5, 1.01, 1.1)] # step 0.1
+            for C in np.arange(0.5, 1.01, 0.1)] # step 0.1
     others = [
-        {'name': 'neglinSVC_C1.0', 'model': partial(ss_techniques.iterate_linearSVC_C, 1.0)},
-        {'name': 'neglinSVC_C.75', 'model': partial(ss_techniques.iterate_linearSVC_C, 0.75)},
-        {'name': 'neglinSVC_C0.5', 'model': partial(ss_techniques.iterate_linearSVC_C, 0.5)},
+        {'name' : 'neg-logit',
+         'model': partial(ss_techniques.neg_self_training_clf,
+                          LogisticRegression(solver='sag', C=1.0))},
         {'name' : 'negSGDmh',
          'model': partial(ss_techniques.neg_self_training_clf,
                           SGDClassifier(loss='modified_huber', class_weight='balanced'))},
@@ -45,9 +45,9 @@ def estimator_list():
          'model': partial(ss_techniques.neg_self_training_clf, SGDClassifier(loss='squared_hinge'))},
         {'name' : 'negSGDpc',
          'model': partial(ss_techniques.neg_self_training_clf, SGDClassifier(loss='perceptron'))},
-        {'name': 'negNB0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
-        {'name': 'negNB1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
-        {'name' : 'self-logit', 'model': ss_techniques.self_training},
+        # {'name': 'negNB0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
+        # {'name': 'negNB1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
+        # {'name' : 'self-logit', 'model': ss_techniques.self_training},
         # {'name' : 'EM', 'model': ss_techniques.EM},
         # {'name' : 'kNN', 'model': ss_techniques.iterate_knn},
         # {'name' : 'label_propagation', 'model': ss_techniques.propagate_labels},
@@ -58,7 +58,7 @@ def estimator_list():
 
 def preproc_param_dict():
     d = {
-        'df_min'        : [0.001],
+        'df_min'        : [0.001], # [0.001]
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
         'genia_opts'    : [None], # [None, {"pos": False, "ner": True}],
@@ -70,22 +70,27 @@ def preproc_param_dict():
             # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
             # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 31%
 
-            transformers.IdentitySelector,
-            partial(transformers.percentile_selector, 'chi2', 30),
-            partial(transformers.percentile_selector, 'chi2', 25),
+            # ...breaks
+            partial(transformers.factorization, 'TruncatedSVD', 200),
+            partial(transformers.factorization, 'LatentDirichletAllocation', 200),
+            partial(transformers.factorization, 'NMF', 200),
+
+            # transformers.IdentitySelector,
+            # partial(transformers.percentile_selector, 'chi2', 30),
+            # partial(transformers.percentile_selector, 'chi2', 25),
             partial(transformers.percentile_selector, 'chi2', 20),
-            partial(transformers.percentile_selector, 'f', 30),
-            partial(transformers.percentile_selector, 'f', 25),
-            partial(transformers.percentile_selector, 'f', 20),
-            partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
-            partial(transformers.percentile_selector, 'mutual_info', 25),
-            partial(transformers.percentile_selector, 'mutual_info', 20),
-            partial(transformers.factorization, 'TruncatedSVD', 1000),
-            partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
-            partial(transformers.factorization, 'TruncatedSVD', 3000),
+            # partial(transformers.percentile_selector, 'f', 30),
+            # partial(transformers.percentile_selector, 'f', 25),
+            # partial(transformers.percentile_selector, 'f', 20),
+            # partial(transformers.percentile_selector, 'mutual_info', 30), # mutual information: worse than rest
+            # partial(transformers.percentile_selector, 'mutual_info', 25),
+            # partial(transformers.percentile_selector, 'mutual_info', 20),
+            # partial(transformers.factorization, 'TruncatedSVD', 1000),
+            # partial(transformers.factorization, 'TruncatedSVD', 2000), # 10% worse than chi2, slow, SVM iter >100
+            # partial(transformers.factorization, 'TruncatedSVD', 3000),
             partial(transformers.select_from_l1_svc, 1.0, 1e-3),
-            partial(transformers.select_from_l1_svc, 0.5, 1e-3),
-            partial(transformers.select_from_l1_svc, 0.1, 1e-3),
+            # partial(transformers.select_from_l1_svc, 0.5, 1e-3),
+            # partial(transformers.select_from_l1_svc, 0.1, 1e-3),
         ]
     }
 
@@ -110,7 +115,7 @@ def best_model_cross_val(P, N, U, fold=10):
 
     # TODO can't do this in parallel
     # if PARALLEL:
-    #     with multi.Pool(min(fold, multi.cpu_count(), 1)) as p:
+    #     with multi.Pool(min(fold, multi.cpu_count())) as p:
     #         stats = list(p.map(partial(eval_fold, best, P, N, U), enumerate(splits), chunksize=1))
     # else:
     #     stats = list(map(partial(eval_fold, best, P, N, U), enumerate(splits)))

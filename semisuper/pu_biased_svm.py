@@ -29,7 +29,7 @@ def biased_SVM_grid_search(P, U, Cs=None, kernel='linear', n_estimators=9, verbo
                                            'bootstrap'                   : [True],
                                            'n_estimators'                : [n_estimators],
                                            ### parallelization incompatible with multiprocessing
-                                           'n_jobs'                      : [n_estimators]
+                                           # 'n_jobs'                      : [n_estimators]
                                            },
                                scoring=pu_scorer,
                                verbose=0)

@@ -8,7 +8,7 @@ from geniatagger import GeniaTagger
 from nltk import TreebankWordTokenizer
 from nltk import sent_tokenize
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD, PCA, SparsePCA, FactorAnalysis
+from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD, PCA, SparsePCA, FactorAnalysis, NMF
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2, SelectPercentile, f_classif, mutual_info_classif, SelectFromModel
@@ -25,6 +25,7 @@ from semisuper import helpers
 
 MIN_LEN = 8
 tagger = None
+
 
 # ----------------------------------------------------------------
 # Tokenization
@@ -316,41 +317,41 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_wor
 
     return Pipeline([
         ("text_normalizer", None if not normalize else TextNormalizer()),
-        ("features", FeatureUnion(# n_jobs=2,
-                                  transformer_list=[
-                                      ("wordgrams", None if wordgrams is None else
-                                      Pipeline([
-                                          ("preprocessor", TokenizePreprocessor(rules=rules, genia_opts=genia_opts)),
-                                          ("word_tfidf", TfidfVectorizer(
-                                                  analyzer='word',
-                                                  min_df=min_df_word,
-                                                  max_df=max_df,
-                                                  tokenizer=helpers.identity,
-                                                  preprocessor=None,
-                                                  lowercase=False,
-                                                  ngram_range=wordgrams,
-                                                  binary=binary, norm='l2' if not binary else None,
-                                                  use_idf=not binary))
-                                      ])),
-                                      ("chargrams", None if chargrams is None else
-                                      Pipeline([
-                                          ("normalize_digits", DigitNormalizer()),
-                                          ("char_tfidf", TfidfVectorizer(
-                                                  analyzer='char',
-                                                  min_df=min_df_char,
-                                                  max_df=max_df,
-                                                  preprocessor=partial(re.compile("[^\w\-=%]+").sub, " "),
-                                                  lowercase=True,
-                                                  ngram_range=chargrams,
-                                                  binary=binary, norm='l2' if not binary else None,
-                                                  use_idf=not binary))
-                                      ])),
-                                      ("stats", None if stats is None else
-                                      Pipeline([
-                                          ("stats", TextLength()),
-                                          ("vect", DictVectorizer())
-                                      ]))
-                                  ]))
+        ("features", FeatureUnion(  # n_jobs=2,
+                transformer_list=[
+                    ("wordgrams", None if wordgrams is None else
+                    Pipeline([
+                        ("preprocessor", TokenizePreprocessor(rules=rules, genia_opts=genia_opts)),
+                        ("word_tfidf", TfidfVectorizer(
+                                analyzer='word',
+                                min_df=min_df_word,
+                                max_df=max_df,
+                                tokenizer=helpers.identity,
+                                preprocessor=None,
+                                lowercase=False,
+                                ngram_range=wordgrams,
+                                binary=binary, norm='l2' if not binary else None,
+                                use_idf=not binary))
+                    ])),
+                    ("chargrams", None if chargrams is None else
+                    Pipeline([
+                        ("normalize_digits", DigitNormalizer()),
+                        ("char_tfidf", TfidfVectorizer(
+                                analyzer='char',
+                                min_df=min_df_char,
+                                max_df=max_df,
+                                preprocessor=partial(re.compile("[^\w\-=%]+").sub, " "),
+                                lowercase=True,
+                                ngram_range=chargrams,
+                                binary=binary, norm='l2' if not binary else None,
+                                use_idf=not binary))
+                    ])),
+                    ("stats", None if stats is None else
+                    Pipeline([
+                        ("stats", TextLength()),
+                        ("vect", DictVectorizer())
+                    ]))
+                ]))
     ])
 
 
@@ -402,7 +403,9 @@ def factorization(method='TruncatedSVD', n_components=10):
                                                                n_jobs=-1,
                                                                learning_method='online'),
         'TruncatedSVD'             : Pipeline([("selector", TruncatedSVD(n_components)),
-                                               ("normalizer", MinMaxScaler())])
+                                               ("normalizer", MinMaxScaler())]),
+        'NMF'                      : Pipeline([("selector", NMF(n_components, tol=0.01)),
+                                               ("normalizer", MinMaxScaler())]),
     }
 
     model = sparse.get(method, None)
@@ -422,9 +425,7 @@ def factorization(method='TruncatedSVD', n_components=10):
         return Pipeline([("densifier", Densifier()),
                          ("selector", model),
                          ("normalizer", MinMaxScaler())])
-
     else:
-
         return Pipeline([("selector", TruncatedSVD(n_components)),
                          ("normalizer", MinMaxScaler())])
 
