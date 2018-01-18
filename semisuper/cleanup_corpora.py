@@ -162,7 +162,6 @@ def vectorize_preselection(P, U, ratio=1.0):
     print("Features before selection:", np.shape(U_)[1])
 
     sel = transformers.percentile_selector()
-    # sel = basic_pipeline.factorization('TruncatedSVD', 1000)
     sel.fit(vstack((P_, U_)),
             helpers.concatenate((np.ones(num_rows(P_)), -np.ones(num_rows(U_)))))
 

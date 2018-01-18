@@ -62,7 +62,7 @@ def abstract_pmid_pos_sentences_query(max_ids=10000, term="cancer OR oncology OR
 
     print("Retrieving PubMed abstracts for query \"{}\" (max. {})".format(term, max_ids))
 
-    idlist = get_pmids_from_query(max_ids=max_ids, term=term)
+    idlist = get_pmids_from_query(term=term, max_ids=max_ids)
     abstracts = get_abstracts(idlist)
 
     print("No. of fetched abstracts:", len(abstracts))
@@ -142,7 +142,7 @@ def get_pmids_from_df(df):
     return list({str(idx) for idx in df["pubmed_id"]})
 
 
-def get_pmids_from_query(max_ids=10000, mindate="1900/01/01", term="cancer"):
+def get_pmids_from_query(term="cancer", mindate="1900/01/01", max_ids=10000):
     retstart = 0
     idlist = []
 
@@ -189,14 +189,19 @@ def get_abstracts(idlist):
         except:
             pass
 
-    return df
+    return
 
 
 def fetch(idlist):
-    handle = Entrez.efetch(db="pubmed", id=idlist, rettype="medline", retmode="text")
-    records = list(Medline.parse(handle))
-    handle.close()
-    return records
+    all_records = []
+    start = 0
+    while start < len(idlist):
+        handle = Entrez.efetch(db="pubmed", id=idlist[start:start + 10000], rettype="medline", retmode="text")
+        records = list(Medline.parse(handle))
+        handle.close()
+        start += 10000
+        all_records += records
+    return all_records
 
 
 def pmid_pos_sentence_title(pmid_abstract_title):

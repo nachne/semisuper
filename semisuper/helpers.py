@@ -1,7 +1,7 @@
 import os.path
 from functools import reduce
-from itertools import islice
-from operator import mul, or_
+from itertools import islice, groupby
+from operator import mul, or_, itemgetter
 
 import numpy as np
 import scipy.sparse as sp
@@ -14,6 +14,8 @@ def flatten(l):
     """flatten 2-dimensional sequence to one-dimensional"""
     return [item for sublist in l for item in sublist]
 
+def groupby_index(iterable, elem_idx):
+    return groupby(iterable, itemgetter(elem_idx))
 
 def run_fun(fun):
     return fun()
