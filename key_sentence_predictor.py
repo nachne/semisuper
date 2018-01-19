@@ -46,27 +46,13 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
     def hit_dict_list(self, pmids, scores, positions):
         """build up result (dict of pmids and relevant sentences) from intermediate lists"""
 
-        result_list = []
-        current_dict = {"pmid": pmids[0], "relevant": []}
+        result_dict = {pmid: [] for pmid in pmids}
 
-        prev_id = pmids[0]
+        for pmid, (start, end), score in zip(pmids, positions, scores):
+            if score > 0:
+                result_dict[pmid].append((start, end, score))
 
-        for pmid, score, (start, end) in zip(pmids, scores, positions):
-            if pmid == prev_id:
-                if score > 0:
-                    current_dict["relevant"].append((start, end, score))
-            else:
-                result_list.append(current_dict)
-                prev_id = pmid
-
-                current_dict = {"pmid": pmid, "relevant": []}
-                if score > 0:
-                    current_dict["relevant"].append((start, end, score))
-
-        # append last dict created in loop
-        result_list.append(current_dict)
-
-        return result_list
+        return result_dict
 
     def sentences_pmids_positions(self, X):
         """turn list of dicts into lists of individual sentences, corresponding pmids, and positions

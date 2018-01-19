@@ -149,7 +149,7 @@ def get_pmids_from_query(term="cancer", mindate="1900/01/01", max_ids=10000):
     last_len = 1
     handle = None
 
-    retmax = min(100000, max_ids)
+    retmax = min(120000, max_ids)
 
     while last_len > 0 and len(idlist) < max_ids:
         handle = Entrez.esearch(db="pubmed", term="(" + term + ") AND (hasabstract[text])",
