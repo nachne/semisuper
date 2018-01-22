@@ -53,8 +53,8 @@ def partition(l, chunksize):
     start = 0
     result = []
     for i in range(int(len(l) / chunksize + 1)):
-        chunksize = min(chunksize, len(l[start:]))
-        subl = l[start:start + chunksize]
+        chunksize = min(chunksize, num_rows(l[start:]))
+        subl = l[start:(start + chunksize)]
         if subl:
             result.append(subl)
         start += chunksize

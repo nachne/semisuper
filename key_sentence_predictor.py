@@ -13,11 +13,11 @@ from build_classifier_from_ss_corpus import load_silver_standard, max_score_from
 class KeySentencePredictor(BaseEstimator, TransformerMixin):
     """predicts positions and scores of relevant sentences for list of {pmid, abstract} dictionaries"""
 
-    def __init__(self, max_batch_size=1000, verbose=False):
+    def __init__(self, batch_size=400, verbose=False):
         """load pretrained classifier and maximum score in corpus for normalization"""
 
         self.verbose = verbose
-        self.max_batch_size = max_batch_size
+        self.max_batch_size = batch_size
         self.pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False)
 
         if not hasattr(self.pipeline, "predict_proba"):

@@ -51,12 +51,12 @@ def estimator_list():
                           SGDClassifier(loss='perceptron', class_weight='balanced'))}]
 
     others = [
+        {'name': 'EM', 'model': ss_techniques.EM},
+        {'name': 'kNN', 'model': ss_techniques.iterate_knn},
+        {'name': 'self-logit', 'model': ss_techniques.self_training},
         {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
         {'name': 'negNB_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
         {'name': 'negNB_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
-        {'name': 'self-logit', 'model': ss_techniques.self_training},
-        {'name': 'EM', 'model': ss_techniques.EM},
-        {'name': 'kNN', 'model': ss_techniques.iterate_knn},
     ]
 
     return neg_svms + neg_logits + neg_sgds + others
