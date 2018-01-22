@@ -13,7 +13,7 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
 from semisuper import pu_two_step
-from semisuper.helpers import num_rows, partition_pos_neg, partition_pos_neg_unsure, arrays, concatenate
+from semisuper.helpers import num_rows, partition_pos_neg, partition_pos_neg_unsure, arrays, concatenate, densify
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_two_step import almost_equal
 
@@ -221,9 +221,9 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
         ypU = new_model.predict_proba(U)[:, 1]
 
         predU = [round(p) for p in ypU]
-        pos_ratio = sum(predU) / len(U)
+        pos_ratio = sum(predU) / num_rows(U)
 
-        if verbose: print("Unlabelled instances classified as positive:", sum(predU), "/", len(U),
+        if verbose: print("Unlabelled instances classified as positive:", sum(predU), "/", num_rows(U),
                           "(", pos_ratio * 100, "%)\n")
 
         if pos_ratio >= max_pos_ratio:
@@ -234,33 +234,34 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
     return new_model
 
 
-def iterate_knn(P, N, U, n_neighbors=7, thresh=0.6):
-    P_, N_, U_ = arrays((P, N, U))
+def iterate_knn(P, N, U, n_neighbors=7, thresh=0.6, verbose=False):
+    p_init, n_init = num_rows(P), num_rows(N)
 
     knn = KNeighborsClassifier(n_neighbors=n_neighbors, weights='uniform', n_jobs=multi.cpu_count() - 1)
-    knn.fit(concatenate((P_, N_)), concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+    knn.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
-    y_pred = knn.predict_proba(U_)
-    U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
+    y_pred = knn.predict_proba(U)
+    U_pos, U_neg, U = partition_pos_neg_unsure(U, y_pred, confidence=thresh)
     i = 0
 
-    while num_rows(U_pos) and num_rows(U_neg) and num_rows(U_):
-        print("Iteration #", i)
-        print("New confidently predicted examples: \tpos", num_rows(U_pos), "\tneg", num_rows(U_neg))
-        print("Remaining unlabelled:", num_rows(U_))
+    while num_rows(U_pos) and num_rows(U_neg) and num_rows(U):
+        if verbose:
+            print("Iteration #", i)
+            print("New confidently predicted examples: \tpos", num_rows(U_pos), "\tneg", num_rows(U_neg))
+            print("Remaining unlabelled:", num_rows(U))
 
-        P_ = concatenate((P_, U_pos))
-        N_ = concatenate((N_, U_neg))
+        P = concatenate((P, U_pos))
+        N = concatenate((N, U_neg))
 
-        knn.fit(concatenate((P_, N_)), concatenate((np.ones(num_rows(P_)), np.zeros(num_rows(N_)))))
+        knn.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
-        y_pred = knn.predict_proba(U_)
-        U_pos, U_neg, U_ = partition_pos_neg_unsure(U_, y_pred, confidence=thresh)
+        y_pred = knn.predict_proba(U)
+        U_pos, U_neg, U = partition_pos_neg_unsure(U, y_pred, confidence=thresh)
         i += 1
 
-    print("Converged with", num_rows(U_), "sentences remaining unlabelled. ",
-          "\nLabelled pos:", num_rows(P_) - num_rows(P),
-          "\tneg:", num_rows(N_) - num_rows(N),
+    print("knn converged with", num_rows(U), "sentences remaining unlabelled after", i, "iterations.",
+          "\nLabelled pos:", num_rows(P) - p_init,
+          "\tneg:", num_rows(N) - n_init,
           "Returning classifier")
     return knn
 
@@ -278,7 +279,7 @@ def iterate_SVC(P, N, U, kernel="rbf", verbose=False):
 
 # horrible results!
 def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-1):
-    X = concatenate((P, N, U))
+    X = densify(concatenate((P, N, U)))
     y_init = concatenate((np.ones(num_rows(P)),
                              -np.ones(num_rows(N)),
                              np.zeros(num_rows(U))))

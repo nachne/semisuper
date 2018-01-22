@@ -33,11 +33,11 @@ PARALLEL = True  # os.sys.platform == "linux"
 def estimator_list():
     neg_svms = [{'name' : 'neglinSVC_C{}'.format(C),
                  'model': partial(ss_techniques.neg_self_training_clf, LinearSVC(C=C, class_weight='balanced'))}
-                for C in np.arange(0.5, 1.01, 0.1)]
+                for C in np.arange(0.5, 1.01, 0.5)]
 
     neg_logits = [{'name' : 'neglinSVC_C{}'.format(C),
                    'model': partial(ss_techniques.neg_self_training_clf, LogisticRegression(solver='sag', C=C))}
-                  for C in np.arange(0.5, 1.01, 0.1)]
+                  for C in np.arange(0.5, 1.01, 0.5)]
 
     neg_sgds = [
         {'name' : 'negSGDmh',
@@ -51,12 +51,12 @@ def estimator_list():
                           SGDClassifier(loss='perceptron', class_weight='balanced'))}]
 
     others = [
+        {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
         {'name': 'negNB_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
         {'name': 'negNB_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
         {'name': 'self-logit', 'model': ss_techniques.self_training},
         {'name': 'EM', 'model': ss_techniques.EM},
         {'name': 'kNN', 'model': ss_techniques.iterate_knn},
-        {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
     ]
 
     return neg_svms + neg_logits + neg_sgds + others
@@ -66,7 +66,7 @@ def preproc_param_dict():
     d = {
         'df_min'        : [0.001, 0.005, 0.01],  # [0.001]
         'df_max'        : [1.0],
-        'rules'         : [True, False],
+        'rules'         : [False, True],
         'genia_opts'    : [None,
                            {"pos": False, "ner": False},
                            {"pos": True, "ner": False},
@@ -78,10 +78,10 @@ def preproc_param_dict():
             # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
             # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 31%
 
-            # ...breaks (too much RAM)
+            # matrix factorization tends to crash (too much RAM)
             # partial(transformers.factorization, 'TruncatedSVD', 200),
-            # partial(transformers.factorization, 'LatentDirichletAllocation', 200),
             # partial(transformers.factorization, 'NMF', 200),
+            # partial(transformers.factorization, 'LatentDirichletAllocation', 200), # LDA crashes almost certainly
 
             transformers.IdentitySelector,
             partial(transformers.percentile_selector, 'chi2', 30),
@@ -118,7 +118,7 @@ def best_model_cross_val(P, N, U, fold=10):
     kf = KFold(n_splits=fold, shuffle=True)
     splits = zip(list(kf.split(P)), list(kf.split(N)))
 
-    # TODO can't do this in parallel
+    # TODO doesn't work in parallel
     # if PARALLEL:
     #     with multi.Pool(min(fold, multi.cpu_count())) as p:
     #         stats = list(p.map(partial(eval_fold, best, P, N, U), enumerate(splits), chunksize=1))
