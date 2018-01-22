@@ -3,6 +3,7 @@ import os
 import time
 import multiprocessing
 import random
+from itertools import cycle
 
 from semisuper import loaders, helpers
 import key_sentence_predictor
@@ -22,22 +23,29 @@ except:
     with open(file_path("../pickles/sent_test_abstract_dicts.pickle"), "wb") as f:
         pickle.dump(abstracts, f)
 
-print("Building predictor")
-predictor = key_sentence_predictor.KeySentencePredictor()
 
 def predict_with_predictor(abs_pred):
     abstracts, predictor = abs_pred
     return predictor.transform(abstracts)
 
-with multiprocessing.Pool(4) as p:
-    predictors = [key_sentence_predictor.KeySentencePredictor() for _ in range(4)]
-    start_time = time.time()
-    results = helpers.flatten(p.map(predict_with_predictor,
-                                    zip(helpers.partition(abstracts, 30000), predictors),
-                                    chunksize=1))
-    print("Preprocessing and predicting relevant sentences for", len(abstracts), " abstracts",
-          "took", time.time() - start_time, "seconds")
+
+for batch_size in [1, 10, 100, 200, 300, 400, 500, 1000]:
+    print("batch size:", batch_size)
+    with multiprocessing.Pool(multiprocessing.cpu_count()) as p:
+        predictors = [key_sentence_predictor.KeySentencePredictor(max_batch_size=batch_size) for _ in
+                      range(multiprocessing.cpu_count())]
+        start_time = time.time()
+        results = helpers.merge_dicts(p.map(predict_with_predictor,
+                                            zip(helpers.partition(abstracts, len(abstracts) / len(predictors)),
+                                                predictors),
+                                            chunksize=1))
+
+        print("Preprocessing and predicting relevant sentences for", len(abstracts), " abstracts",
+              "took", time.time() - start_time, "seconds")
 
 for i in range(100):
-    record = results(list(results)[i])
-    print(i, "\t", "%.4g" % record[2], abstracts[i][record[0]:record[1]])
+    idx = list(results)[i]
+    print(idx, ":")
+    for tup in results[idx]:
+        print("%.4f" % tup[2], "\t", abstracts[i]["abstract"][tup[0]:tup[1]])
+    print("\n")

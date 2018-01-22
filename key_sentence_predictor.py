@@ -13,10 +13,11 @@ from build_classifier_from_ss_corpus import load_silver_standard, max_score_from
 class KeySentencePredictor(BaseEstimator, TransformerMixin):
     """predicts positions and scores of relevant sentences for list of {pmid, abstract} dictionaries"""
 
-    def __init__(self, verbose=True):
+    def __init__(self, max_batch_size=1000, verbose=False):
         """load pretrained classifier and maximum score in corpus for normalization"""
 
         self.verbose = verbose
+        self.max_batch_size = max_batch_size
         self.pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False)
 
         if not hasattr(self.pipeline, "predict_proba"):
@@ -28,18 +29,26 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        """predicts positions and scores of relevant sentences for list of {pmid, abstract} dictionaries"""
-
-        sentences, pmids, positions = self.sentences_pmids_positions(X)
 
         if self.verbose:
             print("Classifying sentences…")
             start_time = time.time()
 
-        scores = self.sentence_scores(sentences)
+        result = helpers.merge_dicts(map(self.transform_batch, helpers.partition(X, self.max_batch_size)))
 
         if self.verbose:
             print("…took", time.time() - start_time, "seconds.")
+
+        return result
+
+    def transform_batch(self, X):
+        """predicts positions and scores of relevant sentences for list of {pmid, abstract} dictionaries"""
+
+        sentences, pmids, positions = self.sentences_pmids_positions(X)
+
+
+        scores = self.sentence_scores(sentences)
+
 
         return self.hit_dict_list(pmids, scores, positions)
 

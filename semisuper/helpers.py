@@ -17,6 +17,14 @@ def flatten(l):
 def groupby_index(iterable, elem_idx):
     return groupby(iterable, itemgetter(elem_idx))
 
+def merge_two_dicts(x, y):
+    z = x.copy()
+    z.update(y)
+    return z
+
+def merge_dicts(dicts):
+    return reduce(merge_two_dicts, dicts)
+
 def run_fun(fun):
     return fun()
 
@@ -44,9 +52,11 @@ def partition(l, chunksize):
     l = list(l)
     start = 0
     result = []
-    for i in range(int(len(l) / chunksize) + 1):
+    for i in range(int(len(l) / chunksize + 1)):
         chunksize = min(chunksize, len(l[start:]))
-        result.append(l[start:start + chunksize])
+        subl = l[start:start + chunksize]
+        if subl:
+            result.append(subl)
         start += chunksize
     return result
 
