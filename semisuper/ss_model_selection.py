@@ -70,7 +70,7 @@ def preproc_param_dict():
     d = {
         # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
         # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 31%
-        'df_min'        : [0.001, 0.005],  # [0.001]
+        'df_min'        : [0.002],  # [0.001, 0.005, 0.01]
         'df_max'        : [1.0],
         'rules'         : [False, True],
         'genia_opts'    : [None,
@@ -78,8 +78,8 @@ def preproc_param_dict():
                            # {"pos": True, "ner": False},
                            {"pos": False, "ner": True},
                            {"pos": True, "ner": True}],
-        'wordgram_range': [(1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [(2,4), (2, 5), (2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [(1, 3)],  # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [(2, 5), (2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
 
             # # matrix factorization tends to crash (too much RAM)
