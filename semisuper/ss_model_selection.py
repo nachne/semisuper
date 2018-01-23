@@ -33,11 +33,11 @@ PARALLEL = True  # os.sys.platform == "linux"
 def estimator_list():
     neg_svms = [{'name' : 'neglinSVC_C{}'.format(C),
                  'model': partial(ss_techniques.neg_self_training_clf, LinearSVC(C=C, class_weight='balanced'))}
-                for C in np.arange(0.5, 1.01, 0.5)]
+                for C in np.arange(0.5, 1.01, 0.5 / 24)]
 
-    neg_logits = [{'name' : 'neglinSVC_C{}'.format(C),
+    neg_logits = [{'name' : 'negLogit_C_C{}'.format(C),
                    'model': partial(ss_techniques.neg_self_training_clf, LogisticRegression(solver='sag', C=C))}
-                  for C in np.arange(0.5, 1.01, 0.5)]
+                  for C in np.arange(0.5, 1.01, 0.5 / 24)]
 
     neg_sgds = [
         {'name' : 'negSGDmh',
@@ -50,52 +50,58 @@ def estimator_list():
          'model': partial(ss_techniques.neg_self_training_clf,
                           SGDClassifier(loss='perceptron', class_weight='balanced'))}]
 
-    others = [
+    bayesian = [
         {'name': 'EM', 'model': ss_techniques.EM},
-        {'name': 'kNN', 'model': ss_techniques.iterate_knn},
         {'name': 'self-logit', 'model': ss_techniques.self_training},
-        {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
         {'name': 'negNB_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
         {'name': 'negNB_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
     ]
 
-    return neg_svms + neg_logits + neg_sgds + others
+    neighbors = [
+        # # NOTE: these require dense arrays
+        # {'name': 'kNN', 'model': ss_techniques.iterate_knn},
+        # {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
+    ]
+
+    return neg_svms  # + neg_logits + neg_sgds + bayesian
 
 
 def preproc_param_dict():
     d = {
-        'df_min'        : [0.001, 0.005, 0.01],  # [0.001]
+        # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
+        # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 31%
+        'df_min'        : [0.001, 0.005],  # [0.001]
         'df_max'        : [1.0],
         'rules'         : [False, True],
         'genia_opts'    : [None,
-                           {"pos": False, "ner": False},
-                           {"pos": True, "ner": False},
+                           # {"pos": False, "ner": False},
+                           # {"pos": True, "ner": False},
                            {"pos": False, "ner": True},
                            {"pos": True, "ner": True}],
-        'wordgram_range': [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [(1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [(2,4), (2, 5), (2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
-            # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
-            # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 31%
 
-            # matrix factorization tends to crash (too much RAM)
+            # # matrix factorization tends to crash (too much RAM)
             # partial(transformers.factorization, 'TruncatedSVD', 200),
             # partial(transformers.factorization, 'NMF', 200),
             # partial(transformers.factorization, 'LatentDirichletAllocation', 200), # LDA crashes almost certainly
 
+            # # mutual information: worse than rest
+            # partial(transformers.percentile_selector, 'mutual_info', 30),
+            # partial(transformers.percentile_selector, 'mutual_info', 25),
+            # partial(transformers.percentile_selector, 'mutual_info', 20),
+            # # f: several percent more positive in U
+            # partial(transformers.percentile_selector, 'f', 30),
+            # partial(transformers.percentile_selector, 'f', 25),
+            # partial(transformers.percentile_selector, 'f', 20),
             transformers.IdentitySelector,
             partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
             partial(transformers.percentile_selector, 'chi2', 20),
-            partial(transformers.percentile_selector, 'f', 30),
-            partial(transformers.percentile_selector, 'f', 25),
-            partial(transformers.percentile_selector, 'f', 20),
-            partial(transformers.percentile_selector, 'mutual_info', 30),  # mutual information: worse than rest
-            partial(transformers.percentile_selector, 'mutual_info', 25),
-            partial(transformers.percentile_selector, 'mutual_info', 20),
-            partial(transformers.select_from_l1_svc, 1.0, 1e-3),
-            partial(transformers.select_from_l1_svc, 0.5, 1e-3),
-            partial(transformers.select_from_l1_svc, 0.1, 1e-3),
+            partial(transformers.select_from_l1_svc, 1.0, 1e-4),
+            partial(transformers.select_from_l1_svc, 0.5, 1e-4),
+            partial(transformers.select_from_l1_svc, 0.1, 1e-4),
         ]
     }
 

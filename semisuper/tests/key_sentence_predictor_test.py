@@ -16,7 +16,7 @@ def file_path(file_relative):
 
 try:
     with open(file_path("../pickles/sent_test_abstract_dicts.pickle"), "rb") as f:
-        abstracts = pickle.load(f)[:12000]
+        abstracts = pickle.load(f)[:120000]
 except:
     medline_abstracts = loaders.fetch(loaders.get_pmids_from_query(term="cancer", max_ids=120000))
     abstracts = [{"pmid": a["PMID"], "abstract": a["AB"]} for a in medline_abstracts if a.get("AB") and a.get("PMID")]

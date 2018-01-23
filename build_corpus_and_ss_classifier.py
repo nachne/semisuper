@@ -24,7 +24,7 @@ def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, rati
           "\tN (HoC unlabelled)", num_rows(N),
           "\tU (CIViC source abstracts)", num_rows(U))
 
-    best_pipeline = ss_model_selection.best_model_cross_val(P, N, U, fold=5)  # TODO restore 10
+    best_pipeline = ss_model_selection.best_model_cross_val(P, N, U, fold=10)
 
     if write or outpath:
         outpath = outpath or file_path("./semisuper/pickles/semi_pipeline.pickle")

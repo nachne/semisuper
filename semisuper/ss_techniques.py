@@ -236,6 +236,7 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
 
 def iterate_knn(P, N, U, n_neighbors=7, thresh=0.6, verbose=False):
     p_init, n_init = num_rows(P), num_rows(N)
+    P, N, U = densify(P), densify(N), densify(U)
 
     knn = KNeighborsClassifier(n_neighbors=n_neighbors, weights='uniform', n_jobs=multi.cpu_count() - 1)
     knn.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
