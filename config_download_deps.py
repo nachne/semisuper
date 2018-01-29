@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+import sys
 import subprocess
 import tarfile
 import zipfile
@@ -10,6 +11,18 @@ try:
 except ImportError:
     import urllib as url_lib
 
+def pipinstall(pkg_name):
+    """install package with pip subprocess"""
+    if sys.version_info[0] < 3:
+        pip = "pip"
+    else:
+        pip = "pip3"
+    subprocess.call([pip, "install", "--user", pkg_name])
+
+def mkdir(path):
+    """make directory if not present"""
+    if not os.path.exists(path):
+        os.makedirs(path)
 
 def download_nltk_deps():
     nltk_downloads = ["wordnet",
@@ -28,12 +41,9 @@ def install_geniatagger():
 
     expects cwd to be semisuper root"""
 
-    # TODO GENIA tagger wrapper
+    mkdir("./semisuper/resources")
 
     print("installing GENIA tagger...")
-
-    if not os.path.exists("./semisuper/resources"):
-        os.makedirs("./semisuper/resources")
 
     url_lib.urlretrieve("http://www.nactem.ac.uk/tsujii/GENIA/tagger/geniatagger-3.0.2.tar.gz",
                                "./semisuper/resources/geniatagger-3.0.2.tar.gz")
@@ -41,6 +51,10 @@ def install_geniatagger():
     tar_ref.extractall("./semisuper/resources/")
     tar_ref.close()
     subprocess.call(["make", "-C", "./semisuper/resources/geniatagger-3.0.2"])
+
+    # TODO GENIA tagger wrapper
+    # pip3 install --user https://github.com/d2207197/geniatagger-python/archive/master.zip
+    pipinstall("https://github.com/d2207197/geniatagger-python/archive/master.zip")
 
     print("Done installing GENIA tagger.")
 
@@ -52,8 +66,7 @@ def load_HoC():
 
     print("Downloading Hallmarks of Cancer corpus...")
 
-    if not os.path.exists("./semisuper/resources/"):
-        os.makedirs("./semisuper/resources")
+    mkdir("./semisuper/resources")
 
     url_lib.urlretrieve("https://www.cl.cam.ac.uk/~sb895/HoCCorpus.zip",
                                "./semisuper/resources/corpora/HoCCorpus.zip")
@@ -66,6 +79,10 @@ def load_HoC():
 
 
 if __name__ == "__main__":
+
+    for path in ["./semisuper/resources", "./semisuper/silver_standard", "./semisuper/pickles"]:
+        mkdir(path)
+
     download_nltk_deps()
     load_HoC()
     install_geniatagger()
