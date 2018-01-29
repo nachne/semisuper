@@ -28,6 +28,7 @@ PARALLEL = True
 RAND_INT_MAX = 1000
 RANDOM_SEED = 4242
 
+
 # ----------------------------------------------------------------
 # Estimators and parameters to evaluate
 # ----------------------------------------------------------------
@@ -265,7 +266,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
                     # fit models
                     with multi.Pool(multi.cpu_count()) as p:
                         iter_stats = list(p.map(partial(model_eval_record, X_train_, y_train, X_test_, y_test),
-                                              estimators))
+                                                estimators))
 
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
@@ -281,7 +282,8 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
 
                     results['all'].append(iter_stats)
 
-                    print("Evaluated words:", wordgram, "chars:", chargram,
+                    print("Evaluated words:", wordgram, "chars:", chargram, "rules:", r, "genia:", genia_opts,
+                          "feature selection:", fs, "min_df:", df_min,
                           "in %s seconds\n" % (time.time() - start_time))
 
     # print_results(results)

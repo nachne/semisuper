@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import semisuper.tests.test_uci_load_corpora as test_corpus
 from numpy import concatenate, shape
 

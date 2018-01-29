@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 from numpy import ones, zeros
 from scipy import vstack
 from semisuper.helpers import partition_pos_neg, num_rows, label2num, densify, concatenate

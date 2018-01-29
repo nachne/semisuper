@@ -25,6 +25,7 @@ def merge_two_dicts(x, y):
     return z
 
 def merge_dicts(dicts):
+    dicts = list(dicts)
     z = dicts[0].copy()
     for d in dicts[1:]:
         z.update(d)

@@ -387,7 +387,7 @@ def percentile_selector(score_func='chi2', percentile=20):
 
     func = funcs.get(score_func, chi2)
 
-    print("Supervised feature selection:,", percentile, "-th percentile in terms of", func)
+    # print("Supervised feature selection:,", percentile, "-th percentile in terms of", func)
     return SelectPercentile(score_func=func, percentile=percentile)
 
 
@@ -397,7 +397,7 @@ def select_from_l1_svc(C=0.1, tol=1e-3, threshold="0.5*mean"):
 
 
 def factorization(method='TruncatedSVD', n_components=10):
-    print("Unsupervised feature selection: matrix factorization with", method, "(", n_components, "components )")
+    # print("Unsupervised feature selection: matrix factorization with", method, "(", n_components, "components )")
 
     sparse = {
         'LatentDirichletAllocation': LatentDirichletAllocation(n_components=n_components,
@@ -496,7 +496,7 @@ class IdentitySelector(BaseEstimator, TransformerMixin):
     """feature selector that does nothing"""
 
     def __init__(self):
-        print("Feature selection: None")
+        # print("Feature selection: None")
         return
 
     def fit(self, X, y=None):

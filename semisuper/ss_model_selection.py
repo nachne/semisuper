@@ -33,13 +33,14 @@ RANDOM_SEED = 4242  # for making different test runs comparable
 
 
 def estimator_list():
-    neg_svms = [{'name' : 'neglinSVC_C{}'.format(C),
-                 'model': partial(ss_techniques.neg_self_training_clf, LinearSVC(C=C, class_weight='balanced'))}
-                for C in np.arange(0.5, 1.01, 0.5 / 24)]
+    neg_svms = [{'name' : 'neglinSVC_C_{}_loss_{}'.format(C, loss),
+                 'model': partial(ss_techniques.neg_self_training_clf,
+                                  LinearSVC(C=C, loss=loss, class_weight='balanced'))}
+                for C in np.arange(0.25, 1.01, 0.75 / 24) for loss in ["hinge", "squared_hinge"]]
 
     neg_logits = [{'name' : 'negLogit_C_C{}'.format(C),
                    'model': partial(ss_techniques.neg_self_training_clf, LogisticRegression(solver='sag', C=C))}
-                  for C in np.arange(0.5, 1.01, 0.5 / 24)]
+                  for C in np.arange(0.25, 1.01, 0.75 / 24)]
 
     neg_sgds = [
         {'name' : 'negSGDmh',
@@ -100,9 +101,9 @@ def preproc_param_dict():
             partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
             partial(transformers.percentile_selector, 'chi2', 20),
-            partial(transformers.select_from_l1_svc, 1.0, 1e-4),
-            partial(transformers.select_from_l1_svc, 0.5, 1e-4),
-            partial(transformers.select_from_l1_svc, 0.1, 1e-4),
+            # partial(transformers.select_from_l1_svc, 1.0, 1e-4),
+            # partial(transformers.select_from_l1_svc, 0.5, 1e-4),
+            # partial(transformers.select_from_l1_svc, 0.1, 1e-4),
         ]
     }
 
