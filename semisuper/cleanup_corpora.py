@@ -22,6 +22,7 @@ piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
 PARALLEL = True
+RANDOM_SEED = 4242
 
 genia_defaults = None
 
@@ -95,8 +96,8 @@ def remove_most_similar_percent(P, U, ratio=1.0, percentile=10, inverse=False, v
 # ------------------
 
 def best_pu(P, U):
-    P_train, P_test = train_test_split(P, test_size=0.2)
-    U_train, U_test = train_test_split(U, test_size=0.2)
+    P_train, P_test = train_test_split(P, test_size=0.2, random_state=RANDOM_SEED)
+    U_train, U_test = train_test_split(U, test_size=0.2, random_state=RANDOM_SEED)
 
     models = [
         # {"name": "I-EM", "model": pu_two_step.i_EM},
@@ -150,8 +151,8 @@ def vectorize_preselection(P, U, ratio=1.0):
 
     if ratio < 1.0:
         print("Training on", 100 * ratio, "% of data")
-        P, _ = train_test_split(P, train_size=ratio)
-        U, _ = train_test_split(U, train_size=ratio)
+        P, _ = train_test_split(P, train_size=ratio, random_state=RANDOM_SEED)
+        U, _ = train_test_split(U, train_size=ratio, random_state=RANDOM_SEED)
 
     vec = transformers.vectorizer(genia_opts=genia_defaults)
     vec.fit(helpers.concatenate((P, U)))
@@ -217,9 +218,9 @@ def clean_corpus_pnu(mode=None, percentiles=(10, 25, 10), ratio=1.0):
     N_raw = hocneg_
 
     if ratio < 1.0:
-        P_raw, _ = train_test_split(P_raw, train_size=ratio)
-        N_raw, _ = train_test_split(N_raw, train_size=ratio)
-        U_raw, _ = train_test_split(U_raw, train_size=ratio)
+        P_raw, _ = train_test_split(P_raw, train_size=ratio, random_state=RANDOM_SEED)
+        N_raw, _ = train_test_split(N_raw, train_size=ratio, random_state=RANDOM_SEED)
+        U_raw, _ = train_test_split(U_raw, train_size=ratio, random_state=RANDOM_SEED)
 
     return P_raw, N_raw, U_raw
 
@@ -279,10 +280,10 @@ def clean_corpus_pu(ratio=1.0):
     # print("\nRemoving CIViC-unlike sentences from HoC[pos]\n")
     # hocpos_ = cleanup_sources.remove_P_from_U(noisy=hocpos, guide=civic, ratio=ratio, inverse=True)
 
-    hocpos_train, hocpos_test = train_test_split(hocpos_, test_size=0.2)
-    civic_train, civic_test = train_test_split(civic, test_size=0.2)
+    hocpos_train, hocpos_test = train_test_split(hocpos_, test_size=0.2, random_state=RANDOM_SEED)
+    civic_train, civic_test = train_test_split(civic, test_size=0.2, random_state=RANDOM_SEED)
 
-    hocneg_train, X_test_neg = train_test_split(hocneg_, test_size=0.2)
+    hocneg_train, X_test_neg = train_test_split(hocneg_, test_size=0.2, random_state=RANDOM_SEED)
 
     P_raw = helpers.concatenate((hocpos_train, civic_train))
     U_raw = helpers.concatenate((abstracts, hocneg_train))
@@ -290,10 +291,10 @@ def clean_corpus_pu(ratio=1.0):
     X_test_pos = helpers.concatenate((hocpos_test, civic_test))
 
     if ratio < 1.0:
-        P_raw, _ = train_test_split(P_raw, train_size=ratio)
-        U_raw, _ = train_test_split(U_raw, train_size=ratio)
-        X_test_pos, _ = train_test_split(X_test_pos, train_size=ratio)
-        X_test_neg, _ = train_test_split(X_test_neg, train_size=ratio)
+        P_raw, _ = train_test_split(P_raw, train_size=ratio, random_state=RANDOM_SEED)
+        U_raw, _ = train_test_split(U_raw, train_size=ratio, random_state=RANDOM_SEED)
+        X_test_pos, _ = train_test_split(X_test_pos, train_size=ratio, random_state=RANDOM_SEED)
+        X_test_neg, _ = train_test_split(X_test_neg, train_size=ratio, random_state=RANDOM_SEED)
 
     X_test_raw = helpers.concatenate((X_test_pos, X_test_neg))
     y_test = helpers.concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))

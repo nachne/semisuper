@@ -122,15 +122,14 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
                 yield token_nrm
 
     def token_representation(self, sentence):
-        tokens = list(self.tokenize(sentence))
-        return tokens if tokens else ["_empty_sentence_"]
+        return list(self.tokenize(sentence))
 
     def tokenize(self, sentence):
         """break sentence into pos-tagged tokens; normalize and split on hyphens"""
 
         # extremely short sentences shall be ignored by next steps
         if len(sentence) < MIN_LEN:
-            yield
+            yield "_empty_sentence_"
         else:
             for token in self.tokenizer.tokenize(sentence):
                 # Apply preprocessing to the token

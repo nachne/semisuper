@@ -187,6 +187,7 @@ def best_model_cross_val(X, y, fold=10):
     #         stats = list(p.map(partial(eval_fold, best, X, y), enumerate(splits), chunksize=1))
     # else:
     #     stats = list(map(partial(eval_fold, best, X, y), enumerate(splits)))
+
     stats = list(map(partial(eval_fold, best, X, y), enumerate(splits)))
 
     mean_stats = np.mean(stats, 0)

@@ -23,9 +23,11 @@ except:
     with open(file_path("../pickles/sent_test_abstract_dicts.pickle"), "wb") as f:
         pickle.dump(abstracts, f)
 
+
 def predict_with_predictor(abs_pred):
     abstracts, predictor = abs_pred
     return predictor.transform(abstracts)
+
 
 results = {}
 pool_size = min(multiprocessing.cpu_count(), 12)
@@ -35,9 +37,8 @@ for batch_size in [1, 10, 100, 200, 300, 400, 500, 1000]:
     predictor = key_sentence_predictor.KeySentencePredictor(batch_size=batch_size)
     with multiprocessing.Pool(pool_size) as p:
         start_time = time.time()
-        results = helpers.merge_dicts(p.map(predict_with_predictor,
-                                            zip(helpers.partition(abstracts, len(abstracts) // pool_size),
-                                                cycle([predictor])),
+        results = helpers.merge_dicts(p.map(predictor.transform,
+                                            helpers.partition(abstracts, len(abstracts) // pool_size),
                                             chunksize=1))
 
         print("Preprocessing and predicting relevant sentences for", len(abstracts), " abstracts",
