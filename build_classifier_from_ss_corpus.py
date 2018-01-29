@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import os
 import random
 import time
@@ -18,7 +20,7 @@ from semisuper.helpers import num_rows
 
 def load_silver_standard(path=None):
     if path is None:
-        path = file_path("./semisuper/output/silver_standard.tsv")
+        path = file_path("./semisuper/silver_standard/silver_standard.tsv")
 
     try:
         corpus = pd.read_csv(path, sep="\t")

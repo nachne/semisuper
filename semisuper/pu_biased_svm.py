@@ -133,8 +133,6 @@ def build_biased_SVM(X, y, C_pos, C_neg, C=1.0, kernel='linear', probability=Fal
 
     model = clf.fit(X, y)
 
-    model.get_class_weights = clf.get_class_weights
-
     return model
 
 

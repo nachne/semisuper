@@ -23,7 +23,10 @@ def merge_two_dicts(x, y):
     return z
 
 def merge_dicts(dicts):
-    return reduce(merge_two_dicts, dicts)
+    z = dicts[0].copy()
+    for d in dicts[1:]:
+        z.update(d)
+    return z
 
 def run_fun(fun):
     return fun()

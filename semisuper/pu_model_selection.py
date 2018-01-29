@@ -19,8 +19,7 @@ from semisuper.helpers import num_rows, concatenate
 # TODO: obsolete (only used in test script, left here for documentation)
 # TODO: cross-validation
 
-# TODO multiprocessing; breaks on macOS but not on Linux
-PARALLEL = True  # os.sys.platform == "linux"
+PARALLEL = True
 
 
 def getBestModel(P_train, U_train, X_test, y_test):
@@ -103,7 +102,6 @@ def getBestModel(P_train, U_train, X_test, y_test):
                     ]
 
                     # eval models
-                    # TODO multiprocessing; breaks on macOS but not on Linux
                     if PARALLEL:
                         with multi.Pool(min(multi.cpu_count(), len(iteration))) as p:
                             iter_stats = list(p.map(partial(model_eval_record, X_dev_, y_test, U_train_), iteration,

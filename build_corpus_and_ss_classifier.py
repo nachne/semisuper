@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 from semisuper import ss_model_selection, cleanup_corpora
 from semisuper.loaders import load_pipeline
 from semisuper.helpers import num_rows
@@ -63,7 +65,7 @@ def save_silver_standard(pipeline, write=True, outpath=None):
                                   columns=["label", "decision_function", "pmid", "sentence_pos", "text", "title"])
 
     if write or outpath:
-        outpath = outpath or file_path("./semisuper/output/silver_standard.tsv")
+        outpath = outpath or file_path("./semisuper/silver_standard/silver_standard.tsv")
         print("Writing silver standard corpus to", outpath)
         abs_classified.to_csv(outpath, sep="\t", float_format=float_format)
 
@@ -80,7 +82,8 @@ def train_build(from_scratch=True, mode=None, ratio=1.0):
                               )
 
     silver_standard = save_silver_standard(pipeline,
-                                           outpath=file_path("./semisuper/output/silver_standard" + now + '.tsv')
+                                           outpath=file_path(
+                                               "./semisuper/silver_standard/silver_standard" + now + '.tsv')
                                            )
 
     return silver_standard

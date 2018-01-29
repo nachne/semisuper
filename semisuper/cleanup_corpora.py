@@ -23,7 +23,7 @@ piboso_outcome = loaders.sentences_piboso_outcome()
 
 PARALLEL = True
 
-genia_defaults = None  # {"pos": False, "ner": False} # TODO safe default options
+genia_defaults = None
 
 
 # ------------------

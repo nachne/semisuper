@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import os.path
 import re
 import string
@@ -128,18 +130,18 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
 
         # extremely short sentences shall be ignored by next steps
         if len(sentence) < MIN_LEN:
-            return []
+            yield
+        else:
+            for token in self.tokenizer.tokenize(sentence):
+                # Apply preprocessing to the token
+                token_nrm = self.normalize_token(token)
+                subtokens = [self.normalize_token(t) for t in self.splitters.split(token_nrm)]
 
-        for token in self.tokenizer.tokenize(sentence):
-            # Apply preprocessing to the token
-            token_nrm = self.normalize_token(token)
-            subtokens = [self.normalize_token(t) for t in self.splitters.split(token_nrm)]
-
-            for subtoken in subtokens:
-                # If punctuation, ignore token and continue
-                if all(char in self.punct for char in token):
-                    continue
-                yield subtoken
+                for subtoken in subtokens:
+                    # If punctuation, ignore token and continue
+                    if all(char in self.punct for char in token):
+                        continue
+                    yield subtoken
 
     def normalize_token(self, token):
         # Apply preprocessing to the token

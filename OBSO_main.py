@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import os
 import pickle
 import numpy as np
@@ -30,8 +32,6 @@ def file_path(file_relative):
 
 
 def interactive():
-    # TODO decide: input(), cmd() or sys.stdin?
-
     max_score = max_score_from_csv(load_silver_standard())
 
     def normalize_score(score):

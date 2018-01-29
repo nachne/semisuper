@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import multiprocessing as multi
 import time
 from copy import deepcopy
@@ -22,10 +24,9 @@ from sklearn.neural_network import MLPClassifier
 from semisuper import transformers
 from semisuper.helpers import densify
 
-#  TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
-PARALLEL = True  # os.sys.platform == "linux"
+PARALLEL = True
 RAND_INT_MAX = 1000
-
+RANDOM_SEED = 4242
 
 # ----------------------------------------------------------------
 # Estimators and parameters to evaluate
@@ -229,7 +230,7 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
     print("\nEvaluating parameter ranges for preprocessor and classifiers")
 
     if X_test is None or y_test is None:
-        X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
+        X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2, random_state=RANDOM_SEED)
 
     results = {'best': {'f1': -1, 'acc': -1}, 'all': []}
 
@@ -261,8 +262,9 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
                                                                                  min_df_word=df_min, max_df=df_max)
 
                     # fit models
-                    iter_stats = list(map(partial(model_eval_record, X_train_, y_train, X_test_, y_test),
-                                          estimators))
+                    with multi.Pool(multi.cpu_count()) as p:
+                        iter_stats = list(p.map(partial(model_eval_record, X_train_, y_train, X_test_, y_test),
+                                              estimators))
 
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:

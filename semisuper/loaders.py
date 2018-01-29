@@ -189,7 +189,7 @@ def get_abstracts(idlist):
         except:
             pass
 
-    return
+    return df
 
 
 def fetch(idlist):

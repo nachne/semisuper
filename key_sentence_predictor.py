@@ -1,22 +1,19 @@
-import os
-import pickle
-import time
-import numpy as np
+from __future__ import absolute_import, division, print_function
 
+import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from semisuper import transformers, loaders, helpers
 import build_corpus_and_ss_classifier
 from build_classifier_from_ss_corpus import load_silver_standard, max_score_from_csv
+from semisuper import transformers, helpers
 
 
 class KeySentencePredictor(BaseEstimator, TransformerMixin):
     """predicts positions and scores of relevant sentences for list of {pmid, abstract} dictionaries"""
 
-    def __init__(self, batch_size=400, verbose=False):
+    def __init__(self, batch_size=100):
         """load pretrained classifier and maximum score in corpus for normalization"""
 
-        self.verbose = verbose
         self.max_batch_size = batch_size
         self.pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False)
 
@@ -28,18 +25,11 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
     def fit(self, X=None, y=None):
         return self
 
+    def predict(self, X):
+        return self.transform(X)
+
     def transform(self, X):
-
-        if self.verbose:
-            print("Classifying sentences…")
-            start_time = time.time()
-
-        result = helpers.merge_dicts(map(self.transform_batch, helpers.partition(X, self.max_batch_size)))
-
-        if self.verbose:
-            print("…took", time.time() - start_time, "seconds.")
-
-        return result
+        return helpers.merge_dicts(map(self.transform_batch, helpers.partition(X, self.max_batch_size)))
 
     def transform_batch(self, X):
         """predicts positions and scores of relevant sentences for list of {pmid, abstract} dictionaries"""
@@ -68,13 +58,8 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
 
         dicts must have keys pmid and abstract"""
 
-        if self.verbose:
-            print("Tokenizing sentences…")
-            start_time = time.time()
         sentence_lists = [transformers.sentence_tokenize(x["abstract"])
                           for x in X]
-        if self.verbose:
-            print("took", time.time() - start_time, "seconds.")
 
         sentences = helpers.flatten(sentence_lists)
         positions = helpers.flatten(map(self.get_positions, sentence_lists))

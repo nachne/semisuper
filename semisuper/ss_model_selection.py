@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import multiprocessing as multi
 import os
 import time
@@ -21,8 +23,8 @@ from sklearn.tree import DecisionTreeClassifier
 from semisuper import transformers, ss_techniques
 from semisuper.helpers import num_rows, concatenate
 
-# TODO multiprocessing works on Linux when there aren't too many features, but not on macOS
-PARALLEL = True  # os.sys.platform == "linux"
+PARALLEL = True
+RANDOM_SEED = 4242  # for making different test runs comparable
 
 
 # ----------------------------------------------------------------
@@ -68,17 +70,16 @@ def estimator_list():
 
 def preproc_param_dict():
     d = {
-        # best: word (1,2)/(1,4), char (2,5)/(2,6), f 25%, rule True/False, SVC 1.0 / 0.75
-        # w/o char: acc <= 0.80, w/o words: acc <= 0.84, U > 31%
-        'df_min'        : [0.002],  # [0.001, 0.005, 0.01]
+        'df_min'        : [0.001],  # [0.001, 0.002, 0.005 0.01]
         'df_max'        : [1.0],
-        'rules'         : [False, True],
+        'rules'         : [True],  # [False, True],
         'genia_opts'    : [None,
                            # {"pos": False, "ner": False},
                            # {"pos": True, "ner": False},
-                           {"pos": False, "ner": True},
-                           {"pos": True, "ner": True}],
-        'wordgram_range': [(1, 3)],  # [None, (1, 2), (1, 3), (1, 4)],
+                           # {"pos": False, "ner": True},
+                           # {"pos": True, "ner": True}
+                           ],
+        'wordgram_range': [(1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 5), (2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
 
@@ -162,33 +163,15 @@ def eval_fold(model_record, P, N, U, i_splits):
     P_train, P_test = P[p_split[0]], P[p_split[1]]
     N_train, N_test = N[n_split[0]], N[n_split[1]]
 
-    # TODO fix this so it can run in parallel, remove print-debugging
-    print("a")
-
     y_train_pp = concatenate((np.ones(num_rows(P_train)), -np.ones(num_rows(N_train)), np.zeros(num_rows(U))))
-
-    print("b")
-
     pp = clone(Pipeline([('vectorizer', model_record['vectorizer']), ('selector', model_record['selector'])]))
-
-    print("c")
-
     pp.fit(concatenate((P_train, N_train, U)), y_train_pp)
 
-    print("d")
-
     P_, N_, U_, P_test_, N_test_ = [(pp.transform(x)) for x in [P_train, N_train, U, P_test, N_test]]
-
-    print("e")
-
     model = model_record['untrained_model'](P_, N_, U_)
-
-    print("f")
 
     y_pred = model.predict(concatenate((P_test_, N_test_)))
     y_test = concatenate((np.ones(num_rows(P_test_)), np.zeros(num_rows(N_test_))))
-
-    print("g")
 
     pr, r, f1, _ = precision_recall_fscore_support(y_test, y_pred)
     acc = accuracy_score(y_test, y_pred)
@@ -207,8 +190,8 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     print("\nEvaluating parameter ranges for preprocessor and classifiers")
 
     if X_test is None or y_test is None:
-        P_train, X_test_pos = train_test_split(P_train, test_size=0.2)
-        N_train, X_test_neg = train_test_split(N_train, test_size=0.2)
+        P_train, X_test_pos = train_test_split(P_train, test_size=0.2, random_state=RANDOM_SEED)
+        N_train, X_test_neg = train_test_split(N_train, test_size=0.2, random_state=RANDOM_SEED)
         X_test = concatenate((X_test_pos, X_test_neg))
         y_test = concatenate((np.ones(num_rows(X_test_pos)), np.zeros(num_rows(X_test_neg))))
 
