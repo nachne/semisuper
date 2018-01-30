@@ -6,10 +6,12 @@ import subprocess
 import tarfile
 import zipfile
 import nltk
+
 try:
     import urllib.request as url_lib
 except ImportError:
     import urllib as url_lib
+
 
 def pipinstall(pkg_name):
     """install package with pip subprocess"""
@@ -19,10 +21,12 @@ def pipinstall(pkg_name):
         pip = "pip3"
     subprocess.call([pip, "install", "--user", pkg_name])
 
+
 def mkdir(path):
     """make directory if not present"""
     if not os.path.exists(path):
         os.makedirs(path)
+
 
 def download_nltk_deps():
     nltk_downloads = ["wordnet",
@@ -36,6 +40,7 @@ def download_nltk_deps():
     for d in nltk_downloads:
         nltk.download(d)
 
+
 def install_geniatagger():
     """Download and make geniatagger-3.0.2
 
@@ -46,7 +51,7 @@ def install_geniatagger():
     print("installing GENIA tagger...")
 
     url_lib.urlretrieve("http://www.nactem.ac.uk/tsujii/GENIA/tagger/geniatagger-3.0.2.tar.gz",
-                               "./semisuper/resources/geniatagger-3.0.2.tar.gz")
+                        "./semisuper/resources/geniatagger-3.0.2.tar.gz")
     tar_ref = tarfile.open("./semisuper/resources/geniatagger-3.0.2.tar.gz")
     tar_ref.extractall("./semisuper/resources/")
     tar_ref.close()
@@ -69,7 +74,7 @@ def load_HoC():
     mkdir("./semisuper/resources")
 
     url_lib.urlretrieve("https://www.cl.cam.ac.uk/~sb895/HoCCorpus.zip",
-                               "./semisuper/resources/corpora/HoCCorpus.zip")
+                        "./semisuper/resources/corpora/HoCCorpus.zip")
     zip_ref = zipfile.ZipFile("./semisuper/resources/corpora/HoCCorpus.zip", 'r')
     zip_ref.extractall("./semisuper/resources/corpora")
     zip_ref.close()
@@ -77,12 +82,13 @@ def load_HoC():
     print("Done loading HoC.")
     return
 
-
-if __name__ == "__main__":
-
+def install_all():
     for path in ["./semisuper/resources", "./semisuper/silver_standard", "./semisuper/pickles"]:
         mkdir(path)
 
     download_nltk_deps()
     load_HoC()
     install_geniatagger()
+
+if __name__ == "__main__":
+    install_all()

@@ -78,12 +78,15 @@ def train_build(from_scratch=True, mode=None, ratio=1.0):
     pipeline = train_pipeline(from_scratch=from_scratch,
                               mode=mode,
                               ratio=ratio,
-                              outpath=file_path("./semisuper/pickles/semi_pipeline" + now + '.pickle')
+                              write=True,
+                              outpath=None
+                              # file_path("./semisuper/pickles/semi_pipeline" + now + '.pickle')
                               )
 
     silver_standard = save_silver_standard(pipeline,
-                                           outpath=file_path(
-                                               "./semisuper/silver_standard/silver_standard" + now + '.tsv')
+                                           write=True,
+                                           outpath=None
+                                           # file_path("./semisuper/silver_standard/silver_standard" + now + '.tsv')
                                            )
 
     return silver_standard

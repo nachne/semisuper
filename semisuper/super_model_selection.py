@@ -26,7 +26,7 @@ from semisuper.helpers import densify
 
 PARALLEL = True
 RAND_INT_MAX = 1000
-RANDOM_SEED = 4242
+RANDOM_SEED = 134242
 
 
 # ----------------------------------------------------------------
@@ -282,7 +282,8 @@ def get_best_model(X_train, y_train, X_test=None, y_test=None):
 
                     results['all'].append(iter_stats)
 
-                    print("Evaluated words:", wordgram, "chars:", chargram, "rules:", r, "genia:", genia_opts,
+                    print("Evaluated words:", wordgram, "chars:", chargram,
+                          "rules:", r, "genia:", genia_opts,
                           "feature selection:", fs, "min_df:", df_min,
                           "in %s seconds\n" % (time.time() - start_time))
 

@@ -24,7 +24,7 @@ from semisuper import transformers, ss_techniques
 from semisuper.helpers import num_rows, concatenate
 
 PARALLEL = True
-RANDOM_SEED = 4242  # for making different test runs comparable
+RANDOM_SEED = 133242  # for making different test runs comparable
 
 
 # ----------------------------------------------------------------
@@ -53,9 +53,13 @@ def estimator_list():
          'model': partial(ss_techniques.neg_self_training_clf,
                           SGDClassifier(loss='perceptron', class_weight='balanced'))}]
 
+    self_training = [
+        {'name': 'self-logit', 'model': ss_techniques.self_training},
+        {'name': 'self-logit', 'model': ss_techniques.self_training_lin_svc},
+    ]
+
     bayesian = [
         {'name': 'EM', 'model': ss_techniques.EM},
-        {'name': 'self-logit', 'model': ss_techniques.self_training},
         {'name': 'negNB_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
         {'name': 'negNB_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
     ]
@@ -66,7 +70,7 @@ def estimator_list():
         # {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
     ]
 
-    return neg_svms  # + neg_logits + neg_sgds + bayesian
+    return neg_svms  # + neg_logits + neg_sgds + self_training + bayesian
 
 
 def preproc_param_dict():
@@ -260,6 +264,8 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                     results['all'].append(iter_stats)
 
                     print("Evaluated words:", wordgram, "chars:", chargram,
+                          "rules:", r, "genia:", genia_opts,
+                          "feature selection:", fs, "min_df:", df_min,
                           "in %s seconds\n" % (time.time() - start_time))
 
                     print_reports(iter_stats)
@@ -352,11 +358,11 @@ def print_results(results):
     """helper function to print stat objects, starting with best model"""
 
     print("\n----------------------------------------------------------------\n")
-    print("\nAll stats:\n")
-    for r in results['all']:
-        print_reports(r)
+    # print("\nAll stats:\n")
+    # for r in results['all']:
+    #     print_reports(r)
 
-    print("\nBest:\n")
+    print("Best:\n")
     best = results['best']
     print(best['name'], best['n-grams'], best['fs'],
           "\nrules, genia_opts", best['rules, genia_opts'], "df_min, df_max", best['df_min, df_max'],

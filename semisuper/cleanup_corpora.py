@@ -24,7 +24,7 @@ piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
 PARALLEL = True
-RANDOM_SEED = 4242
+RANDOM_SEED = 135242
 
 genia_defaults = None
 
@@ -58,8 +58,8 @@ def remove_P_from_U(P, U, ratio=1.0, inverse=False, verbose=True):
 
     if verbose:
         discarding = [x for (x, y) in zip(U, y_noisy) if y != criterion]
-        print("Keeping", random.sample(keeping.tolist(), 10))
-        print("Discarding", random.sample(discarding, 10))
+        print("Keeping e.g.", random.sample(keeping.tolist(), 10))
+        print("Discarding e.g.", random.sample(discarding, 10))
 
     return keeping
 
