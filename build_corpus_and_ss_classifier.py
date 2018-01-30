@@ -20,7 +20,7 @@ def train_pipeline(from_scratch=False, write=True, outpath=None, mode=None, rati
 
     print("Building new classifier")
 
-    P, N, U = cleanup_corpora.clean_corpus_pnu(ratio=ratio, mode=mode)
+    P, N, U = cleanup_corpora.clean_corpus_pnu(ratio=ratio, mode=mode, percentiles=[10,25,10])
 
     print("P (HoC labelled + CIViC)", num_rows(P),
           "\tN (HoC unlabelled)", num_rows(N),
@@ -72,7 +72,7 @@ def save_silver_standard(pipeline, write=True, outpath=None):
     return abs_classified
 
 
-def train_build(from_scratch=True, mode=None, ratio=1.0):
+def train_build(from_scratch=True, mode="percentile", ratio=1.0):
     now = datetime.now().strftime('%Y-%m-%d_%H-%M')
 
     pipeline = train_pipeline(from_scratch=from_scratch,
