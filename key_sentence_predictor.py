@@ -36,9 +36,7 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
 
         sentences, pmids, positions = self.sentences_pmids_positions(X)
 
-
         scores = self.sentence_scores(sentences)
-
 
         return self.hit_dict_list(pmids, scores, positions)
 

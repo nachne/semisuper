@@ -24,7 +24,7 @@ from semisuper import transformers, ss_techniques
 from semisuper.helpers import num_rows, concatenate
 
 PARALLEL = True
-RANDOM_SEED = 133242  # for making different test runs comparable
+RANDOM_SEED = 135242  # for making different test runs comparable
 
 
 # ----------------------------------------------------------------

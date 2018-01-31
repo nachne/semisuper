@@ -34,7 +34,7 @@ def predict_with_predictor(abs_pred):
 results = {}
 pool_size = min(multiprocessing.cpu_count(), 12)
 
-for batch_size in [1, 10, 100, 200, 300, 400, 500, 1000]:
+for batch_size in [400]:  # [1, 10, 100, 200, 300, 400, 500, 1000]:
     print("batch size:", batch_size)
     predictor = key_sentence_predictor.KeySentencePredictor(batch_size=batch_size)
     with multiprocessing.Pool(pool_size) as p:

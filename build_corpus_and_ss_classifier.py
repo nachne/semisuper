@@ -73,7 +73,7 @@ def save_silver_standard(pipeline, write=True, outpath=None):
 
 
 def train_build(from_scratch=True, mode=None, ratio=1.0):
-    now = datetime.now().strftime('%Y-%m-%d_%H-%M')
+    # now = datetime.now().strftime('%Y-%m-%d_%H-%M')
 
     pipeline = train_pipeline(from_scratch=from_scratch,
                               mode=mode,
@@ -103,5 +103,6 @@ def file_path(file_relative):
 # Execution
 # ----------------------------------------------------------------
 
+# TODO put best mode parameter in keysentence_predictor as well
 if __name__ == "__main__":
-    train_build()
+    train_build(mode="mixed")
