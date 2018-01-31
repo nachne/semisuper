@@ -58,8 +58,8 @@ def remove_P_from_U(P, U, ratio=1.0, inverse=False, verbose=True):
 
     if verbose:
         discarding = [x for (x, y) in zip(U, y_noisy) if y != criterion]
-        print("Keeping e.g.", random.sample(keeping.tolist(), 10))
-        print("Discarding e.g.", random.sample(discarding, 10))
+        print("Keeping e.g.\n", random.sample(keeping.tolist(), 10))
+        print("Discarding e.g.\n", random.sample(discarding, 10))
 
     return keeping
 
@@ -71,24 +71,30 @@ def remove_most_similar_percent(P, U, ratio=1.0, percentile=10, inverse=False, v
 
     guide_, noisy_, vectorizer, selector = vectorize_preselection(P, U, ratio=ratio)
 
-    model = pu_cos_roc.ranking_cos_sim(guide_)
+    model = best_pu(guide_, noisy_)
+
+
+    if hasattr(model, 'decision_function'):
+        y_pred = model.decision_function(noisy_)
+    elif hasattr(model, 'predict_proba'):
+        y_pred = np.abs(model.predict_proba(noisy_)[:, 1])
 
     if inverse:
         predicate = "least"
-        y_pred = model.predict_proba(noisy_)
+        y_pred = y_pred
     else:
         predicate = "most"
-        y_pred = -model.predict_proba(noisy_)
+        y_pred = -y_pred
 
-    print("Removing", percentile, "% of noisy data", predicate, "similar to guide set (cos-similarity)"
+    print("Removing", percentile, "% of noisy data", predicate, "similar to guide set"
           , "(", (percentile * num_rows(U) / 100), "sentences )")
 
     U = np.array(U, dtype=object)
-    U_minus_PN, PN = select_PN_below_score(y_pred, U, y_pred, noise_lvl=percentile / 100)
+    U_minus_PN, PN = select_PN_below_score(y_pred, U, y_pred, noise_lvl=percentile / 100.0)
 
     if verbose:
-        print("Keeping", train_test_split(U_minus_PN, train_size=10)[0])
-        print("Discarding", train_test_split(PN, train_size=10)[0])
+        print("Keeping e.g.\n", train_test_split(U_minus_PN, train_size=10)[0])
+        print("Discarding e.g.\n", train_test_split(PN, train_size=10)[0])
 
     return U_minus_PN
 
@@ -196,7 +202,7 @@ def clean_corpus_pnu(mode="mixed", percentiles=(10, 25, 10), ratio=1.0):
                                               inverse=True)
 
 
-    elif mode == "mixed":
+    elif mode == "strict":
         # Remove "good" sentences from HoC[neg], keep only "good" sentences in HoC[pos]
         # (tends to overfit on differences between Civic + Abstracts VS. HoC)
 
@@ -228,8 +234,8 @@ def clean_corpus_pnu(mode="mixed", percentiles=(10, 25, 10), ratio=1.0):
         print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
         hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
 
-        print("\nRemoving 25% of most CIViC-unlike sentences from cleaned up HoC[pos] (", 25, "%)\n")
-        hocpos_ = remove_most_similar_percent(U=hocpos_, P=civic, ratio=ratio, percentile=25,
+        print("\nRemoving most CIViC-unlike sentences from cleaned up HoC[pos] (", 50, "%)\n")
+        hocpos_ = remove_most_similar_percent(U=hocpos_, P=civic, ratio=ratio, percentile=50,
                                               inverse=True)
 
 
