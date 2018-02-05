@@ -86,58 +86,58 @@ def print_sentences(model, modelname=""):
 # execute
 # ------------------
 
-print("\nHOCNEG \ CIVIC\n")
-_ = remove_most_similar_percent(civic, hocneg, ratio=1.0, percentile=20)
-
-print("\nCIVIC * HOCPOS\n")
-civic_ = remove_most_similar_percent(hocpos, civic, ratio=1.0, inverse=True)
-
-print("\nHOCPOS * CIVIC\n")
-hocpos_ = remove_most_similar_percent(civic, hocpos, ratio=1.0, inverse=True)
-
-print("\nCIVIC * HOCPOS'\n")
-_ = remove_most_similar_percent(hocpos_, civic, ratio=1.0, inverse=True)
-
-print("\nHOCPOS * CIVIC'\n")
-_ = remove_most_similar_percent(civic_, hocpos, ratio=1.0, inverse=True)
-
-print("\nHOCNEG \ HOCPOS'\n")
-_ = remove_most_similar_percent(hocpos_, hocneg, ratio=1.0, percentile=20)
+# print("\nHOCNEG \ CIVIC\n")
+# _ = remove_most_similar_percent(civic, hocneg, ratio=1.0, percentile=20)
+#
+# print("\nCIVIC * HOCPOS\n")
+# civic_ = remove_most_similar_percent(hocpos, civic, ratio=1.0, inverse=True)
+#
+# print("\nHOCPOS * CIVIC\n")
+# hocpos_ = remove_most_similar_percent(civic, hocpos, ratio=1.0, inverse=True)
+#
+# print("\nCIVIC * HOCPOS'\n")
+# _ = remove_most_similar_percent(hocpos_, civic, ratio=1.0, inverse=True)
+#
+# print("\nHOCPOS * CIVIC'\n")
+# _ = remove_most_similar_percent(civic_, hocpos, ratio=1.0, inverse=True)
+#
+# print("\nHOCNEG \ HOCPOS'\n")
+# _ = remove_most_similar_percent(hocpos_, hocneg, ratio=1.0, percentile=20)
 
 # sys.exit()
 
 # PU hocneg vs civic: ok, 6%
 
 print("\nHOCNEG \ CIVIC\n")
-hocneg_ = remove_P_from_U(U=hocneg, P=civic, ratio=0.2)
+hocneg_ = remove_P_from_U(U=hocneg, P=civic, ratio=1.0)
 # print_sentences(model, "best PU method (remove civic from hocneg)")
 
 print("\nHOCNEG \ HOCPOS\n")
-_ = remove_P_from_U(U=hocneg, P=hocpos, ratio=0.2)
+_ = remove_P_from_U(U=hocneg, P=hocpos, ratio=1.0)
 # print_sentences(model, "best PU method (remove hocpos from hocneg)")
 
 print("\nHOCNEG \ CIVIC \ HOCPOS\n")
-_ = remove_P_from_U(U=hocneg_, P=hocpos, ratio=0.2)
+_ = remove_P_from_U(U=hocneg_, P=hocpos, ratio=1.0)
 # print_sentences(model, "best PU method (remove hocpos from hocneg_)")
 
 print("\nHOCPOS \ (HOCNEG \ CIVIC)\n")
-hocpos_ = remove_P_from_U(U=hocpos, P=hocneg_, ratio=0.2)
+hocpos_ = remove_P_from_U(U=hocpos, P=hocneg_, ratio=1.0)
 # print_sentences(model, "best PU method (remove hocneg_ from hocpos)")
 
 print("\nHOCPOS \ HOCNEG\n")
-_ = remove_P_from_U(U=hocpos, P=hocneg, ratio=0.2)
+_ = remove_P_from_U(U=hocpos, P=hocneg, ratio=1.0)
 # print_sentences(model, "best PU method (remove hocneg from hocpos)")
 
 print("\nHOCPOS * CIVIC\n")
-_ = remove_P_from_U(U=hocpos, P=civic, ratio=0.2, inverse=True)
+_ = remove_P_from_U(U=hocpos, P=civic, ratio=1.0, inverse=True)
 # print_sentences(model, "best PU method (keep civic in hocpos)")
 
 print("\nCIVIC * HOCPOS\n")
-_ = remove_P_from_U(U=civic, P=hocpos, ratio=0.2, inverse=True)
+_ = remove_P_from_U(U=civic, P=hocpos, ratio=1.0, inverse=True)
 # print_sentences(model, "best PU method (keep hocpos in civic)")
 
 print("\nCIVIC * (HOCPOS \ (HOCNEG \ CIVIC))\n")
-_ = remove_P_from_U(U=civic, P=hocpos_, ratio=0.2, inverse=True)
+_ = remove_P_from_U(U=civic, P=hocpos_, ratio=1.0, inverse=True)
 # print_sentences(model, "best PU method (keep hocpos_ in civic)")
 
 sys.exit()

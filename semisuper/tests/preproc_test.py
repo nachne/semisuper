@@ -51,7 +51,7 @@ print("PIBOSO other sentences:", len(piboso_other))
 
 
 pp = Pipeline([("normalizer", TextNormalizer()),
-               ("preprocessor", TokenizePreprocessor(rules=True, genia_opts={"pos": False, "ner": True}))])
+               ("preprocessor", TokenizePreprocessor(rules=True, genia_opts=None))])
 
 # ----------------------------------------------------------------
 # Regex tests

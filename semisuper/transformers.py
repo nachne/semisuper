@@ -63,6 +63,7 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         return [", ".join(doc) for doc in X]
 
     def transform(self, X):
+        # TODO GENIAtagger is obsolete
         if self.genia:
             try:
                 global tagger
@@ -72,6 +73,8 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
             return [self.genia_representation(sentence) for sentence in X]
         else:
             return [self.token_representation(sentence) for sentence in X]
+
+        return [self.token_representation(sentence) for sentence in X]
 
     def genia_representation(self, sentence):
         if self.chunks:
@@ -290,18 +293,17 @@ prenormalize_dict = [
     (re.compile(nonword_behind + "yo\.\s" + lower_ahead), "y o "),
     (re.compile(nonword_behind + "[Pp]\.o\.\s" + lower_ahead), "p o  "),
     (re.compile(nonword_behind + "[Ii]\.v\.\s" + lower_ahead), "i v  "),
-    (re.compile(nonword_behind + "[Qq]\.i\.\d\.\s" + lower_ahead), "q d  "),
     (re.compile(nonword_behind + "[Bb]\.i\.\d\.\s" + lower_ahead), "b i d  "),
     (re.compile(nonword_behind + "[Tt]\.i\.\d\.\s" + lower_ahead), "t i d  "),
     (re.compile(nonword_behind + "[Qq]\.i\.\d\.\s" + lower_ahead), "q i d  "),
     (re.compile(nonword_behind + "J\.\s" + "(?=(Cell|Bio|Med))"), "J  "),  # journal
     # bracket complications
-    (re.compile("\.\)."), " )."),
-    (re.compile("\.\s\)."), "  )."),
+    # (re.compile("\.\)\."), " )."),
+    # (re.compile("\.\s\)\."), "  )."),
     # multiple dots
     # (re.compile("(\.+\s*\.+)+"), "."),
-    # Typos: missing space after dot; only add space if there are at least two letters before and behind
-    (re.compile("(?<=[A-Za-z]{2})" + "\." + "(?=[A-Z][a-z])"), ". "),
+    # # Typos: missing space after dot; only add space if there are at least two letters before and behind
+    # (re.compile("(?<=[A-Za-z]{2})" + "\." + "(?=[A-Z][a-z])"), ". "),
     # whitespace
     (re.compile("\s"), " "),
 ]
@@ -312,7 +314,7 @@ prenormalize_dict = [
 # ----------------------------------------------------------------
 
 # TODO test binary representation instead of tf-idf
-def vectorizer(chargrams=(2, 6), min_df_char=0.001, wordgrams=(1, 3), min_df_word=0.001, genia_opts=None, rules=True,
+def vectorizer(chargrams=(2, 6), min_df_char=0.002, wordgrams=(1, 4), min_df_word=0.002, genia_opts=None, rules=True,
                max_df=1.0, binary=False, normalize=True, stats="length"):
     """Return pipeline that concatenates features from word and character n-grams and text stats"""
 
@@ -392,7 +394,8 @@ def percentile_selector(score_func='chi2', percentile=20):
 
 
 def select_from_l1_svc(C=0.1, tol=1e-3, threshold="0.5*mean"):
-    return SelectFromModel(LinearSVC(C=C, penalty="l1", dual=False, tol=tol),
+    return SelectFromModel(LinearSVC(C=C, penalty="l1", dual=False, tol=tol,
+                                     class_weight='balanced'),
                            prefit=False, threshold=threshold)
 
 

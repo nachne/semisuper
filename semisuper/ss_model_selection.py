@@ -36,41 +36,49 @@ def estimator_list():
     neg_svms = [{'name' : 'neglinSVC_C_{}_loss_{}'.format(C, loss),
                  'model': partial(ss_techniques.neg_self_training_clf,
                                   LinearSVC(C=C, loss=loss, class_weight='balanced'))}
-                for C in np.arange(0.25, 1.01, 0.75 / 24) for loss in ["hinge", "squared_hinge"]]
+                for C in np.arange(0.25, 1.01, 0.75 / 12) for loss in ["squared_hinge"]]
 
     neg_logits = [{'name' : 'negLogit_C_C{}'.format(C),
                    'model': partial(ss_techniques.neg_self_training_clf, LogisticRegression(solver='sag', C=C))}
-                  for C in np.arange(0.25, 1.01, 0.75 / 24)]
+                  for C in np.arange(0.25, 1.01, 0.75 / 12)]
 
     neg_sgds = [
         {'name' : 'negSGDmh',
          'model': partial(ss_techniques.neg_self_training_clf,
                           SGDClassifier(loss='modified_huber', class_weight='balanced'))},
-        {'name' : 'negSGDsh',
-         'model': partial(ss_techniques.neg_self_training_clf,
-                          SGDClassifier(loss='squared_hinge', class_weight='balanced'))},
         {'name' : 'negSGDpc',
          'model': partial(ss_techniques.neg_self_training_clf,
-                          SGDClassifier(loss='perceptron', class_weight='balanced'))}]
-
-    self_training = [
-        {'name': 'self-logit', 'model': ss_techniques.self_training},
-        {'name': 'self-logit', 'model': ss_techniques.self_training_lin_svc},
+                          SGDClassifier(loss='perceptron', class_weight='balanced'))},
     ]
+
+    self_logits = [{'name' : 'negLogit_C_C{}'.format(C),
+                    'model': partial(ss_techniques.self_training_clf_conf,
+                                     LogisticRegression(solver='sag', C=C),
+                                     0.75
+                                     )}
+                   for C in np.arange(0.25, 1.01, 0.75 / 12)]
+
+    self_svms = [{'name' : 'neglinSVC_C_{}_loss_{}'.format(C, loss),
+                  'model': partial(ss_techniques.self_training_clf_conf,
+                                   LinearSVC(C=C, loss=loss, class_weight='balanced'),
+                                   0.5)}
+                 for C in np.arange(0.25, 1.01, 0.75 / 12) for loss in ["squared_hinge"]]
 
     bayesian = [
         {'name': 'EM', 'model': ss_techniques.EM},
+        {'name': 'selfNB_0.1', 'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=0.1), 0.75)},
+        {'name': 'selfNB_1.0', 'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=1.0), 0.75)},
         {'name': 'negNB_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
         {'name': 'negNB_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
     ]
 
     neighbors = [
         # # NOTE: these require dense arrays
-        # {'name': 'kNN', 'model': ss_techniques.iterate_knn},
-        # {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
+        {'name': 'kNN', 'model': ss_techniques.iterate_knn},
+        {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
     ]
 
-    return neg_svms  # + neg_logits + neg_sgds + self_training + bayesian
+    return neg_svms + neg_logits + neg_sgds + self_logits + self_svms + bayesian
 
 
 def preproc_param_dict():
@@ -84,30 +92,16 @@ def preproc_param_dict():
                            # {"pos": False, "ner": True},
                            # {"pos": True, "ner": True}
                            ],
-        'wordgram_range': [(1, 3), (1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
-        'chargram_range': [(2, 5), (2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
+        'wordgram_range': [(1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
+        'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
-
-            # # matrix factorization tends to crash (too much RAM)
-            # partial(transformers.factorization, 'TruncatedSVD', 200),
-            # partial(transformers.factorization, 'NMF', 200),
-            # partial(transformers.factorization, 'LatentDirichletAllocation', 200), # LDA crashes almost certainly
-
-            # # mutual information: worse than rest
-            # partial(transformers.percentile_selector, 'mutual_info', 30),
-            # partial(transformers.percentile_selector, 'mutual_info', 25),
-            # partial(transformers.percentile_selector, 'mutual_info', 20),
-            # # f: several percent more positive in U
-            # partial(transformers.percentile_selector, 'f', 30),
-            # partial(transformers.percentile_selector, 'f', 25),
-            # partial(transformers.percentile_selector, 'f', 20),
             transformers.IdentitySelector,
             partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
             partial(transformers.percentile_selector, 'chi2', 20),
-            # partial(transformers.select_from_l1_svc, 1.0, 1e-4),
-            # partial(transformers.select_from_l1_svc, 0.5, 1e-4),
-            # partial(transformers.select_from_l1_svc, 0.1, 1e-4),
+            partial(transformers.select_from_l1_svc, 1.0, 1e-4),
+            partial(transformers.select_from_l1_svc, 0.5, 1e-4),
+            partial(transformers.select_from_l1_svc, 0.1, 1e-4),
         ]
     }
 
@@ -178,7 +172,7 @@ def eval_fold(model_record, P, N, U, i_splits):
     y_pred = model.predict(concatenate((P_test_, N_test_)))
     y_test = concatenate((np.ones(num_rows(P_test_)), np.zeros(num_rows(N_test_))))
 
-    pr, r, f1, _ = precision_recall_fscore_support(y_test, y_pred)
+    pr, r, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='weighted')
     acc = accuracy_score(y_test, y_pred)
 
     print("Fold no.", i, "acc", acc, "classification report:\n", classification_report(y_test, y_pred))
@@ -291,7 +285,7 @@ def test_best(results, X_eval, y_eval):
 
     y_pred = best_model.predict(transformedTestData)
 
-    p, r, f, s = precision_recall_fscore_support(y_eval, y_pred, average='macro')
+    p, r, f, s = precision_recall_fscore_support(y_eval, y_pred, average='weighted')
     acc = accuracy_score(y_eval, y_pred)
 
     print("Testing best model on held-out test set:\n", results['best']['name'],
@@ -338,14 +332,14 @@ def model_eval_record(P, N, U, X, y, m):
 
     y_pred = model.predict(X)
 
-    p, r, f1, _ = precision_recall_fscore_support(y, y_pred, average='macro')
+    p, r, f1, _ = precision_recall_fscore_support(y, y_pred, average='weighted')
     acc = accuracy_score(y, y_pred)
     clsr = classification_report(y, y_pred)
 
     pos_ratio = np.sum(model.predict(U)) / num_rows(U)
 
     print("\n")
-    # print("\n{}:\tacc: {}, classification report:\n{}".format(name, acc, clsr))
+    print("\n{}:\tacc: {},\tpositive ratio in U:{},\tclassification report:\n{}".format(name, acc, pos_ratio, clsr))
     return {'name' : name, 'p': p, 'r': r, 'f1': f1, 'acc': acc, 'clsr': clsr,
             'model': model, 'untrained_model': untrained_model, 'U_ratio': pos_ratio}
 

@@ -24,7 +24,7 @@ piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
 PARALLEL = True
-RANDOM_SEED = 135242
+RANDOM_SEED = 135343
 
 genia_defaults = None
 
@@ -73,7 +73,6 @@ def remove_most_similar_percent(P, U, ratio=1.0, percentile=10, inverse=False, v
 
     model = best_pu(guide_, noisy_)
 
-
     if hasattr(model, 'decision_function'):
         y_pred = model.decision_function(noisy_)
     elif hasattr(model, 'predict_proba'):
@@ -112,10 +111,11 @@ def best_pu(P, U):
         # {"name": "S-EM", "model": pu_two_step.s_EM},
         # {"name": "ROC-EM", "model": pu_two_step.roc_EM},
         {"name": "ROC-SVM", "model": pu_two_step.roc_SVM},
-        {"name": "CR-SVM", "model": pu_two_step.cr_SVM},
+        # {"name": "CR-SVM", "model": pu_two_step.cr_SVM},
         # {"name": "SPY-SVM", "model": pu_two_step.spy_SVM},
         # {"name": "ROCCHIO", "model": pu_two_step.rocchio},
         # {"name": "BIASED-SVM", "model": pu_biased_svm.biased_SVM_weight_selection},
+        # {"name": "BIASED-SVM-GRID", "model": pu_biased_svm.biased_SVM_grid_search},
     ]
 
     if PARALLEL:
@@ -125,7 +125,7 @@ def best_pu(P, U):
         stats = list(map(partial(model_pu_score_record, P_train, U_train, P_test, U_test), models))
 
     for s in stats:
-        print(s["name"], "\tPU-score:", s["pu_score"])
+        print(s["name"], "\tPU-score:", s["pu_score"], "\tpositive ratio in U_test:", s["ratio_in_U"])
 
     best_model = max(stats, key=lambda x: x["pu_score"])
     print("Best PU model:", best_model["name"], "\tPU-score:", best_model["pu_score"])
@@ -144,7 +144,7 @@ def model_pu_score_record(P_train, U_train, P_test, U_test, m):
 
     score = pu_score(y_P, y_U)
 
-    return {'name': name, 'model': m['model'], 'pu_score': score}
+    return {'name': name, 'model': m['model'], 'pu_score': score, 'ratio_in_U': np.sum(y_U) / num_rows(y_U)}
 
 
 # ------------------
@@ -180,7 +180,7 @@ def vectorize_preselection(P, U, ratio=1.0):
     return P_, U_, vec, sel
 
 
-def clean_corpus_pnu(mode="mixed", percentiles=(10, 25, 10), ratio=1.0):
+def clean_corpus_pnu(mode="tolerant", percentiles=(10, 25, 10), ratio=1.0):
     """clean up HoC corpus using PU learning. Modes: "strict", "percentile", default
 
     default: remove CIViC-like from HoC[neg], HoC[neg]-like from CIViC
@@ -204,40 +204,36 @@ def clean_corpus_pnu(mode="mixed", percentiles=(10, 25, 10), ratio=1.0):
 
     elif mode == "strict":
         # Remove "good" sentences from HoC[neg], keep only "good" sentences in HoC[pos]
-        # (tends to overfit on differences between Civic + Abstracts VS. HoC)
-
-        print("\nRemoving CIViC-like sentences from HoC[neg]\n")
-        hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
 
         print("\nKeeping only CIViC-like sentences in HoC[pos]\n")
         hocpos_ = remove_P_from_U(P=civic, U=hocpos, ratio=ratio, inverse=True)
 
+        print("\nRemoving CIViC-like sentences from HoC[neg]\n")
+        hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
 
-    elif mode == "tolerant":
-        # Remove "good" sentences from HoC[neg], remove "bad" sentences in HoC[pos]
-        # (appears to be most reasonable choice)
+
+    elif mode == "mixed":
+        # Remove "good" sentences from HoC[neg], CIViC-unlike and HoC[neg]-like sentences from HoC[pos]
 
         print("\nRemoving CIViC-like sentences from HoC[neg]\n")
         hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
 
-        print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
-        hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
-
-
-    else:
-        # Remove "good" sentences from HoC[neg], keep only "good" sentences in HoC[pos]
-        # (tends to overfit on differences between Civic + Abstracts VS. HoC)
-
-        print("\nRemoving CIViC-like sentences from HoC[neg]\n")
-        hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
-
-        print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
-        hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
-
-        print("\nRemoving most CIViC-unlike sentences from cleaned up HoC[pos] (", 50, "%)\n")
-        hocpos_ = remove_most_similar_percent(U=hocpos_, P=civic, ratio=ratio, percentile=50,
+        print("\nRemoving CIViC-unlike sentences from HoC[pos] (", 75, "%)\n")
+        hocpos_ = remove_most_similar_percent(U=hocpos, P=civic, ratio=ratio, percentile=75,
                                               inverse=True)
 
+        print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
+        hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
+
+
+    else:  # mode == "tolerant"
+        # Remove "good" sentences from HoC[neg], remove "bad" sentences in HoC[pos]
+
+        print("\nRemoving CIViC-like sentences from HoC[neg]\n")
+        hocneg_ = remove_P_from_U(P=civic, U=hocneg, ratio=ratio)
+
+        print("\nRemoving HoC[neg]-like sentences from HoC[pos]\n")
+        hocpos_ = remove_P_from_U(P=hocneg_, U=hocpos, ratio=ratio)
 
     P_raw = helpers.concatenate((hocpos_, civic))
     U_raw = abstracts

@@ -137,7 +137,7 @@ def preproc_param_dict():
         'df_min'        : [0.001],
         'df_max'        : [1.0],
         'rules'         : [True],  # [True, False],
-        'genia_opts'    : [None, {"pos": False, "ner": False}],
+        'genia_opts'    : [None],
         # [None, {"pos": False, "ner": False}, {"pos": True, "ner": False}, {"pos": False, "ner": True},
         # {"pos": True, "ner": True}],
         'wordgram_range': [(1, 4)],  # [(1, 3), (1, 4)], # [None, (1, 2), (1, 3), (1, 4)],

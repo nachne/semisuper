@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
 
-from semisuper import loaders, transformers
+from semisuper import loaders, transformers, cleanup_corpora, helpers
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
@@ -35,31 +35,38 @@ hn, hn_test = train_test_split(hocneg, test_size=0.2)
 pp, pp_test = train_test_split(piboso_outcome, test_size=0.2)
 pn, pn_test = train_test_split(piboso_other, test_size=0.2)
 
+# tolerant
+# hn = cleanup_corpora.remove_P_from_U(c, hn)
+# hp = cleanup_corpora.remove_P_from_U(hn, hp)
+
+# # strict
+hn = cleanup_corpora.remove_P_from_U(c, hn)
+hp = cleanup_corpora.remove_P_from_U(c, hp, inverse=True)
+
+
 print("TRAINING SET FROM",
       "CIVIC",
       ", ABSTRACTS",
-      # ", HOC POS",
-      # ", HOC NEG"
+      ", HOC POS",
+      ", HOC NEG"
       )
-corpus_ = (
-        []
-        + c
-        + a
-    # + hp
-    # + hn
-    # + pp
-    # + pn
-)
+corpus_ = helpers.concatenate((
+    c,
+    a,
+    hp,
+    hn,
+    # pp,
+    # pn,
+))
 
-corpus_test = (
-        []
-        + c_test
-        + a_test
-    # + hp_test
-    # + hn_test
-    # + pp_test
-    # + pn_test
-)
+corpus_test = helpers.concatenate((
+    c_test,
+    a_test,
+    hp_test,
+    hn_test,
+    # pp_test,
+    # pn_test,
+))
 
 prepro = transformers.TokenizePreprocessor(rules=False, genia_opts=None)
 
@@ -75,12 +82,14 @@ doc_term_matrix = [dictionary.doc2bow(doc) for doc in corpus_vec]
 
 # Creating the object for LDA model using gensim library
 # Running and Trainign LDA model on the document term matrix.
-lda = LdaMulticore(doc_term_matrix, num_topics=2, id2word=dictionary, passes=50)
+lda = LdaMulticore(doc_term_matrix, num_topics=6, id2word=dictionary, passes=50)
 
-[print(x) for x in lda.print_topics(num_topics=-1, num_words=20)]
+[print(x)
+ for x in lda.print_topics(num_topics=-1, num_words=30)]
 
 
 # --------------------------------
+
 
 def topics2label(topics):
     return max(topics, key=itemgetter(1))[0]

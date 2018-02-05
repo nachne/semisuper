@@ -25,7 +25,7 @@ from semisuper.pu_two_step import almost_equal
 # ----------------------------------------------------------------
 
 
-def self_training(P, N, U, clf=None, confidence=0.8, verbose=False):
+def self_training(P, N, U, clf=None, confidence=0.75, verbose=False):
     """Generic Self-Training with optional classifier (must implement predict_proba) and confidence threshold.
     Default: Logistic Regression"""
 
@@ -79,7 +79,7 @@ def self_training_lin_svc(P, N, U, confidence=0.5, clf=None, verbose=False):
         else:
             model = clf
     else:
-        model = LinearSVC(C=1.0)
+        model = LinearSVC(C=1.0, class_weight='balanced')
     model.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
     ypU = model.decision_function(U)

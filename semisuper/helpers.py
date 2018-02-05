@@ -16,13 +16,16 @@ def flatten(l):
     """flatten 2-dimensional sequence to one-dimensional"""
     return [item for sublist in l for item in sublist]
 
+
 def groupby_index(iterable, elem_idx):
     return groupby(iterable, itemgetter(elem_idx))
+
 
 def merge_two_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z
+
 
 def merge_dicts(dicts):
     dicts = list(dicts)
@@ -30,6 +33,7 @@ def merge_dicts(dicts):
     for d in dicts[1:]:
         z.update(d)
     return z
+
 
 def run_fun(fun):
     return fun()
@@ -62,7 +66,7 @@ def partition(l, chunksize):
         chunksize = min(chunksize, num_rows(l[start:]))
         subl = l[start:(start + chunksize)]
         if subl:
-            result.append(subl) # TODO yield instead?
+            result.append(subl)  # TODO yield instead?
         start += chunksize
     return result
 
@@ -146,7 +150,8 @@ def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1, verbose=False):
 
     # choose probability threshold such that a noise_lvl-th part of spy docs is rated lower
     threshold = y_pos_sorted[int(noise_lvl * num_rows(y_pos_sorted))]
-    if verbose: print("Threshold given noise level:", threshold)
+    if verbose:
+        print("Threshold given noise level:", threshold)
 
     neg_idx = np.where(y_U <= threshold)
 
@@ -154,11 +159,13 @@ def select_PN_below_score(y_pos, U, y_U, noise_lvl=0.1, verbose=False):
     pos_idx[neg_idx] = False
 
     PN = U[neg_idx]
-    if verbose: print("Unlabelled docs below threshold:", num_rows(PN), "of", num_rows(U), "\n")
+    if verbose:
+        print("Unlabelled docs below threshold:", num_rows(PN), "of", num_rows(U), "\n")
 
     U_minus_PN = U[pos_idx]
 
     return U_minus_PN, PN
+
 
 def concatenate(tup):
     """vertically stack arrays/csr matrices in tup, preserving any sparsity"""
