@@ -23,24 +23,25 @@ from sklearn.tree import DecisionTreeClassifier
 from semisuper import transformers, ss_techniques
 from semisuper.helpers import num_rows, concatenate
 
-PARALLEL = True
-RANDOM_SEED = 135242  # for making different test runs comparable
+PARALLEL = False
+RANDOM_SEED = 135242  # 666 # for making different test runs comparable
+print("RANDOM SEED:", RANDOM_SEED, "\n")
 
 
 # ----------------------------------------------------------------
 # Estimators and parameters to evaluate
 # ----------------------------------------------------------------
 
-
+# TODO Gewichte wiederherstellen? (0.25-1)
 def estimator_list():
-    neg_svms = [{'name' : 'neglinSVC_C_{}_loss_{}'.format(C, loss),
+    neg_svms = [{'name' : 'negLinSVC_C_{}_loss_{}'.format(C, loss),
                  'model': partial(ss_techniques.neg_self_training_clf,
                                   LinearSVC(C=C, loss=loss, class_weight='balanced'))}
-                for C in np.arange(0.25, 1.01, 0.75 / 12) for loss in ["squared_hinge"]]
+                for C in np.arange(0.01, 1.02, 0.1) for loss in ["squared_hinge"]]
 
     neg_logits = [{'name' : 'negLogit_C_C{}'.format(C),
                    'model': partial(ss_techniques.neg_self_training_clf, LogisticRegression(solver='sag', C=C))}
-                  for C in np.arange(0.25, 1.01, 0.75 / 12)]
+                  for C in np.arange(1.0, 10.01, 1.0)]
 
     neg_sgds = [
         {'name' : 'negSGDmh',
@@ -51,39 +52,45 @@ def estimator_list():
                           SGDClassifier(loss='perceptron', class_weight='balanced'))},
     ]
 
-    self_logits = [{'name' : 'negLogit_C_C{}'.format(C),
+    self_logits = [{'name' : 'selfLogit_C_C{}'.format(C),
                     'model': partial(ss_techniques.self_training_clf_conf,
                                      LogisticRegression(solver='sag', C=C),
                                      0.75
                                      )}
-                   for C in np.arange(0.25, 1.01, 0.75 / 12)]
+                   for C in np.arange(1.0, 10.01, 1.0)]
 
-    self_svms = [{'name' : 'neglinSVC_C_{}_loss_{}'.format(C, loss),
+    self_svms = [{'name' : 'selfLinSVC_C_{}_loss_{}'.format(C, loss),
                   'model': partial(ss_techniques.self_training_clf_conf,
                                    LinearSVC(C=C, loss=loss, class_weight='balanced'),
                                    0.5)}
-                 for C in np.arange(0.25, 1.01, 0.75 / 12) for loss in ["squared_hinge"]]
+                 for C in np.arange(0.01, 1.02, 0.1) for loss in ["squared_hinge"]]
 
     bayesian = [
         {'name': 'EM', 'model': ss_techniques.EM},
-        {'name': 'selfNB_0.1', 'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=0.1), 0.75)},
-        {'name': 'selfNB_1.0', 'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=1.0), 0.75)},
-        {'name': 'negNB_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
-        {'name': 'negNB_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
+        {'name' : 'selfNB_a_0.1',
+         'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=0.1), 0.75)},
+        {'name' : 'selfNB_a_0.5',
+         'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=0.5), 0.75)},
+        {'name' : 'selfNB_a_1.0',
+         'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=1.0), 0.75)},
+        {'name': 'negNB_a_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
+        {'name': 'negNB_a_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.5))},
+        {'name': 'negNB_a_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
     ]
 
     neighbors = [
         # # NOTE: these require dense arrays
-        {'name': 'kNN', 'model': ss_techniques.iterate_knn},
+        # {'name': 'kNN', 'model': ss_techniques.iterate_knn},
         {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
     ]
 
-    return neg_svms + neg_logits + neg_sgds + self_logits + self_svms + bayesian
+    return neighbors
+    return self_logits + self_svms + bayesian + neg_logits + neg_svms + neg_sgds
 
 
 def preproc_param_dict():
     d = {
-        'df_min'        : [0.001],  # [0.001, 0.002, 0.005 0.01]
+        'df_min'        : [0.002],  # [0.001, 0.002, 0.005 0.01] # TODO test all
         'df_max'        : [1.0],
         'rules'         : [True],  # [False, True],
         'genia_opts'    : [None,

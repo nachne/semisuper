@@ -43,7 +43,11 @@ def self_training(P, N, U, clf=None, confidence=0.75, verbose=False):
         model = LogisticRegression(solver='sag', C=1.0)
     model.fit(concatenate((P, N)), concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N)))))
 
-    ypU = model.predict_proba(U)
+    if hasattr(model, 'predict_proba'):
+        ypU = model.predict_proba(U)
+    else:
+        ypU = model.decision_function(U)
+        ypU = np.vstack((-ypU, ypU)).T
     RP, RN, U = partition_pos_neg_unsure(U, ypU, confidence)
 
     iteration = 0
@@ -60,7 +64,11 @@ def self_training(P, N, U, clf=None, confidence=0.75, verbose=False):
         if not np.size(U):
             break
 
-        ypU = model.predict_proba(U)
+        if hasattr(model, 'predict_proba'):
+            ypU = model.predict_proba(U)
+        else:
+            ypU = model.decision_function(U)
+            ypU = np.vstack((-ypU, ypU)).T
         RP, RN, U = partition_pos_neg_unsure(U, ypU, confidence)
 
     print("Returning final model after", iteration, "iterations.")
