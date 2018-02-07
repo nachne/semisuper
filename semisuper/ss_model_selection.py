@@ -80,10 +80,12 @@ def estimator_list():
 
     propagation = [
         # # NOTE: these require dense arrays
-        {'name': 'label_propagation_rbf', 'model': ss_techniques.label_propagation_method("propagation", "rbf")},
-        {'name': 'label_propagation_knn', 'model': ss_techniques.label_propagation_method("propagation", "knn")},
-        {'name': 'label_spreading_rbf', 'model': ss_techniques.label_propagation_method("spreading", "rbf")},
-        {'name': 'label_spreading_knn', 'model': ss_techniques.label_propagation_method("spreading", "knn")},
+        {'name' : 'label_propagation_rbf',
+         'model': partial(ss_techniques.label_propagation_method, "propagation", "rbf")},
+        {'name' : 'label_propagation_knn',
+         'model': partial(ss_techniques.label_propagation_method, "propagation", "knn")},
+        {'name': 'label_spreading_rbf', 'model': partial(ss_techniques.label_propagation_method, "spreading", "rbf")},
+        {'name': 'label_spreading_knn', 'model': partial(ss_techniques.label_propagation_method, "spreading", "knn")},
     ]
 
     return propagation
