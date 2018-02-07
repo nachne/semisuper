@@ -303,17 +303,21 @@ def iterate_SVC(P, N, U, kernel="rbf", verbose=False):
 def label_propagation(P, N, U,
                       method="propagation", kernel='knn', n_neighbors=7, max_iter=30,
                       n_jobs=-1):
-    method = semi_supervised.LabelPropagation if method == "propagation" else semi_supervised.LabelSpreading
-    clf = method(kernel=kernel, n_neighbors=n_neighbors, max_iter=max_iter,
-                 n_jobs=n_jobs)
+    """wrapper for sklearn's LabelPropagation/LabelPropagation avoiding sparse matrix errors"""
+
+    if method == "propagation":
+        clf = semi_supervised.LabelPropagation(kernel=kernel, n_neighbors=n_neighbors, max_iter=max_iter, n_jobs=n_jobs)
+    else:
+        clf = semi_supervised.LabelSpreading(kernel=kernel, n_neighbors=n_neighbors, max_iter=max_iter, n_jobs=n_jobs)
 
     X = concatenate((P, N, U))
     y_init = concatenate((np.ones(num_rows(P)),
-                          -np.ones(num_rows(N)),
-                          np.zeros(num_rows(U))))
+                          np.zeros(num_rows(N)),
+                          -np.ones(num_rows(U))))
 
     class propagation():
         def __init__(self, clf):
+            # self.clf = semi_supervised.LabelPropagation()
             self.clf = clf
             return
 
@@ -330,9 +334,9 @@ def label_propagation(P, N, U,
         def score(self, X, y):
             return self.clf.score(densify(X), y)
 
-    lp = propagation(clf)
-    lp.fit(X, y_init)
-    return propagation
+    lp = propagation(clf).fit(X, y_init)
+
+    return lp
 
 
 # ----------------------------------------------------------------
