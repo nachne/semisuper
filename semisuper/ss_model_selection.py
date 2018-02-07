@@ -78,13 +78,15 @@ def estimator_list():
         {'name': 'negNB_a_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
     ]
 
-    neighbors = [
+    propagation = [
         # # NOTE: these require dense arrays
-        # {'name': 'kNN', 'model': ss_techniques.iterate_knn},
-        {'name': 'label_propagation', 'model': ss_techniques.propagate_labels},
+        {'name': 'label_propagation_rbf', 'model': ss_techniques.label_propagation_method("propagation", "rbf")},
+        {'name': 'label_propagation_knn', 'model': ss_techniques.label_propagation_method("propagation", "knn")},
+        {'name': 'label_spreading_rbf', 'model': ss_techniques.label_propagation_method("spreading", "rbf")},
+        {'name': 'label_spreading_knn', 'model': ss_techniques.label_propagation_method("spreading", "knn")},
     ]
 
-    return neighbors
+    return propagation
     return self_logits + self_svms + bayesian + neg_logits + neg_svms + neg_sgds
 
 

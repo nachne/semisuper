@@ -32,7 +32,8 @@ def self_training(P, N, U, clf=None, confidence=0.75, verbose=False):
     print("Running standard Self-Training with confidence threshold", confidence,
           "and classifier", (clf or "Logistic Regression"))
 
-    if verbose: print("Training initial classifier")
+    if verbose:
+        print("Training initial classifier")
 
     if clf is not None:
         if isinstance(clf, type):
@@ -79,7 +80,8 @@ def self_training_lin_svc(P, N, U, confidence=0.5, clf=None, verbose=False):
     print("Running standard Self-Training with confidence threshold", confidence,
           "and classifier", (clf or "LinearSVC"))
 
-    if verbose: print("Training initial classifier")
+    if verbose:
+        print("Training initial classifier")
 
     if clf is not None:
         if isinstance(clf, type):
@@ -122,7 +124,8 @@ def neg_self_training(P, N, U, clf=None, verbose=False):
 
     print("Iteratively augmenting negative set with", (clf or "Logistic Regression"), "classifier")
 
-    if verbose: print("Training initial classifier")
+    if verbose:
+        print("Training initial classifier")
 
     if clf is not None:
         if isinstance(clf, type):
@@ -185,16 +188,19 @@ def EM(P, N, U, ypU=None, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_N=1
         P_init = P
 
     if ypU is None:
-        if verbose: print("\nBuilding classifier from Positive and Reliable Negative set")
+        if verbose:
+            print("\nBuilding classifier from Positive and Reliable Negative set")
         initial_model = build_proba_MNB(concatenate((P_init, N)),
                                         concatenate((np.ones(num_rows(P_init)), np.zeros(num_rows(N)))))
 
-        if verbose: print("\nCalculating initial probabilistic labels for Unlabelled set")
+        if verbose:
+            print("\nCalculating initial probabilistic labels for Unlabelled set")
         ypU = initial_model.predict_proba(U)[:, 1]
     else:
         print("Using assumed probabilities/weights for initial probabilistic labels of Unlabelled set")
 
-    if verbose: print("\nIterating EM algorithm on P, N, and U\n")
+    if verbose:
+        print("\nIterating EM algorithm on P, N, and U\n")
     model = iterate_EM_PNU(P=P, N=N, U=U, ypU=ypU, tolerance=tolerance, max_pos_ratio=max_pos_ratio, verbose=verbose)
 
     return model
@@ -221,26 +227,31 @@ def iterate_EM_PNU(P, N, U, y_P=None, y_N=None, ypU=None, tolerance=0.05, max_po
 
         iterations += 1
 
-        if verbose: print("Iteration #", iterations, "\tBuilding new model using probabilistic labels")
+        if verbose:
+            print("Iteration #", iterations, "\tBuilding new model using probabilistic labels")
 
         new_model = build_proba_MNB(concatenate((P, N, U)),
                                     concatenate((y_P, y_N, ypU)))
 
-        if verbose: print("Predicting probabilities for U")
+        if verbose:
+            print("Predicting probabilities for U")
         ypU_old = ypU
         ypU = new_model.predict_proba(U)[:, 1]
 
         predU = [round(p) for p in ypU]
         pos_ratio = sum(predU) / num_rows(U)
 
-        if verbose: print("Unlabelled instances classified as positive:", sum(predU), "/", num_rows(U),
-                          "(", pos_ratio * 100, "%)\n")
+        if verbose:
+            print("Unlabelled instances classified as positive:", sum(predU), "/", num_rows(U),
+                  "(", pos_ratio * 100, "%)\n")
 
         if pos_ratio >= max_pos_ratio:
-            if verbose: print("Acceptable ratio of positively labelled sentences in U is reached.")
+            if verbose:
+                print("Acceptable ratio of positively labelled sentences in U is reached.")
             break
 
-    if verbose: print("Returning final model after", iterations, "iterations")
+    if verbose:
+        print("Returning final model after", iterations, "iterations")
     return new_model
 
 
@@ -289,20 +300,49 @@ def iterate_SVC(P, N, U, kernel="rbf", verbose=False):
 
 
 # horrible results!
-def propagate_labels(P, N, U, kernel='knn', n_neighbors=7, max_iter=30, n_jobs=-1):
-    X = densify(concatenate((P, N, U)))
+def label_propagation(P, N, U,
+                      method="propagation", kernel='knn', n_neighbors=7, max_iter=30,
+                      n_jobs=-1):
+    method = semi_supervised.LabelPropagation if method == "propagation" else semi_supervised.LabelSpreading
+    clf = method(kernel=kernel, n_neighbors=n_neighbors, max_iter=max_iter,
+                 n_jobs=n_jobs)
+
+    X = concatenate((P, N, U))
     y_init = concatenate((np.ones(num_rows(P)),
-                             -np.ones(num_rows(N)),
-                             np.zeros(num_rows(U))))
-    propagation = semi_supervised.LabelPropagation(kernel=kernel, n_neighbors=n_neighbors, max_iter=max_iter,
-                                                   n_jobs=n_jobs)
-    propagation.fit(X, y_init)
+                          -np.ones(num_rows(N)),
+                          np.zeros(num_rows(U))))
+
+    class propagation():
+        def __init__(self, clf):
+            self.clf = clf
+            return
+
+        def fit(self, X, y):
+            self.clf.fit(densify(X), y)
+            return self
+
+        def predict(self, X):
+            return self.clf.predict(densify(X))
+
+        def predict_proba(self, X):
+            return self.clf.predict_proba(densify(X))
+
+        def score(self, X, y):
+            return self.clf.score(densify(X), y)
+
+    lp = propagation(clf)
+    lp.fit(X, y_init)
     return propagation
 
 
 # ----------------------------------------------------------------
 # versions with flipped parameters for partial application
 # ----------------------------------------------------------------
+
+
+def label_propagation_method(method, kernel, P, N, U):
+    return label_propagation(P, N, U, method, kernel)
+
 
 def iterate_linearSVC_C(C, P, N, U):
     return iterate_linearSVC(P, N, U, C=C)
