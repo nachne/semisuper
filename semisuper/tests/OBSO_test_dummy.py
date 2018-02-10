@@ -47,8 +47,8 @@ def test_supervised(P, N, clf=LinearSVC(class_weight='balanced'),
     return
 
 
-def test_supervised(P, N, clf=LinearSVC(class_weight='balanced'),
-                    wordgrams=(1, 1), chargrams=None, stats=None, min_df=1):
+def test_supervised_(P, N, clf=LinearSVC(class_weight='balanced'),
+                     wordgrams=(1, 1), chargrams=None, stats=None, min_df=1):
     X_ = helpers.concatenate((P, N))
     y = helpers.concatenate(([1] * helpers.num_rows(P), [0] * helpers.num_rows(N)))
 
@@ -62,7 +62,7 @@ def test_supervised(P, N, clf=LinearSVC(class_weight='balanced'),
     print(scores, "avg:", np.average(scores))
 
 
-for min_df in [0.001, 0.002, 0.005, 0.01, 1]:
+for min_df in [1]:
     for clf in [LinearSVC(class_weight='balanced')]:  # [, LogisticRegression, MultinomialNB,
         # KNeighborsClassifier, SGDClassifier]:
         print("\n--------------------------------\n{}\n--------------------------------".format(clf))
@@ -91,11 +91,11 @@ for min_df in [0.001, 0.002, 0.005, 0.01, 1]:
         #
         # print("\nabstracts   VS   HoC_p")
         # test_supervised(abstracts, hocpos)
-
-        print("\nHoC_p   VS   HoC_n")
-        test_supervised(hocpos, hocneg,
-                        stats="length", wordgrams=(1, 4), chargrams=(2, 6),
-                        min_df=min_df)
+        #
+        # print("\nHoC_p   VS   HoC_n")
+        # test_supervised(hocpos, hocneg,
+        #                 stats="length", wordgrams=(1, 4), chargrams=(2, 6),
+        #                 min_df=min_df)
 
 sys.exit(0)
 

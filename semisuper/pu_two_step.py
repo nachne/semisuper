@@ -22,7 +22,6 @@ from semisuper.pu_cos_roc import ranking_cos_sim, rocchio
 def cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.2, alpha=16, beta=4, kernel=None, C=0.1, verbose=False):
     """Two-Step technique based on Cosine Similarity, Rocchio and SVM
 
-
     Step 1.1: Find Potentially Negative docs (less similar to mean(P) than noise_lvl of docs in P)
     Step 1.2: Find Reliable Negative docs using Rocchio (similarity to mean positive/PN vector)
     Step 2: Iterate SVM starting from P and RN sets until classification of U converges
@@ -30,8 +29,6 @@ def cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.2, alpha=16, beta=4, kernel=None
     noise level is quite crucial, should be >=20% to give reasonable results"""
 
     print("Running CR-SVM")
-
-    # P, U = arrays([P, U])
 
     # step 1
     if verbose:
@@ -50,7 +47,7 @@ def cr_SVM(P, U, max_neg_ratio=0.1, noise_lvl=0.2, alpha=16, beta=4, kernel=None
     return model
 
 
-# TODO: good default C param
+# TODO: check default C param
 def roc_SVM(P, U, max_neg_ratio=0.1, alpha=16, beta=4, kernel=None, C=0.1, verbose=False):
     """Two-Step technique based on Rocchio and SVM
 
@@ -58,8 +55,6 @@ def roc_SVM(P, U, max_neg_ratio=0.1, alpha=16, beta=4, kernel=None, C=0.1, verbo
     Step 2: Iterate SVM starting from P and RN sets until classification of U converges"""
 
     print("Running Roc-SVM")
-
-    # P, U = arrays([P, U])
 
     # step 1
     if verbose:
@@ -86,7 +81,7 @@ def s_EM(P, U, spy_ratio=0.1, max_pos_ratio=1.0, tolerance=0.1, noise_lvl=0.1, c
 
     print("Running S-EM")
 
-    # P, U = arrays([P, U])
+    # P, U = arrays([P, U]
 
     # step 1
     if verbose:
@@ -136,8 +131,6 @@ def standalone_rocchio(P, U, alpha=16, beta=4, verbose=False):
 
     print("Running Rocchio")
 
-    # P, U = arrays([P, U])
-
     if verbose:
         print("Building Rocchio model to determine Reliable Negative examples")
     model = rocchio(P, U, alpha=alpha, beta=beta)
@@ -160,8 +153,6 @@ def spy_SVM(P, U, spy_ratio=0.1, max_neg_ratio=0.1, tolerance=0.1, noise_lvl=0.1
     """
 
     print("Running Spy-SVM")
-
-    # P, U = arrays([P, U])
 
     # step 1
     if verbose:
@@ -190,8 +181,6 @@ def roc_EM(P, U, max_pos_ratio=0.5, tolerance=0.1, clf_selection=True,
     """
 
     print("Running Roc-EM")
-
-    # P, U = arrays([P, U])
 
     # step 1
     if verbose:
@@ -234,8 +223,6 @@ def get_RN_Spy_Docs(P, U, spy_ratio=0.1, max_pos_ratio=0.5, tolerance=0.2, noise
 
 def get_RN_rocchio(P, U, alpha=16, beta=4, verbose=False):
     """extract Reliable Negative documents using Binary Rocchio algorithm"""
-
-    # P, U = arrays([P, U])
 
     if verbose:
         print("Building Rocchio model to determine Reliable Negative examples")
@@ -299,7 +286,7 @@ def run_EM_with_RN(P, U, RN, max_pos_ratio=1.0, tolerance=0.05, max_imbalance_P_
             print("\nBuilding classifier from Positive and Reliable Negative set")
     initial_model = build_proba_MNB(concatenate((P_init, RN)),
                                     concatenate((np.ones(num_rows(P_init)),
-                                                    np.zeros(num_rows(RN)))),
+                                                 np.zeros(num_rows(RN)))),
                                     verbose=verbose)
 
     if num_rows(U) == 0:

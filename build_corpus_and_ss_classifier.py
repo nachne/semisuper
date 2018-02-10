@@ -103,6 +103,5 @@ def file_path(file_relative):
 # Execution
 # ----------------------------------------------------------------
 
-# TODO put best mode parameter in keysentence_predictor as well
 if __name__ == "__main__":
     train_build(mode="tolerant")

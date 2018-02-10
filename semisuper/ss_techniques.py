@@ -21,7 +21,7 @@ from semisuper.pu_two_step import almost_equal
 
 
 # ----------------------------------------------------------------
-# top level
+#
 # ----------------------------------------------------------------
 
 
@@ -361,18 +361,30 @@ def self_training_clf_conf(clf, confidence, P, N, U):
 
 
 # ----------------------------------------------------------------
-# supervised
+# wrappers for supervised classifier to work with P, N, and U parameters for comparison
 # ----------------------------------------------------------------
 
 # TODO move to own script for supervised stuff
 
-# quite good and fast (grid search: not so fast)
+def nb(P, N, U=None, verbose=False):
+    X = concatenate((P, N))
+    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
+    model = GridSearchCV(estimator=MultinomialNB(),
+                         param_grid={
+                             'alpha': [x / 10.0 for x in range(1, 11)],
+                         },
+                         ).fit(X, y)
+    print("Best hyperparameters for Naive Bayes:", model.best_params_)
+    print("Grid search score:", model.best_score_)
+    return model.best_estimator_
+
+
 def logreg(P, N, U=None, verbose=False):
     X = concatenate((P, N))
     y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
     model = GridSearchCV(estimator=LogisticRegression(),
                          param_grid={
-                             'C'           : [10 ** x for x in range(-3, 3)],
+                             'C'           : [x for x in range(1, 11)],
                              'solver'      : ['sag'],
                              'class_weight': ['balanced']
                          },
@@ -389,37 +401,13 @@ def sgd(P, N, U, loss="modified_huber", verbose=False):
     return model
 
 
-# bad (biased towards one class)
-def mnb(P, N, U, verbose=False):
-    X = concatenate((P, N))
-    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-    model = MultinomialNB().fit(X, y)
-    return model
-
-
-# very good but slow
-def mlp(P, N, U, verbose=False):
-    X = concatenate((P, N))
-    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-    model = MLPClassifier().fit(X, y)
-    return model
-
-
-# ok but slow
-def dectree(P, N, U, verbose=False):
-    X = concatenate((P, N))
-    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-    model = DecisionTreeClassifier().fit(X, y)
-    return model
-
-
 def grid_search_linearSVM(P, N, U, verbose=False):
     model = LinearSVC()
 
     grid_search = GridSearchCV(model,
-                               param_grid={'C'           : [10 ** x for x in range(-5, 5, 2)],
+                               param_grid={'C'           : [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 1.0],
                                            'class_weight': ['balanced'],
-                                           'loss'        : ['hinge', 'squared_hinge'],
+                                           'loss'        : ['squared_hinge'],
                                            },
                                cv=3,
                                n_jobs=2,  # min(multi.cpu_count(), 16),
@@ -435,51 +423,3 @@ def grid_search_linearSVM(P, N, U, verbose=False):
     print("SVC parameters:", grid_search.best_params_, "\tscore:", grid_search.best_score_)
 
     return grid_search.best_estimator_
-
-
-def grid_search_SVC(P, N, U, verbose=False):
-    model = SVC()
-
-    grid_search = GridSearchCV(model,
-                               param_grid={'C'           : [10 ** x for x in range(-5, 5, 2)],
-                                           'class_weight': ['balanced'],
-                                           'kernel'      : ['linear', 'poly', 'rbf', 'sigmoid']
-                                           },
-                               cv=3,
-                               n_jobs=min(multi.cpu_count(), 16),
-                               verbose=0)
-
-    if verbose:
-        print("Grid searching parameters for SVC")
-    X = concatenate((P, N))
-    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-
-    grid_search.fit(X, y)
-
-    print("SVC parameters:", grid_search.best_params_, "\tscore:", grid_search.best_score_)
-
-    return grid_search.best_estimator_
-
-
-# terrible
-def lasso(P, N, U, verbose=True):
-    X = concatenate((P, N))
-    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-    model = Lasso().fit(X, y)
-    return model
-
-
-# terrible
-def elastic(P, N, U, verbose=True):
-    X = concatenate((P, N))
-    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-    model = Lasso().fit(X, y)
-    return model
-
-
-# bad
-def randomforest(P, N, U, verbose=True):
-    X = concatenate((P, N))
-    y = concatenate((np.ones(num_rows(P)), np.zeros(num_rows(N))))
-    model = RandomForestClassifier().fit(X, y)
-    return model

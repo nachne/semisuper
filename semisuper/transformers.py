@@ -41,7 +41,7 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         if genia_opts:
             self.genia = True
 
-            self.chunks = False  # TODO decide whether to drop chunks altogether
+            self.chunks = False  # TODO drop chunks altogether
 
             self.pos = genia_opts["pos"] if not self.chunks else False
             self.ner = genia_opts["ner"]
@@ -156,7 +156,7 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
 
     def create_global_tagger(self):
         """hacky solution for using GENIA tagger and still being picklable"""
-        # TODO this is ugly, try to find another solution
+        # TODO this is ugly (however, GENIA didn't pay off anyway)
         print("Instantiating new GENIA tagger")
         global tagger
         tagger = new_genia_tagger()
@@ -313,7 +313,6 @@ prenormalize_dict = [
 # Features
 # ----------------------------------------------------------------
 
-# TODO test binary representation instead of tf-idf
 def vectorizer(chargrams=(2, 6), min_df_char=0.002, wordgrams=(1, 4), min_df_word=0.002, genia_opts=None, rules=True,
                max_df=1.0, binary=False, normalize=True, stats="length"):
     """Return pipeline that concatenates features from word and character n-grams and text stats"""

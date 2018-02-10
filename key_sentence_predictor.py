@@ -15,7 +15,7 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
         """load pretrained classifier and maximum score in corpus for normalization"""
 
         self.max_batch_size = batch_size
-        self.pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False)
+        self.pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False, mode="tolerant")
 
         if not hasattr(self.pipeline, "predict_proba"):
             self.max_score = max_score_from_csv(load_silver_standard())

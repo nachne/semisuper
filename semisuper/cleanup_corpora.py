@@ -24,7 +24,8 @@ piboso_other = loaders.sentences_piboso_other()
 piboso_outcome = loaders.sentences_piboso_outcome()
 
 PARALLEL = True
-RANDOM_SEED = 135343
+# RANDOM_SEED = 135343 # for making different runs comparable
+RANDOM_SEED = np.random.randint(10e6)
 
 genia_defaults = None
 

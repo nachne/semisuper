@@ -23,26 +23,34 @@ from sklearn.tree import DecisionTreeClassifier
 from semisuper import transformers, ss_techniques
 from semisuper.helpers import num_rows, concatenate
 
-PARALLEL = False
-RANDOM_SEED = 135242  # 666 # for making different test runs comparable
-print("RANDOM SEED:", RANDOM_SEED, "\n")
+PARALLEL = True
+# RANDOM_SEED = 135242  # for making different test runs comparable
+RANDOM_SEED = np.random.randint(10e6)
+
+
+# print("RANDOM SEED:", RANDOM_SEED, "\n") # TODO remove
 
 
 # ----------------------------------------------------------------
 # Estimators and parameters to evaluate
 # ----------------------------------------------------------------
 
-# TODO Gewichte wiederherstellen? (0.25-1)
+# TODO revert param ranges
+
 def estimator_list():
     neg_svms = [{'name' : 'negLinSVC_C_{}_loss_{}'.format(C, loss),
                  'model': partial(ss_techniques.neg_self_training_clf,
                                   LinearSVC(C=C, loss=loss, class_weight='balanced'))}
-                for C in np.arange(0.01, 1.02, 0.1) for loss in ["squared_hinge"]]
+                # for C in np.arange(0.2, 1.05, 0.1) for loss in ["squared_hinge"]]
+                for C in np.arange(0.25, 0.65, 0.05) for loss in ["squared_hinge"]]
 
     neg_logits = [{'name' : 'negLogit_C_C{}'.format(C),
                    'model': partial(ss_techniques.neg_self_training_clf, LogisticRegression(solver='sag', C=C))}
-                  for C in np.arange(1.0, 10.01, 1.0)]
+                  for C in np.arange(1.0, 10.05, 1.0)]
 
+    neg_nbs = [{'name': 'negNB_a_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
+               {'name': 'negNB_a_0.5', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.5))},
+               {'name': 'negNB_a_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))}]
     neg_sgds = [
         {'name' : 'negSGDmh',
          'model': partial(ss_techniques.neg_self_training_clf,
@@ -57,29 +65,28 @@ def estimator_list():
                                      LogisticRegression(solver='sag', C=C),
                                      0.75
                                      )}
-                   for C in np.arange(1.0, 10.01, 1.0)]
+                   for C in np.arange(1.0, 10.05, 1.0)]
 
     self_svms = [{'name' : 'selfLinSVC_C_{}_loss_{}'.format(C, loss),
                   'model': partial(ss_techniques.self_training_clf_conf,
                                    LinearSVC(C=C, loss=loss, class_weight='balanced'),
                                    0.5)}
-                 for C in np.arange(0.01, 1.02, 0.1) for loss in ["squared_hinge"]]
+                 for C in np.arange(0.2, 1.05, 0.1) for loss in ["squared_hinge"]]
 
-    bayesian = [
-        {'name': 'EM', 'model': ss_techniques.EM},
+    self_nbs = [
         {'name' : 'selfNB_a_0.1',
          'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=0.1), 0.75)},
         {'name' : 'selfNB_a_0.5',
          'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=0.5), 0.75)},
         {'name' : 'selfNB_a_1.0',
          'model': partial(ss_techniques.self_training_clf_conf, MultinomialNB(alpha=1.0), 0.75)},
-        {'name': 'negNB_a_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.1))},
-        {'name': 'negNB_a_0.1', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=0.5))},
-        {'name': 'negNB_a_1.0', 'model': partial(ss_techniques.neg_self_training_clf, MultinomialNB(alpha=1.0))},
     ]
 
+    EM = [{'name': 'EM', 'model': ss_techniques.EM}]
+
+    # NOTE: these require dense arrays, take a lot of time and RAM (set global PARALLEL to False!),
+    # and don't work well on our data
     propagation = [
-        # # NOTE: these require dense arrays
         {'name' : 'label_propagation_rbf',
          'model': partial(ss_techniques.label_propagation_method, "propagation", "rbf")},
         {'name' : 'label_propagation_knn',
@@ -88,13 +95,22 @@ def estimator_list():
         {'name': 'label_spreading_knn', 'model': partial(ss_techniques.label_propagation_method, "spreading", "knn")},
     ]
 
-    return propagation
-    return self_logits + self_svms + bayesian + neg_logits + neg_svms + neg_sgds
+    # NOTE: only for comparison as a baseline
+    supervised = [
+        {'name': 'sup-nb', 'model': ss_techniques.nb},
+        {'name': 'sup-lr', 'model': ss_techniques.logreg},
+        {'name': 'sup-svm', 'model': ss_techniques.grid_search_linearSVM},
+        {'name': 'sup-sgd', 'model': ss_techniques.sgd},
+
+    ]
+
+    return neg_svms
+    # return self_logits + self_svms + self_nbs + neg_logits + neg_svms + neg_nbs
 
 
 def preproc_param_dict():
     d = {
-        'df_min'        : [0.002],  # [0.001, 0.002, 0.005 0.01] # TODO test all
+        'df_min'        : [0.002],  # [0.001, 0.002, 0.005, 0.01],  # 0.2 is most useful
         'df_max'        : [1.0],
         'rules'         : [True],  # [False, True],
         'genia_opts'    : [None,
@@ -106,13 +122,13 @@ def preproc_param_dict():
         'wordgram_range': [(1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
-            transformers.IdentitySelector,
-            partial(transformers.percentile_selector, 'chi2', 30),
+            # transformers.IdentitySelector,
+            # partial(transformers.percentile_selector, 'chi2', 30),
             partial(transformers.percentile_selector, 'chi2', 25),
-            partial(transformers.percentile_selector, 'chi2', 20),
-            partial(transformers.select_from_l1_svc, 1.0, 1e-4),
-            partial(transformers.select_from_l1_svc, 0.5, 1e-4),
-            partial(transformers.select_from_l1_svc, 0.1, 1e-4),
+            # partial(transformers.percentile_selector, 'chi2', 20),
+            # partial(transformers.select_from_l1_svc, 1.0, 1e-4),
+            # partial(transformers.select_from_l1_svc, 0.5, 1e-4),
+            # partial(transformers.select_from_l1_svc, 0.1, 1e-4),
         ]
     }
 
@@ -126,7 +142,7 @@ def preproc_param_dict():
 def best_model_cross_val(P, N, U, fold=10):
     """determine best model, cross validate and return pipeline trained on all data"""
 
-    print("\nFinding best model\n")
+    print("\nFinding best model")
 
     best = get_best_model(P, N, U)['best']
 
@@ -197,7 +213,7 @@ def eval_fold(model_record, P, N, U, i_splits):
 def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     """Evaluate parameter combinations, save results and return object with stats of all models"""
 
-    print("\nEvaluating parameter ranges for preprocessor and classifiers")
+    print("Evaluating parameter ranges for preprocessor and classifiers")
 
     if X_test is None or y_test is None:
         P_train, X_test_pos = train_test_split(P_train, test_size=0.2, random_state=RANDOM_SEED)
@@ -350,7 +366,7 @@ def model_eval_record(P, N, U, X, y, m):
     pos_ratio = np.sum(model.predict(U)) / num_rows(U)
 
     print("\n")
-    print("\n{}:\tacc: {},\tpositive ratio in U:{},\tclassification report:\n{}".format(name, acc, pos_ratio, clsr))
+    # print("\n{}:\tacc: {},\tpositive ratio in U:{},\tclassification report:\n{}".format(name, acc, pos_ratio, clsr))
     return {'name' : name, 'p': p, 'r': r, 'f1': f1, 'acc': acc, 'clsr': clsr,
             'model': model, 'untrained_model': untrained_model, 'U_ratio': pos_ratio}
 
