@@ -95,6 +95,8 @@ if __name__ == "__main__":
         html = main(maxabstracts=int(argv[1]), n_jobs=int(argv[2]))
     elif len(argv) == 4:
         html = main(maxabstracts=int(argv[1]), n_jobs=int(argv[2]), batch_size=int(argv[3]))
+    else:
+        html = main()
 
     # print(html)
 

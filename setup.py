@@ -90,6 +90,10 @@ def install_all():
     for path in ["./semisuper/resources", "./semisuper/silver_standard", "./semisuper/pickles"]:
         mkdir(path)
 
+    for pkg in ["biopython==1.70", "nltk==3.2.4", "numpy==1.13.3", "pandas==0.20.3", "scikit-learn==0.19.1",
+                "scipy==0.19.1", "Unidecode==0.4.21"]:
+        pipinstall(pkg)
+
     download_nltk_deps()
     load_HoC()
     install_geniatagger()
