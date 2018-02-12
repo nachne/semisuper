@@ -73,20 +73,17 @@ def save_silver_standard(pipeline, write=True, outpath=None):
 
 
 def train_build(from_scratch=True, mode=None, ratio=1.0):
-    # now = datetime.now().strftime('%Y-%m-%d_%H-%M')
 
     pipeline = train_pipeline(from_scratch=from_scratch,
                               mode=mode,
                               ratio=ratio,
                               write=True,
                               outpath=None
-                              # file_path("./semisuper/pickles/semi_pipeline" + now + '.pickle')
                               )
 
     silver_standard = save_silver_standard(pipeline,
                                            write=True,
                                            outpath=None
-                                           # file_path("./semisuper/silver_standard/silver_standard" + now + '.tsv')
                                            )
 
     return silver_standard

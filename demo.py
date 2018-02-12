@@ -16,22 +16,22 @@ def file_path(file_relative):
     return os.path.join(os.path.dirname(__file__), file_relative)
 
 
-def main(maxabstracts=400, n_jobs=min(multiprocessing.cpu_count(), 12), batch_size=400):
+def main(max_abstracts=400, n_jobs=min(multiprocessing.cpu_count(), 12), batch_size=400):
     try:
         with open(file_path("semisuper/pickles/sent_test_abstract_dicts.pickle"), "rb") as f:
             abstracts = pickle.load(f)
-            abstracts = random.sample(abstracts, min(len(abstracts), maxabstracts))
+            abstracts = random.sample(abstracts, min(len(abstracts), max_abstracts))
     except:
-        abstracts = loaders.fetch(loaders.get_pmids_from_query(term="cancer", max_ids=maxabstracts))
+        abstracts = loaders.fetch(loaders.get_pmids_from_query(term="cancer", max_ids=max_abstracts))
         abstracts = [{"pmid": a["PMID"], "abstract": a["AB"], "title": a["TI"], "authors": a["AU"]}
-                     for a in random.sample(abstracts, min(len(abstracts), maxabstracts))
+                     for a in random.sample(abstracts, min(len(abstracts), max_abstracts))
                      if all([a.get("AB"), a.get("PMID"), a.get("AU"), a.get("TI")])]
         with open(file_path("semisuper/pickles/sent_test_abstract_dicts.pickle"), "wb") as f:
             pickle.dump(abstracts, f)
 
     predictor = key_sentence_predictor.KeySentencePredictor(batch_size=batch_size)
 
-    if maxabstracts < 2 * batch_size:
+    if max_abstracts < 2 * batch_size:
         results = predictor.transform(abstracts)
     else:
         with multiprocessing.Pool(n_jobs) as p:
@@ -90,11 +90,11 @@ def make_article(abstract, hits):
 if __name__ == "__main__":
 
     if len(argv) == 2:
-        html = main(maxabstracts=int(argv[1]))
+        html = main(max_abstracts=int(argv[1]))
     elif len(argv) == 3:
-        html = main(maxabstracts=int(argv[1]), n_jobs=int(argv[2]))
+        html = main(max_abstracts=int(argv[1]), n_jobs=int(argv[2]))
     elif len(argv) == 4:
-        html = main(maxabstracts=int(argv[1]), n_jobs=int(argv[2]), batch_size=int(argv[3]))
+        html = main(max_abstracts=int(argv[1]), n_jobs=int(argv[2]), batch_size=int(argv[3]))
     else:
         html = main()
 

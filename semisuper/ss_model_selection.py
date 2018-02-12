@@ -110,7 +110,7 @@ def estimator_list():
 
 def preproc_param_dict():
     d = {
-        'df_min'        : [0.002],  # [0.001, 0.002, 0.005, 0.01],  # 0.2 is most useful
+        'df_min'        : [0.002],  # [0.001, 0.002, 0.005, 0.01],
         'df_max'        : [1.0],
         'rules'         : [True],  # [False, True],
         'genia_opts'    : [None,

@@ -105,28 +105,33 @@ def sentences_piboso_outcome():
 # CIViC and PubMed helpers
 # ----------------------------------------------------------------
 
-def load_civic_abstracts(verbose=False):
+def load_civic_abstracts(anew=True, verbose=False):
     """load CIViC clinical evidence summaries and corresponding PubMed abstracts
 
     if already pickled, load from disk, otherwise download"""
 
-    try:
-        with open(file_path("./pickles/civic_abstracts.pickle"), "rb") as f:
-            (civic, abstracts) = pickle.load(f)
-            if verbose:
-                print("Loaded summaries and abstracts from disk.")
+    if not anew:
+        try:
+            with open(file_path("./pickles/civic_abstracts.pickle"), "rb") as f:
+                (civic, abstracts) = pickle.load(f)
+                if verbose:
+                    print("Loaded summaries and abstracts from disk.")
 
-    except IOError:
-        print("Downloading summaries...")
-        civic = read_civic()
+                return civic, abstracts
 
-        pmids = get_pmids_from_df(civic)
-        print("Downloading abstracts... (", len(pmids), "unique PMIDs )")
-        abstracts = get_abstracts(pmids)
+        except IOError:
+            pass
 
-        with open(file_path("./pickles/civic_abstracts.pickle"), "wb") as f:
-            pickle.dump((civic, abstracts), f)
-            print("Download complete, saving to disk.")
+    print("Downloading summaries...")
+    civic = read_civic()
+
+    pmids = get_pmids_from_df(civic)
+    print("Downloading abstracts... (", len(pmids), "unique PMIDs )")
+    abstracts = get_abstracts(pmids)
+
+    with open(file_path("./pickles/civic_abstracts.pickle"), "wb") as f:
+        pickle.dump((civic, abstracts), f)
+        print("Download complete, saving to disk.")
 
     return civic, abstracts
 
