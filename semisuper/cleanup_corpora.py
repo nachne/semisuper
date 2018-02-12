@@ -20,8 +20,6 @@ from semisuper.helpers import num_rows, pu_score, select_PN_below_score
 
 civic, abstracts = loaders.sentences_civic_abstracts()
 hocpos, hocneg = loaders.sentences_HoC()
-piboso_other = loaders.sentences_piboso_other()
-piboso_outcome = loaders.sentences_piboso_outcome()
 
 PARALLEL = True
 # RANDOM_SEED = 135343 # for making different runs comparable

@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import sys
+import pip
 import subprocess
 import tarfile
 import zipfile
@@ -17,11 +18,7 @@ except ImportError:
 
 def pipinstall(pkg_name):
     """install package with pip subprocess"""
-    if sys.version_info[0] < 3:
-        pip = "pip"
-    else:
-        pip = "pip3"
-    subprocess.call([pip, "install", "--user", pkg_name])
+    pip.main(["install", "--user", pkg_name])
 
 
 def mkdir(path):
@@ -48,6 +45,9 @@ def install_geniatagger():
 
     expects cwd to be semisuper root"""
 
+    if os.path.isfile("./semisuper/resources/geniatagger-3.0.2/geniatagger"):
+        return
+
     mkdir("./semisuper/resources")
 
     print("installing GENIA tagger...")
@@ -68,6 +68,9 @@ def load_HoC():
     """Download and extract Hallmarks of Cancer corpus
 
     expects cwd to be semisuper root"""
+
+    if os.path.isfile("./semisuper/resources/HoCCorpus/1280402.txt"):
+        return
 
     print("Downloading Hallmarks of Cancer corpus...")
 
