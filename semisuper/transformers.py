@@ -6,7 +6,6 @@ import string
 from functools import partial
 
 import numpy as np
-from geniatagger import GeniaTagger
 from nltk import TreebankWordTokenizer
 from nltk import sent_tokenize
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -34,26 +33,14 @@ tagger = None
 # ----------------------------------------------------------------
 
 class TokenizePreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, rules=True, genia_opts=None):
+    def __init__(self, rules=True):
 
         self.punct = set(string.punctuation).difference(set('%='))
-
-        if genia_opts:
-            self.genia = True
-
-            self.chunks = False  # TODO drop chunks altogether
-
-            self.pos = genia_opts["pos"] if not self.chunks else False
-            self.ner = genia_opts["ner"]
-
-            self.create_global_tagger()
-        else:
-            self.genia = self.pos = self.ner = self.chunks = False
 
         self.rules = rules
 
         self.splitters = re.compile("[-/.,|<>]")
-        self.tokenizer = None if genia_opts else TreebankWordTokenizer()
+        self.tokenizer = TreebankWordTokenizer()
 
     def fit(self, X=None, y=None):
         return self
@@ -63,66 +50,7 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
         return [", ".join(doc) for doc in X]
 
     def transform(self, X):
-        # TODO GENIAtagger is obsolete
-        if self.genia:
-            try:
-                global tagger
-                tagger.parse("test")
-            except:
-                self.create_global_tagger()
-            return [self.genia_representation(sentence) for sentence in X]
-        else:
-            return [self.token_representation(sentence) for sentence in X]
-
         return [self.token_representation(sentence) for sentence in X]
-
-    def genia_representation(self, sentence):
-        if self.chunks:
-            return list(self.genia_base_chunks(sentence))
-        if self.ner:
-            return list(self.genia_tokenize_replace_ne(sentence))
-        else:
-            return list(self.genia_tokenize(sentence))
-
-    def genia_base_chunks(self, sentence):
-        chunk_tmp = ""
-
-        for token, base, pos, chunk, ne in tagger.parse(sentence):
-            if chunk[0] == 'I':
-                if not all(char in self.punct for char in base):
-                    chunk_tmp += " " + self.normalize_token(base)
-            else:
-                if chunk_tmp:
-                    yield chunk_tmp
-                if not all(char in self.punct for char in base):
-                    chunk_tmp = self.normalize_token(base)
-                else:
-                    chunk_tmp = ""
-        if chunk_tmp:
-            yield chunk_tmp
-
-    def genia_tokenize_replace_ne(self, sentence):
-        for token, base, pos, chunk, ne in tagger.parse(sentence):
-            if ne[0] == 'I':
-                pass
-            elif ne[0] == 'B':
-                yield ("_" + ne[2:] + "_" + (" " + pos if self.pos else ""))
-            else:
-                if not all(char in self.punct for char in token):
-                    yield (self.normalize_token(token) + (" " + pos if self.pos else ""))
-
-    def genia_tokenize(self, sentence):
-        for token, base, pos, chunk, ne in tagger.parse(sentence):
-            # Apply preprocessing to the token
-            token_nrm = self.normalize_token(token)
-
-            # If punctuation, ignore token and continue
-            if all(char in self.punct for char in token_nrm):
-                continue
-            if self.pos:
-                yield token_nrm + " " + pos
-            else:
-                yield token_nrm
 
     def token_representation(self, sentence):
         return list(self.tokenize(sentence))
@@ -153,14 +81,6 @@ class TokenizePreprocessor(BaseEstimator, TransformerMixin):
             token = map_regex_concepts(token)
 
         return token
-
-    def create_global_tagger(self):
-        """hacky solution for using GENIA tagger and still being picklable"""
-        # TODO this is ugly (however, GENIA didn't pay off anyway)
-        print("Instantiating new GENIA tagger")
-        global tagger
-        tagger = new_genia_tagger()
-        return
 
 
 # ----------------------------------------------------------------
@@ -313,8 +233,8 @@ prenormalize_dict = [
 # Features
 # ----------------------------------------------------------------
 
-def vectorizer(chargrams=(2, 6), min_df_char=0.002, wordgrams=(1, 4), min_df_word=0.002, genia_opts=None, rules=True,
-               max_df=1.0, binary=False, normalize=True, stats="length"):
+def vectorizer(chargrams=(2, 6), min_df_char=0.002, wordgrams=(1, 4), min_df_word=0.002, rules=True, max_df=1.0,
+               binary=False, normalize=True, stats="length"):
     """Return pipeline that concatenates features from word and character n-grams and text stats"""
 
     return Pipeline([
@@ -323,7 +243,7 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.002, wordgrams=(1, 4), min_df_wor
                 transformer_list=[
                     ("wordgrams", None if wordgrams is None else
                     Pipeline([
-                        ("preprocessor", TokenizePreprocessor(rules=rules, genia_opts=genia_opts)),
+                        ("preprocessor", TokenizePreprocessor(rules=rules)),
                         ("word_tfidf", TfidfVectorizer(
                                 analyzer='word',
                                 min_df=min_df_word,
@@ -357,8 +277,8 @@ def vectorizer(chargrams=(2, 6), min_df_char=0.002, wordgrams=(1, 4), min_df_wor
     ])
 
 
-def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, genia_opts=None, rules=True,
-                  max_df=1.0, binary=False, normalize=True, stats="length"):
+def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_word=0.001, rules=True, max_df=1.0,
+                  binary=False, normalize=True, stats="length"):
     """concatenates vectorizer and additional text stats (e.g. sentence position in abstract)
 
     all args are forwarded to vectorizer as positional arguments"""
@@ -367,9 +287,8 @@ def vectorizer_dx(chargrams=(2, 6), min_df_char=0.001, wordgrams=None, min_df_wo
         ("text_features", Pipeline([("text_selector", ItemGetter(0)),
                                     ("text_features",
                                      vectorizer(chargrams=chargrams, min_df_char=min_df_char, wordgrams=wordgrams,
-                                                min_df_word=min_df_word, genia_opts=genia_opts, rules=rules,
-                                                max_df=max_df,
-                                                binary=binary, normalize=normalize, stats=stats))])),
+                                                min_df_word=min_df_word, rules=rules, max_df=max_df, binary=binary,
+                                                normalize=normalize, stats=stats))])),
         ("stats", Pipeline([("stat_features", StatFeatures()),
                             ("vect", DictVectorizer())]))
     ])
@@ -539,6 +458,3 @@ def file_path(file_relative):
     """return the correct file path given the file's path relative to calling script"""
     return os.path.join(os.path.dirname(__file__), file_relative)
 
-
-def new_genia_tagger():
-    return GeniaTagger(file_path("./resources/geniatagger-3.0.2/geniatagger"))

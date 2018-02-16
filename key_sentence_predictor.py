@@ -9,10 +9,10 @@ from semisuper import transformers, helpers
 
 
 class KeySentencePredictor(BaseEstimator, TransformerMixin):
-    """predicts positions and scores of relevant sentences for list of {pmid, abstract} dictionaries"""
+    """predicts positions and scores of relevant sentences for list of {"pmid" : <pmid>, "abstract" : <txt>} dicts"""
 
     def __init__(self, batch_size=100):
-        """load pretrained classifier and maximum score in corpus for normalization"""
+        """load pretrained classifier and maximum score in silver standard corpus for normalization"""
 
         self.max_batch_size = batch_size
         self.pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False, mode="tolerant")
@@ -26,9 +26,14 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
         return self
 
     def predict(self, X):
+        """return dict with all pmids in X as keys and lists of key sentence <start, end, score> tuples as values
+
+        same as transform"""
+
         return self.transform(X)
 
     def transform(self, X):
+        """return dict with all pmids in X as keys and lists of key sentence <start, end, score> tuples as values"""
         return helpers.merge_dicts(map(self.transform_batch, helpers.partition(X, self.max_batch_size)))
 
     def transform_batch(self, X):

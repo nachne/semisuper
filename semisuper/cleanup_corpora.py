@@ -25,9 +25,6 @@ PARALLEL = True
 # RANDOM_SEED = 135343 # for making different runs comparable
 RANDOM_SEED = np.random.randint(10e6)
 
-genia_defaults = None
-
-
 # ------------------
 # select sentences
 # ------------------
@@ -161,7 +158,7 @@ def vectorize_preselection(P, U, ratio=1.0):
         P, _ = train_test_split(P, train_size=ratio, random_state=RANDOM_SEED)
         U, _ = train_test_split(U, train_size=ratio, random_state=RANDOM_SEED)
 
-    vec = transformers.vectorizer(genia_opts=genia_defaults)
+    vec = transformers.vectorizer()
     vec.fit(helpers.concatenate((P, U)))
 
     P_ = vec.transform(P)
@@ -255,7 +252,7 @@ def vectorized_clean_pnu(ratio=1.0):
           "\tU: ABSTRACTS (", num_rows(U_raw), ")"
           )
 
-    vec = transformers.vectorizer(genia_opts=genia_defaults)
+    vec = transformers.vectorizer()
     vec.fit(helpers.concatenate((P_raw, N_raw, U_raw)))
 
     P = vec.transform(P_raw)
@@ -332,7 +329,7 @@ def vectorized_clean_pu(ratio=1.0):
           "\tTEST SET (HOC POS + CIVIC + HOC NEG):", num_rows(X_test_raw)
           )
 
-    vec = transformers.vectorizer(genia_opts=genia_defaults)
+    vec = transformers.vectorizer()
     vec.fit(helpers.concatenate((P_raw, U_raw)))
 
     P = vec.transform(P_raw)

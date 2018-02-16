@@ -105,7 +105,7 @@ def sentences_piboso_outcome():
 # CIViC and PubMed helpers
 # ----------------------------------------------------------------
 
-def load_civic_abstracts(anew=True, verbose=False):
+def load_civic_abstracts(verbose=False, anew=False):
     """load CIViC clinical evidence summaries and corresponding PubMed abstracts
 
     if already pickled, load from disk, otherwise download"""

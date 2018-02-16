@@ -16,7 +16,9 @@ def file_path(file_relative):
     return os.path.join(os.path.dirname(__file__), file_relative)
 
 
-def main(max_abstracts=400, n_jobs=min(multiprocessing.cpu_count(), 12), batch_size=400):
+def main(max_abstracts=400, n_jobs=12, batch_size=400):
+    """loads max_abstracts abstracts for processing, classifies sentences and returns html text"""
+
     try:
         with open(file_path("semisuper/pickles/sent_test_abstract_dicts.pickle"), "rb") as f:
             abstracts = pickle.load(f)
@@ -34,6 +36,7 @@ def main(max_abstracts=400, n_jobs=min(multiprocessing.cpu_count(), 12), batch_s
     if max_abstracts < 2 * batch_size:
         results = predictor.transform(abstracts)
     else:
+        n_jobs = min(n_jobs, multiprocessing.cpu_count())
         with multiprocessing.Pool(n_jobs) as p:
             start_time = time.time()
             results = helpers.merge_dicts(p.map(predictor.transform,
@@ -53,6 +56,8 @@ def main(max_abstracts=400, n_jobs=min(multiprocessing.cpu_count(), 12), batch_s
 
 
 def make_html(abstracts, relevant):
+    """returns html file as a string where all articles have their key sentences highlighted"""
+
     articles = []
     for a in abstracts:
         articles.append(make_article(a, relevant[a["pmid"]]))
@@ -68,8 +73,12 @@ def make_html(abstracts, relevant):
 
 
 def make_article(abstract, hits):
+    """returns html <article> string for abstract where key sentences in hits are surrounded by spans marking
+    confidence"""
+
     text = abstract["abstract"]
     for (start, end, score) in sorted(hits, reverse=True):
+        # starting from the back to preserve indices, surround positions by spans with score as bg yellow's opacity
         text = "{}\n<span style=\"background-color: rgba(255,255,0,{})\">{}</span>\n{}".format(
                 text[:start],
                 (0.3 + min(score, 0.5) / 0.7),

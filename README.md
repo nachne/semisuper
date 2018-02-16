@@ -39,8 +39,8 @@ installs additional Python dependencies with "pip --user", downloads nltk data p
 
 > python3 demo.py [<max_abstracts>]
 
-runs a precomputed model for a simple demo.
-A random sample (optional parameter *max_abstracts*, default 400) of articles is processed by a pretrained classifier. Results are ouput as *demo.html*, a simple HTML file where these articles' key sentences are highlighted, with opacity according to prediction confidence.
+runs a simple demo.
+A random sample (optional parameter *max_abstracts*, default 400) of articles is processed by a pretrained classifier. Results are ouput as *demo.html*, a static HTML file where these articles' key sentences are highlighted, with opacity according to prediction confidence.
 
 If *semisuper/pickles/sent_test_abstracts.pickle* does not exist, new articles for the query "cancer" are fetched from PubMed.
 If *semisuper/pickles/semi_pipeline.pickle* does not exist, a new model is trained.

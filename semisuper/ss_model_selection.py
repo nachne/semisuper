@@ -113,12 +113,6 @@ def preproc_param_dict():
         'df_min'        : [0.002],  # [0.001, 0.002, 0.005, 0.01],
         'df_max'        : [1.0],
         'rules'         : [True],  # [False, True],
-        'genia_opts'    : [None,
-                           # {"pos": False, "ner": False},
-                           # {"pos": True, "ner": False},
-                           # {"pos": False, "ner": True},
-                           # {"pos": True, "ner": True}
-                           ],
         'wordgram_range': [(1, 4)],  # [None, (1, 2), (1, 3), (1, 4)],
         'chargram_range': [(2, 6)],  # [None, (2, 4), (2, 5), (2, 6)],
         'feature_select': [
@@ -230,7 +224,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
     estimators = estimator_list()
 
     for wordgram, chargram in product(preproc_params['wordgram_range'], preproc_params['chargram_range']):
-        for r, genia_opts in product(preproc_params['rules'], preproc_params['genia_opts']):
+        for r in preproc_params['rules']:
             for df_min, df_max in product(preproc_params['df_min'], preproc_params['df_max']):
                 for fs in preproc_params['feature_select']:
 
@@ -239,7 +233,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
 
                     print("\n----------------------------------------------------------------",
                           "\nwords:", wordgram, "chars:", chargram, "feature selection:", fs,
-                          "df_min, df_max:", df_min, df_max, "rules, genia_opts:", r, genia_opts,
+                          "df_min, df_max:", df_min, df_max, "rules", r,
                           "\n----------------------------------------------------------------\n")
 
                     start_time = time.time()
@@ -249,9 +243,8 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                                                                                  wordgram_range=wordgram,
                                                                                  feature_select=fs,
                                                                                  chargram_range=chargram,
-                                                                                 genia_opts=genia_opts,
-                                                                                 min_df_char=df_min,
-                                                                                 min_df_word=df_min, max_df=df_max)
+                                                                                 min_df_char=df_min, min_df_word=df_min,
+                                                                                 max_df=df_max)
                     if selector:
                         P_train_, N_train_, U_train_ = [(selector.transform(vectorizer.transform(x)))
                                                         for x in [P_train, N_train, U_train]]
@@ -273,7 +266,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                     # finalize records: remove model, add n-gram stats, update best
                     for m in iter_stats:
                         m['n-grams'] = {'word': wordgram, 'char': chargram},
-                        m['rules, genia_opts'] = (r, genia_opts)
+                        m['rules'] = r,
                         m['df_min, df_max'] = (df_min, df_max)
                         m['fs'] = fs()
                         if m['acc'] > results['best']['acc']:
@@ -285,7 +278,7 @@ def get_best_model(P_train, N_train, U_train, X_test=None, y_test=None):
                     results['all'].append(iter_stats)
 
                     print("Evaluated words:", wordgram, "chars:", chargram,
-                          "rules:", r, "genia:", genia_opts,
+                          "rules:", r,
                           "feature selection:", fs, "min_df:", df_min,
                           "in %s seconds\n" % (time.time() - start_time))
 
@@ -325,13 +318,13 @@ def test_best(results, X_eval, y_eval):
 
 
 def prepare_train_test(trainData, testData, trainLabels, rules=True, wordgram_range=None, feature_select=None,
-                       chargram_range=None, genia_opts=None, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
+                       chargram_range=None, min_df_char=0.001, min_df_word=0.001, max_df=1.0):
     """prepare training and test vectors, vectorizer and selector for validating classifiers"""
 
     print("Fitting vectorizer, preparing training and test data")
 
     vectorizer = transformers.vectorizer(chargrams=chargram_range, min_df_char=min_df_char, wordgrams=wordgram_range,
-                                         min_df_word=min_df_word, genia_opts=genia_opts, rules=rules, max_df=max_df)
+                                         min_df_word=min_df_word, rules=rules, max_df=max_df)
 
     transformedTrainData = vectorizer.fit_transform(trainData)
     transformedTestData = vectorizer.transform(testData)
@@ -386,7 +379,7 @@ def print_results(results):
     print("Best:\n")
     best = results['best']
     print(best['name'], best['n-grams'], best['fs'],
-          "\nrules, genia_opts", best['rules, genia_opts'], "df_min, df_max", best['df_min, df_max'],
+          "\nrules", best['rules'], "df_min, df_max", best['df_min, df_max'],
           "\namount of U labelled as relevant:", best['U_ratio'],
           "\nstats: p={}\tr={}\tf1={}\tacc={}\t".format(best['p'], best['r'], best['f1'], best['acc']))
 
@@ -397,7 +390,7 @@ def print_results(results):
 def print_reports(i):
     """helper to print model stat object"""
     print(i[0]['n-grams'], i[0]['fs'],
-          "\nrules, genia_opts", i[0]['rules, genia_opts'], "df_min, df_max", i[0]['df_min, df_max'])
+          "\nrules", i[0]['rules'], "df_min, df_max", i[0]['df_min, df_max'])
 
     for m in i:
         print("\n{}:\tacc: {}, relevant ratio in U: {}, classification report:\n{}".format(
