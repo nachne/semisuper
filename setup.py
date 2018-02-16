@@ -18,7 +18,7 @@ except ImportError:
 
 def pipinstall(pkg_name):
     """install package with pip subprocess"""
-    pip.main(["install", "--user", pkg_name])
+    pip.main(["install", pkg_name])
 
 
 def mkdir(path):

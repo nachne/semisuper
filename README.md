@@ -6,10 +6,11 @@ Semi-supervised sentence classification for oncological abstracts
 ## Installation via setup.py
 
 Installation requires a Unix system with *python3*, *pip3*, and Python3 dependencies *setuptools* and *nltk* installed.
+(ideally *scipy* and *scikit-learn* are installed as well, as their dependencies can be problematic)
 
 > python3 setup.py
 
-installs additional Python dependencies with "pip --user", downloads nltk data packages and the Hallmarks of Cancer corpus, and installs GENIAtagger.
+installs additional Python dependencies with pip (if necessary and possible), downloads nltk data packages and the Hallmarks of Cancer corpus.
 
 ## Manual installation
 
@@ -25,13 +26,8 @@ installs additional Python dependencies with "pip --user", downloads nltk data p
     * Unidecode==0.4.21
     * biopython==1.70
     * nltk==3.2.4
-    * https://github.com/d2207197/geniatagger-python/archive/master.zip
 
 * For training new models, .txt files from the Hallmarks of Cancer corpus from http://www.cl.cam.ac.uk/~sb895/HoC.html must be unpacked to semisuper/resources/HoCCorpus
-
-* Optionally, to be able to use GENIAtagger, unpack and make http://www.nactem.ac.uk/tsujii/GENIA/tagger/geniatagger-3.0.2.tar.gz in directory semisuper/resources/geniatagger-3.0.2
-(GENIAtagger options are currently deactivated in *semisuper/ss_model_selection.py > preproc_param_dict()*)
-
 
 # Usage
 
