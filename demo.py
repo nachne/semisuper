@@ -65,9 +65,7 @@ def make_html(abstracts, relevant):
     html = "<!DOCTYPE html>\n<meta charset=\"UTF-8\">\n<html>\n<body style=\"font-family: sans-serif\">" \
            "\n<h1>Demo</h1>\n\n" \
            "{}" \
-           "\n\n</body></html>".format(
-            "\n\n".join(articles)
-    )
+           "\n\n</body></html>".format("\n\n".join(articles))
 
     return html
 

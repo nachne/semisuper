@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 from numpy import ones, zeros
 from scipy import vstack
-from semisuper.helpers import partition_pos_neg, num_rows, label2num, densify, concatenate
+from semisuper.helpers import partition_pos_neg, num_rows, label2num, concatenate
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
@@ -63,7 +63,8 @@ class SimRanker(BaseEstimator, ClassifierMixin):
 
         if self.compute_thresh:
             self.threshold = self.dummy_threshold(self.mean_X, X)
-            if self.verbose: print("Threshold:", self.threshold)
+            if self.verbose:
+                print("Threshold:", self.threshold)
 
         return self
 
@@ -78,7 +79,8 @@ class SimRanker(BaseEstimator, ClassifierMixin):
     def ranking(self, X):
         return self.predict_proba(X)
 
-    def dummy_threshold(self, mean_X, X):
+    @staticmethod
+    def dummy_threshold(mean_X, X):
         cos_sim = cosine_similarity(mean_X, X)
         return (cos_sim.mean() + cos_sim.min()) / 2
 

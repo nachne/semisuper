@@ -2,14 +2,12 @@ from __future__ import absolute_import, division, print_function
 
 import random
 from multiprocessing import cpu_count
-import warnings
 
 import numpy as np
 from sklearn import svm
 from sklearn.ensemble import BaggingClassifier
 
-from semisuper.helpers import num_rows, arrays, partition_pos_neg, pu_score, train_report, select_PN_below_score, \
-    concatenate
+from semisuper.helpers import num_rows, partition_pos_neg, train_report, select_PN_below_score, concatenate
 from semisuper.proba_label_nb import build_proba_MNB
 from semisuper.pu_cos_roc import ranking_cos_sim, rocchio
 
@@ -435,8 +433,7 @@ def iterate_SVM(P, U, RN, max_neg_ratio=0.2, clf_selection=True, kernel=None, C=
             clf = (BaggingClassifier(
                     svm.SVC(class_weight='balanced', kernel=kernel, C=C)
                     , bootstrap=True, n_estimators=n_estimators, n_jobs=min(n_estimators, cpu_count()),
-                    max_samples=(1.0 if n_estimators < 4 else 1.0 / (n_estimators - 2)))
-            )
+                    max_samples=(1.0 if n_estimators < 4 else 1.0 / (n_estimators - 2))))
         else:
             clf = svm.LinearSVC(class_weight='balanced', C=C)
 

@@ -66,7 +66,7 @@ def partition(l, chunksize):
         chunksize = min(chunksize, num_rows(l[start:]))
         subl = l[start:(start + chunksize)]
         if subl:
-            result.append(subl)  # TODO yield instead?
+            result.append(subl)
         start += chunksize
     return result
 

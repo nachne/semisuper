@@ -18,7 +18,7 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
         self.pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False, mode="tolerant")
 
         if not hasattr(self.pipeline, "predict_proba"):
-            self.max_score = max_score_from_csv(load_silver_standard())
+            self.max_score = 1.0 * max_score_from_csv(load_silver_standard())
         else:
             self.max_score = 1.0
 

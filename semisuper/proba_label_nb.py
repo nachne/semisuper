@@ -48,8 +48,9 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
 
         pr_c = np.mean(yp, 0)
         self.log_pr_c = np.log(pr_c)
-        if self.verbose: print("Class distribution:", pr_c, "Computing attribute probabilities",
-                               "for", np.shape(X)[1], "attributes in ", np.shape(X)[0], "samples")
+        if self.verbose:
+            print("Class distribution:", pr_c, "Computing attribute probabilities",
+                  "for", np.shape(X)[1], "attributes in ", np.shape(X)[0], "samples")
         self.log_pr_w = np.log(np.array([self.pr_w_given_c(X, yp, cls=0),
                                          self.pr_w_given_c(X, yp, cls=1)]))
 
@@ -79,7 +80,6 @@ class ProbaLabelMNB(BaseEstimator, ClassifierMixin):
     def predict(self, X):
         """predict class labels using probabilistic class labels"""
         return np.round(self.predict_proba(X)[:, 1])
-
 
     def pr_w_given_c(self, X, y, cls):
         """probabilities per word (attribute), given a class label"""
