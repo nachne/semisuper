@@ -18,7 +18,7 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
         self.pipeline = build_corpus_and_ss_classifier.train_pipeline(from_scratch=False, mode="tolerant")
 
         if not hasattr(self.pipeline, "predict_proba"):
-            self.max_score = 1.0 * max_score_from_csv(load_silver_standard())
+            self.max_score = max_score_from_csv(load_silver_standard())
         else:
             self.max_score = 1.0
 
@@ -88,7 +88,7 @@ class KeySentencePredictor(BaseEstimator, TransformerMixin):
         """map decision function values to relevance score in [-1,1] using maximum score in the corpus and a cutoff"""
 
         scores = self.pipeline.decision_function(sentences)
-        return np.clip(np.array(scores) / self.max_score, -1.0, 1.0)
+        return np.clip(np.array(scores) * 1.0 / self.max_score, -1.0, 1.0)
 
     def normalized_probas(self, sentences):
         """map probabilities to relevance score in [0,1]"""
