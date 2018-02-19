@@ -6,7 +6,7 @@ Semi-supervised sentence classification for oncological abstracts
 ## Installation via setup.py
 
 Installation requires a Unix system with *python3*, *pip3*, and Python3 dependencies *setuptools* and *nltk* installed.
-(ideally *scipy* and *scikit-learn* are installed as well, as their dependencies can be problematic)
+(ideally *scipy* and *scikit-learn* are installed already, as their dependencies can be problematic. Tested on macOS and Ubuntu)
 
 > python3 setup.py
 
@@ -14,7 +14,7 @@ installs additional Python dependencies with pip (if necessary and possible), do
 
 ## Manual installation
 
-(from the project root containing this file as the working directory)
+(working directory = from the project root containing this file)
 
 * mkdir semisuper/pickles semisuper/resources/HoCCorpus semisuper/silver_standard
 
@@ -57,7 +57,7 @@ Currently, this performs hyperparameter search for iterative SVM only. To test a
 ## Using models for processing abstracts from PubMed (in other programs)
 
 *key_sentence_predictor.py* contains the class *KeySentencePredictor* which can be used to process a list X of dictionaries containing keys "abstract" and "pmid". 
-(This class is used by *key_sentence_predictor.py* and *semisuper/tests/key_sentence_predictor_test.py*)
+(This class is used by *demo.py* and *semisuper/tests/key_sentence_predictor_test.py*)
 
 Calling *transform(X)* or *predict(X)* return a dictionary containing a list of key sentences for each pmid, of the form: 
 
