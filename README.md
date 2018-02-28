@@ -5,7 +5,7 @@ Sentence classification for oncological abstracts **(requires pre-trained models
 
 ## Installation via setup.py
 
-Installation requires a Unix system with *python3*, *pip3*, and Python3 dependencies *setuptools* and *nltk* installed.
+Installation requires a Unix system with *Python 2.7*, *pip*, and Python2 dependencies *setuptools* and *nltk* installed.
 (ideally *scipy* and *scikit-learn* are installed already, as their dependencies can be problematic. Tested on macOS and Ubuntu)
 
 > python3 setup.py
@@ -50,5 +50,6 @@ Calling *transform(X)* or *predict(X)* return a dictionary containing a list of 
 
 > {<pmid_i> : [ <start_i0, end_i0, score_i0>, <start_i1, end_i1, score_i1>, ... ], <pmid_i+1> : ... }
 
-If *semisuper/pickles/semi_pipeline.pickle* or *semisuper/silver_standard.tsv* does not exist, a new pipeline and silver standard are generated.
+If *semisuper/pickles/semi_pipeline.pickle* or *semisuper/silver_standard.tsv* does not exist, **classification is not possible**.
+
 # semisuper_py2
