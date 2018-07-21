@@ -3,6 +3,7 @@ Semi-supervised sentence classification for oncological abstracts
 
 # Citation
 
+```
 @inproceedings{vseva2018identifying,
   title={Identifying Key Sentences for Precision Oncology Using Semi-Supervised Learning},
   author={{\v{S}}eva, Jurica and Wackerbauer, Martin and Leser, Ulf},
@@ -10,6 +11,7 @@ Semi-supervised sentence classification for oncological abstracts
   pages={35--46},
   year={2018}
 }
+```
 
 # Prerequisites
 
